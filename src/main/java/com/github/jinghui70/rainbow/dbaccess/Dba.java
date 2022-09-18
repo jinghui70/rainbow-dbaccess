@@ -40,7 +40,7 @@ public class Dba {
         if (driver.contains("oracle"))
             this.dialect = new DialectOracle();
     }
-    
+
     public Dba(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate,
                TransactionTemplate transactionTemplate, Dialect dialect) {
         this.jdbcTemplate = jdbcTemplate;
@@ -179,7 +179,7 @@ public class Dba {
     public int update(String tableName, Map<String, Object> map, Collection<String> keys) {
         Assert.notEmpty(keys);
         Sql sql = sql("update ").append(tableName).append(" set ");
-        for (Map.Entry<String, Object> entry: map.entrySet()) {
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
             String field = entry.getKey();
             Object value = entry.getValue();
             if (!CollUtil.contains(keys, field)) {

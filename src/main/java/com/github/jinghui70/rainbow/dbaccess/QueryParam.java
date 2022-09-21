@@ -2,7 +2,7 @@ package com.github.jinghui70.rainbow.dbaccess;
 
 import java.util.Arrays;
 
-public class QueryParam implements Pager {
+public class QueryParam {
 
     private Cnd[] cnds;
 
@@ -26,7 +26,6 @@ public class QueryParam implements Pager {
         this.cnds = cnds;
     }
 
-    @Override
     public int getPageNo() {
         return pageNo;
     }
@@ -35,7 +34,6 @@ public class QueryParam implements Pager {
         this.pageNo = pageNo;
     }
 
-    @Override
     public int getPageSize() {
         return pageSize;
     }

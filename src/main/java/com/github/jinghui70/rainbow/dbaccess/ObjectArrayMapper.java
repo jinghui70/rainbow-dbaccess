@@ -17,7 +17,7 @@ public class ObjectArrayMapper implements RowMapper<Object[]> {
         int columnCount = metaData.getColumnCount();
         Object[] result = new Object[columnCount];
         for (int i = 1; i <= columnCount; i++) {
-            result[i] = JdbcUtils.getResultSetValue(rs, i);
+            result[i - 1] = JdbcUtils.getResultSetValue(rs, i);
         }
         return result;
     }

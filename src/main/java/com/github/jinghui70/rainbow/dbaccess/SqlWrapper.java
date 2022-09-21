@@ -284,20 +284,8 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return new PageData<>(count, list);
     }
 
-    public <T> PageData<T> pageQuery(RowMapper<T> mapper, Pager pager) {
-        return pageQuery(mapper, pager.getPageNo(), pager.getPageSize());
-    }
-
-    public <T> PageData<T> pageQuery(Class<T> objectType, Pager pager) {
-        return pageQuery(new BeanMapper<>(objectType), pager.getPageNo(), pager.getPageSize());
-    }
-
     public <T> PageData<T> pageQuery(Class<T> objectType, int pageNo, int pageSize) {
         return pageQuery(new BeanMapper<>(objectType), pageNo, pageSize);
-    }
-
-    public PageData<Map<String, Object>> pageQuery(Pager pager) {
-        return pageQuery(pager.getPageNo(), pager.getPageSize());
     }
 
     public PageData<Map<String, Object>> pageQuery(int pageNo, int pageSize) {

@@ -168,7 +168,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     }
 
     public <T> T queryForObject(Class<T> objectType) throws DataAccessException {
-        return queryForObject(new BeanMapper<>(objectType));
+        return queryForObject(BeanMapper.of(objectType));
     }
 
     public <T> List<T> queryForList(RowMapper<T> rowMapper) throws DataAccessException {
@@ -176,7 +176,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     }
 
     public <T> List<T> queryForList(Class<T> objectType) throws DataAccessException {
-        return queryForList(new BeanMapper<>(objectType));
+        return queryForList(BeanMapper.of(objectType));
     }
 
     /**
@@ -240,7 +240,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     }
 
     public <K, V> Map<K, V> queryToMap(ResultSetFunction<K> keyFunc, Class<V> clazz) {
-        return queryToMap(keyFunc, new BeanMapper<>(clazz));
+        return queryToMap(keyFunc, BeanMapper.of(clazz));
     }
 
     public <K, T> Map<K, List<T>> queryToGroup(ResultSetFunction<K> keyFunc, RowMapper<T> rowMapper) {
@@ -260,7 +260,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     }
 
     public <K, T> Map<K, List<T>> queryToGroup(ResultSetFunction<K> keyFunc, Class<T> clazz) {
-        return queryToGroup(keyFunc, new BeanMapper<>(clazz));
+        return queryToGroup(keyFunc, BeanMapper.of(clazz));
     }
 
     public <K, T> Map<K, List<T>> queryToGroup(ResultSetFunction<K> keyFunc, ResultSetFunction<T> valueFunc) {
@@ -285,7 +285,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     }
 
     public <T> PageData<T> pageQuery(Class<T> objectType, int pageNo, int pageSize) {
-        return pageQuery(new BeanMapper<>(objectType), pageNo, pageSize);
+        return pageQuery(BeanMapper.of(objectType), pageNo, pageSize);
     }
 
     public PageData<Map<String, Object>> pageQuery(int pageNo, int pageSize) {

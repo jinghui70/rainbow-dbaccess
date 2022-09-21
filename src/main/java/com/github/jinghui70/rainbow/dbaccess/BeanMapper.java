@@ -18,6 +18,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * 支持数组属性的对象RowMapper
@@ -30,8 +31,9 @@ public class BeanMapper<T> implements RowMapper<T> {
     private final Class<T> mappedClass;
     private final Map<String, Object> propMap = new CaseInsensitiveMap<>();
     private Map<PropDesc, Integer> arrayProp;
+    private Map<String, Function<String,?>> transformMap;
 
-    public BeanMapper(Class<T> mappedClass) {
+    private BeanMapper(Class<T> mappedClass) {
         this.mappedClass = mappedClass;
         BeanDesc desc = BeanUtil.getBeanDesc(mappedClass);
         for (PropDesc prop : desc.getProps()) {
@@ -53,6 +55,13 @@ public class BeanMapper<T> implements RowMapper<T> {
         }
     }
 
+    public BeanMapper<T> decode(String field, Function<String, ?> function) {
+        if (transformMap == null)
+            transformMap = new HashMap<>();
+        transformMap.put(field, function);
+        return this;
+    }
+
     @Override
     public T mapRow(ResultSet rs, int rowNum) throws SQLException {
         T result = BeanUtils.instantiateClass(this.mappedClass);
@@ -66,7 +75,7 @@ public class BeanMapper<T> implements RowMapper<T> {
             if (prop != null) {
                 if (prop instanceof PropDesc) {
                     PropDesc p = (PropDesc) prop;
-                    Object value = JdbcUtils.getResultSetValue(rs, index, p.getFieldClass());
+                    Object value = getPropValue(rs, index, p);
                     p.setValue(result, value);
                 } else {
                     ArrayProp ap = (BeanMapper.ArrayProp) prop;
@@ -85,6 +94,17 @@ public class BeanMapper<T> implements RowMapper<T> {
         return result;
     }
 
+    protected Object getPropValue(ResultSet rs, int index, PropDesc prop) throws SQLException {
+        if (transformMap!=null) {
+            Function<String,?> decorator = transformMap.get(prop.getRawFieldName());
+            if (decorator != null) {
+                String value = rs.getString(index);
+                return decorator.apply(value);
+            }
+        }
+        return JdbcUtils.getResultSetValue(rs, index, prop.getFieldClass());
+    }
+
     private static class ArrayProp {
         PropDesc prop;
         int index;
@@ -95,4 +115,7 @@ public class BeanMapper<T> implements RowMapper<T> {
         }
     }
 
+    public static <T> BeanMapper<T> of(Class<T> clazz) {
+        return new BeanMapper<>(clazz);
+    }
 }

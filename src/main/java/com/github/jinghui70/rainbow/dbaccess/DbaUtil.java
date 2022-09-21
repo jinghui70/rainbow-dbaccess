@@ -2,17 +2,13 @@ package com.github.jinghui70.rainbow.dbaccess;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.PropDesc;
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import com.github.jinghui70.rainbow.dbaccess.annotation.*;
 
 import java.lang.reflect.Array;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class DbaUtil {
@@ -88,19 +84,14 @@ public abstract class DbaUtil {
      *
      * @param bean             对象
      * @param ignoreNullValue  是否忽略为空的值
-     * @param ignoreProperties 忽略的属性名
      * @return 转化后的Map
      */
-    public static Map<String, Object> beanToMap(Object bean, boolean ignoreNullValue, String... ignoreProperties) {
-        final HashSet<String> ignoreSet = ArrayUtil.isEmpty(ignoreProperties) ? null
-                : CollUtil.newHashSet(ignoreProperties);
-        Map<String, Object> result = new HashMap<>();
+    public static Map<String, Object> beanToMap(Object bean, boolean ignoreNullValue) {
+        Map<String, Object> result = new LinkedHashMap<>();
         BeanUtil.descForEach(bean.getClass(), prop -> {
             if (prop.getField().getAnnotation(Transient.class) != null)
                 return;
-            String fieldName = prop.getFieldName();
-            if (CollUtil.contains(ignoreSet, fieldName))
-                return;
+            String fieldName = prop.getRawFieldName();
             Column filedAnnotation = prop.getField().getAnnotation(Column.class);
             fieldName = filedAnnotation == null ? StrUtil.toUnderlineCase(fieldName) : filedAnnotation.name();
             Object value = prop.getValue(bean);

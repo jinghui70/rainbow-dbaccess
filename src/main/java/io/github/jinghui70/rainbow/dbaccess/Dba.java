@@ -97,6 +97,7 @@ public class Dba {
      * 插入一个对象
      *
      * @param bean 需要插入的对象
+     * @return 插入改变的行数，正常应该是1
      */
     public int insert(Object bean) {
         String tableName = DbaUtil.tableName(bean.getClass());
@@ -104,6 +105,13 @@ public class Dba {
         return insert(tableName, map);
     }
 
+    /**
+     * 插入一个map到一个数据表中
+     *
+     * @param tableName 表名
+     * @param map map对象
+     * @return 插入改变的行数，正常应该是1
+     */
     public int insert(String tableName, Map<String, Object> map) {
         Sql sql = sql("insert into ").append(tableName).append("(");
         for (Map.Entry<String, Object> entry : map.entrySet()) {
@@ -113,6 +121,11 @@ public class Dba {
         return sql.execute();
     }
 
+    /**
+     * 插入一组数据
+     *
+     * @param beans 数据的集合
+     */
     public void insert(Collection<?> beans) {
         if (CollUtil.isEmpty(beans))
             return;
@@ -126,7 +139,7 @@ public class Dba {
      * 插入一组Map到指定的表里
      *
      * @param tableName 数据表名
-     * @param data      数据
+     * @param data      数据列表
      */
     public void insert(String tableName, List<Map<String, Object>> data) {
         doInsert(tableName, data, "insert");
@@ -207,7 +220,7 @@ public class Dba {
      * @return 是否存在
      */
     public boolean exist(String tableName) {
-        String sql = String.format("SELECT COUNT(1) FROM %s where 1!=1", tableName);
+        String sql = String.format("SELECT COUNT(*) FROM %s where 1!=1", tableName);
         try {
             jdbcTemplate.queryForObject(sql, Integer.class);
         } catch (DataAccessException e) {

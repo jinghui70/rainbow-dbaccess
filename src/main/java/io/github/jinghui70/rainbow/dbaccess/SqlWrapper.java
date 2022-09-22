@@ -210,7 +210,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     }
 
     public int count() {
-        String sql = String.format("SELECT COUNT(1) FROM (%s) C", getSql());
+        String sql = String.format("SELECT COUNT(*) FROM (%s) C", getSql());
         return queryForValue(sql, int.class);
     }
 

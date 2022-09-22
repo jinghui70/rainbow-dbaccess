@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * 分页查询用数据封装对象
  *
- * @param <T>
+ * @param <T> 对象的泛型
  */
 public class PageData<T> {
 

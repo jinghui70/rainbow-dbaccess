@@ -47,8 +47,9 @@ public class MapRowMapper extends ColumnMapRowMapper {
     /**
      * 设置统一的key改名函数
      *
+     * @param keyChangeFunction 改名函数，比如可以统一转为CamelCase
+     * @return 自己
      */
-    // TODO toCamelCaseKey
     public MapRowMapper rename(Function<String, String> keyChangeFunction) {
         this.keyChangeFunction = keyChangeFunction;
         return this;
@@ -101,7 +102,6 @@ public class MapRowMapper extends ColumnMapRowMapper {
         postConsumer = consumer;
         return this;
     }
-    //TODO colToArray
 
     @Override
     protected String getColumnKey(String columnName) {

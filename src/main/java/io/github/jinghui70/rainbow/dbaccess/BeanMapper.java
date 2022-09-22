@@ -23,8 +23,7 @@ import java.util.function.Function;
 /**
  * 支持数组属性的对象RowMapper
  *
- * @param <T>
- * @author lijinghui
+ * @param <T> 对象泛型
  */
 public class BeanMapper<T> implements RowMapper<T> {
 

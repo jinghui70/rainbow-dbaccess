@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 标识一个数组属性对应数据库中多个字段，字段名的规则是 属性名加下划线和下标
+ * 标识一个数组属性对应数据库中多个字段，字段名的规则是 属性名加（下划线）下标
  *
  * @author lijinghui
  */
@@ -15,23 +15,23 @@ import java.lang.annotation.Target;
 public @interface ArrayField {
 
     /**
-     * 数组字段，数组长度
+     * 对应的数组长度
      *
-     * @return
+     * @return 数组的长度
      */
     int length();
 
     /**
      * 数据库中对应该属性下标从0还是1开始
      *
-     * @return
+     * @return 下标起始值
      */
     int start() default 0;
 
     /**
      * 拼名字的时候数字前是否带下划线
      *
-     * @return
+     * @return true 带下划线，false 不带
      */
     boolean underline() default false;
 }

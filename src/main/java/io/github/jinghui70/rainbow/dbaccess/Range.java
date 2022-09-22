@@ -7,7 +7,7 @@ import java.util.Objects;
 /**
  * 值范围对象，from为空表示无下限，to为空表示无上限。不能同时为空
  *
- * @param <T>
+ * @param <T> 值的泛型
  * @author lijinghui
  */
 public class Range<T extends Comparable<T>> {

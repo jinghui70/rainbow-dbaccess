@@ -31,6 +31,12 @@ public abstract class StringBuilderWrapper<T extends StringBuilderWrapper<T>> im
         return sb.toString();
     }
 
+    /**
+     * 添加一个对象的toString字符串
+     *
+     * @param obj 指定对象
+     * @return 自己
+     */
     public T append(Object obj) {
         if (obj == null) {
             checkTemp();
@@ -60,6 +66,13 @@ public abstract class StringBuilderWrapper<T extends StringBuilderWrapper<T>> im
         return (T) this;
     }
 
+    /**
+     * 把一个字符串复制多遍，用指定分隔符，添加进来
+     * @param str 字符串
+     * @param times 复制次数
+     * @param delimiter 分隔符
+     * @return 自己
+     */
     public T append(String str, int times, String delimiter) {
         append(str);
         for (int i = 1; i < times; i++) {
@@ -70,10 +83,24 @@ public abstract class StringBuilderWrapper<T extends StringBuilderWrapper<T>> im
         return (T) this;
     }
 
+    /**
+     * 一组字符串，以逗号分隔，添加进来
+     * @param strs 字符串集合
+     * @return 自己
+     */
     public T join(Collection<String> strs) {
         return this.append(strs, StrUtil.COMMA);
     }
 
+    /**
+     * 一组对象，转为字符串后添加进来
+     *
+     * @param list 对象列表
+     * @param toString 对象转为字符串的函数
+     * @param delimiter 分隔符
+     * @param <O> 对象泛型
+     * @return 自己
+     */
     public <O> T append(Collection<O> list, Function<O, String> toString, String delimiter) {
         if (CollUtil.isNotEmpty(list)) {
             for (O obj : list) {
@@ -84,6 +111,14 @@ public abstract class StringBuilderWrapper<T extends StringBuilderWrapper<T>> im
         return (T) this;
     }
 
+    /**
+     * 添加一组对象，转为toString字符串
+     *
+     * @param list 对象列表
+     * @param delimiter 分隔符
+     * @param <O> 对象泛型
+     * @return 自己
+     */
     public <O> T append(Collection<O> list, String delimiter) {
         return append(list, Object::toString, delimiter);
     }
@@ -91,8 +126,8 @@ public abstract class StringBuilderWrapper<T extends StringBuilderWrapper<T>> im
     /**
      * 临时字符串用来对付 Where and 逗号这样时有时无 的字符串，当后续有append的时候，会被自动append进去
      *
-     * @param str
-     * @return
+     * @param str 添加的字符串
+     * @return 自己
      */
     public T appendTemp(String str) {
         checkTemp();
@@ -107,7 +142,7 @@ public abstract class StringBuilderWrapper<T extends StringBuilderWrapper<T>> im
     /**
      * 取消temp中存储的字符串
      *
-     * @return
+     * @return 自己
      */
     public T clearTemp() {
         this.tempStr = null;
@@ -120,19 +155,31 @@ public abstract class StringBuilderWrapper<T extends StringBuilderWrapper<T>> im
         tempStr = null;
     }
 
+    /**
+     * 获取内容长度
+     *
+     * @return 长度值
+     */
     public int length() {
         return sb.length();
     }
 
+    /**
+     * 设置新的长度
+     *
+     * @param newLength 新的长度
+     * @return 自己
+     */
     public T setLength(int newLength) {
         sb.setLength(newLength);
         return (T) this;
     }
 
     /**
-     * 限制最大长度
+     * 限制最大长度，如果原来的长度大于设置的长度，截断并添加...
      *
-     * @param newLength
+     * @param newLength 新的长度
+     * @return 自己
      */
     public T limit(int newLength) {
         if (length() > newLength) {

@@ -18,6 +18,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 /**
@@ -31,6 +32,8 @@ public class BeanMapper<T> implements RowMapper<T> {
     private final Map<String, Object> propMap = new CaseInsensitiveMap<>();
     private Map<PropDesc, Integer> arrayProp;
     private Map<String, Function<String,?>> transformMap;
+
+    private BiConsumer<T, ResultSet> postConsumer;
 
     private BeanMapper(Class<T> mappedClass) {
         this.mappedClass = mappedClass;
@@ -58,6 +61,17 @@ public class BeanMapper<T> implements RowMapper<T> {
         if (transformMap == null)
             transformMap = new HashMap<>();
         transformMap.put(field, function);
+        return this;
+    }
+
+    /**
+     * 全部字段处理完之后的后处理，比如有些字段需要组合成一个属性
+     *
+     * @param postConsumer
+     * @return
+     */
+    public BeanMapper<T> post(BiConsumer<T, ResultSet> postConsumer) {
+        this.postConsumer = postConsumer;
         return this;
     }
 
@@ -89,6 +103,9 @@ public class BeanMapper<T> implements RowMapper<T> {
                         Array.set(array, ap.index, value);
                 }
             }
+        }
+        if (postConsumer!=null) {
+            postConsumer.accept(result, rs);
         }
         return result;
     }

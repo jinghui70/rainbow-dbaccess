@@ -5,6 +5,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SqlTypeValue;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,6 +20,8 @@ import java.util.List;
 public class Sql extends SqlWrapper<Sql> {
 
     private final List<Object> params = new ArrayList<>();
+
+    private List<Integer> types = null;
 
     protected Sql() {
         super();
@@ -73,6 +76,18 @@ public class Sql extends SqlWrapper<Sql> {
         return params;
     }
 
+    public Sql addTypeParam(Object param, int sqlType) {
+        if (sqlType == SqlTypeValue.TYPE_UNKNOWN) return addParam(param);
+        if (types == null)
+            types = new ArrayList<>();
+        int size = params.size() - types.size();
+        if (size > 0)
+            types.addAll(Collections.nCopies(size, SqlTypeValue.TYPE_UNKNOWN));
+        params.add(param);
+        types.add(sqlType);
+        return this;
+    }
+
     public Sql addParam(Object... params) {
         Collections.addAll(this.params, params);
         return this;
@@ -85,6 +100,10 @@ public class Sql extends SqlWrapper<Sql> {
 
     public Object[] getParamArray() {
         return params.toArray();
+    }
+
+    private int[] getTypeArray() {
+        return types.stream().mapToInt(Integer::intValue).toArray();
     }
 
     public Sql setParam(Object... params) {
@@ -104,8 +123,10 @@ public class Sql extends SqlWrapper<Sql> {
     public int execute() {
         if (noParams())
             return getJdbcTemplate().update(getSql());
-        else
+        else if (types == null)
             return getJdbcTemplate().update(getSql(), getParamArray());
+        else
+            return getJdbcTemplate().update(getSql(), getParamArray(), getTypeArray());
     }
 
     public int[] batchUpdate(List<Object[]> batchArgs) {
@@ -120,8 +141,10 @@ public class Sql extends SqlWrapper<Sql> {
     public void query(RowCallbackHandler rch) {
         if (noParams())
             getJdbcTemplate().query(getSql(), rch);
-        else
+        else if (types == null)
             getJdbcTemplate().query(getSql(), rch, getParamArray());
+        else
+            getJdbcTemplate().query(getSql(), getParamArray(), getTypeArray(), rch);
     }
 
     @Override
@@ -129,8 +152,10 @@ public class Sql extends SqlWrapper<Sql> {
         try {
             if (noParams())
                 return getJdbcTemplate().queryForObject(getSql(), mapper);
-            else
+            else if (types==null)
                 return getJdbcTemplate().queryForObject(getSql(), mapper, getParamArray());
+            else
+                return getJdbcTemplate().queryForObject(getSql(), getParamArray(), getTypeArray(), mapper);
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
@@ -140,23 +165,29 @@ public class Sql extends SqlWrapper<Sql> {
     protected <T> List<T> queryForList(String sql, RowMapper<T> rowMapper) throws DataAccessException {
         if (noParams())
             return getJdbcTemplate().query(sql, rowMapper);
-        else
+        else if (types==null)
             return getJdbcTemplate().query(sql, rowMapper, getParamArray());
+        else
+            return getJdbcTemplate().query(sql, getParamArray(), getTypeArray(), rowMapper);
     }
 
     @Override
     public <T> T queryForValue(String sql, Class<T> requiredType) throws DataAccessException {
         if (noParams())
             return getJdbcTemplate().queryForObject(sql, requiredType);
-        else
+        else if (types==null)
             return getJdbcTemplate().queryForObject(sql, requiredType, getParamArray());
+        else
+            return getJdbcTemplate().queryForObject(sql, getParamArray(), getTypeArray(), requiredType);
     }
 
     @Override
     public <T> List<T> queryForValueList(Class<T> elementType) throws DataAccessException {
         if (noParams())
             return getJdbcTemplate().queryForList(getSql(), elementType);
-        else
+        else if (types==null)
             return getJdbcTemplate().queryForList(getSql(), elementType, getParamArray());
+        else
+            return getJdbcTemplate().queryForList(getSql(), getParamArray(), getTypeArray(),elementType);
     }
 }

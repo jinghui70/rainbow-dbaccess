@@ -98,14 +98,6 @@ public class Sql extends SqlWrapper<Sql> {
         return this;
     }
 
-    public Object[] getParamArray() {
-        return params.toArray();
-    }
-
-    private int[] getTypeArray() {
-        return types.stream().mapToInt(Integer::intValue).toArray();
-    }
-
     public Sql setParam(Object... params) {
         this.params.clear();
         return addParam(params);
@@ -113,6 +105,17 @@ public class Sql extends SqlWrapper<Sql> {
 
     public boolean noParams() {
         return params.isEmpty();
+    }
+
+    private Object[] getParamArray() {
+        return params.toArray();
+    }
+
+    private int[] getTypeArray() {
+        int size = params.size() - types.size();
+        if (size > 0)
+            types.addAll(Collections.nCopies(size, SqlTypeValue.TYPE_UNKNOWN));
+        return types.stream().mapToInt(Integer::intValue).toArray();
     }
 
     /**

@@ -10,6 +10,6 @@ Add the following to the dependencies in the project's pom.xml:
 <dependency>
     <groupId>io.github.jinghui70</groupId>
     <artifactId>rainbow-dbaccess</artifactId>
-    <version>5.1.2</version>
+    <version>5.1.4</version>
 </dependency>
 ```

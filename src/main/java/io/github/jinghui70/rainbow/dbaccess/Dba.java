@@ -106,6 +106,18 @@ public class Dba {
     }
 
     /**
+     * 插入一个对象，如果已经存在就更新。这个函数H2支持，别的数据库未必支持
+     *
+     * @param bean 需要插入的对象
+     * @return 插入改变的行数，正常应该是1
+     */
+    public int merge(Object bean) {
+        String tableName = DbaUtil.tableName(bean.getClass());
+        Map<String, Object> map = DbaUtil.beanToMap(bean, true);
+        return merge(tableName, map);
+    }
+
+    /**
      * 插入一个map到一个数据表中
      *
      * @param tableName 表名
@@ -113,7 +125,21 @@ public class Dba {
      * @return 插入改变的行数，正常应该是1
      */
     public int insert(String tableName, Map<String, Object> map) {
-        Sql sql = sql("insert into ").append(tableName).append("(");
+        return doInsert(tableName, map, "insert");
+    }
+
+    /**
+     * 插入一条记录到指定的表里，如果已经存在就更新。这个函数H2支持，别的数据库未必支持
+     * @param tableName 数据表名
+     * @param map map对象
+     * @return 插入改变的行数，正常应该是1
+     */
+    public int merge(String tableName, Map<String, Object> map) {
+        return doInsert(tableName, map, "merge");
+    }
+
+    public int doInsert(String tableName, Map<String, Object> map, String type) {
+        Sql sql = sql(type).append(" into ").append(tableName).append("(");
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             sql.append(entry.getKey()).appendTempComma().addParam(entry.getValue());
         }
@@ -127,12 +153,25 @@ public class Dba {
      * @param beans 数据的集合
      */
     public void insert(Collection<?> beans) {
+        doInsert(beans, "insert");
+    }
+
+    /**
+     * 插入一组数据，如果已经存在就更新。这个函数H2支持，别的数据库未必支持
+     *
+     * @param beans 数据的集合
+     */
+    public void merge(Collection<?> beans) {
+        doInsert(beans, "merge");
+    }
+
+    private void doInsert(Collection<?> beans, String type) {
         if (CollUtil.isEmpty(beans))
             return;
         Object first = CollUtil.get(beans, 0);
         String tableName = DbaUtil.tableName(first.getClass());
         List<Map<String, Object>> data = beans.stream().map(bean -> DbaUtil.beanToMap(bean, false)).collect(toList());
-        insert(tableName, data);
+        doInsert(tableName, data, type);
     }
 
     /**
@@ -147,7 +186,6 @@ public class Dba {
 
     /**
      * 插入一组数据到指定的表里，如果已经存在就更新。这个函数H2支持，别的数据库未必支持
-     *
      * @param tableName 数据表名
      * @param data      数据
      */

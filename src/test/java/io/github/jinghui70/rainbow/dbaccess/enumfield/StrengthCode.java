@@ -1,19 +1,19 @@
 package io.github.jinghui70.rainbow.dbaccess.enumfield;
 
-import io.github.jinghui70.rainbow.utils.ICodeObject;
+import io.github.jinghui70.rainbow.utils.CodeEnum;
 
-public enum StrengthCode implements ICodeObject {
+public enum StrengthCode implements CodeEnum {
 
     强("1"), 中("2"), 弱("3");
 
-    private String code;
+    private final String code;
 
     StrengthCode(String code) {
         this.code = code;
     }
 
     @Override
-    public String getCode() {
+    public String code() {
         return code;
     }
 }

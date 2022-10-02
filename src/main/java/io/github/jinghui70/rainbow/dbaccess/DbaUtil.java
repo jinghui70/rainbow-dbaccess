@@ -6,7 +6,7 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.dbaccess.annotation.*;
-import io.github.jinghui70.rainbow.utils.ICodeObject;
+import io.github.jinghui70.rainbow.utils.CodeEnum;
 
 import java.lang.reflect.Array;
 import java.sql.Types;
@@ -100,10 +100,8 @@ public abstract class DbaUtil {
             Class enumClass = prop.getFieldClass();
             if (value instanceof Number)
                 return enumClass.getEnumConstants()[((Number) value).intValue()];
-            if (ICodeObject.class.isAssignableFrom(enumClass))
-                return Arrays.stream(enumClass.getEnumConstants())
-                        .filter(e -> Objects.equals(value.toString(), ((ICodeObject) e).getCode()))
-                        .findAny().orElse(null);
+            if (CodeEnum.class.isAssignableFrom(enumClass))
+                return CodeEnum.codeToEnum(enumClass, value.toString());
             return Enum.valueOf(enumClass, value.toString());
         }
         return value;
@@ -128,8 +126,8 @@ public abstract class DbaUtil {
             if (null == value && ignoreNullValue)
                 return;
             if (value instanceof Enum<?>) {
-                if (value instanceof ICodeObject)
-                    value = ((ICodeObject) value).getCode();
+                if (value instanceof CodeEnum)
+                    value = ((CodeEnum) value).code();
                 else if (isString(column)) {
                     value = ((Enum<?>) value).name();
                 } else

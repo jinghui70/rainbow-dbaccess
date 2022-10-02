@@ -88,23 +88,23 @@ public abstract class DbaUtil {
      * 2 如果枚举实现了ICodeObject，则去匹配code
      * 3 按枚举name匹配
      *
-     * @param prop 属性
+     * @param prop  属性
      * @param value 输入值
      * @return 输出值
      */
+    @SuppressWarnings("unchecked")
     public static Object checkEnumPropValue(PropDesc prop, Object value) {
         if (value == null) return null;
         if (prop.getFieldClass().isEnum()) {
-            Class<Enum> enumClass = (Class<Enum>) prop.getFieldClass();
-            if (value instanceof Number) {
-                value = enumClass.getEnumConstants()[((Number) value).intValue()];
-            } else if (ICodeObject.class.isAssignableFrom(enumClass)) {
-                String code = value.toString();
-                value = Arrays.stream(enumClass.getEnumConstants())
-                        .filter(e -> Objects.equals(code, ((ICodeObject) e).getCode()))
+            @SuppressWarnings("rawtypes")
+            Class enumClass = prop.getFieldClass();
+            if (value instanceof Number)
+                return enumClass.getEnumConstants()[((Number) value).intValue()];
+            if (ICodeObject.class.isAssignableFrom(enumClass))
+                return Arrays.stream(enumClass.getEnumConstants())
+                        .filter(e -> Objects.equals(value.toString(), ((ICodeObject) e).getCode()))
                         .findAny().orElse(null);
-            } else
-                value = Enum.valueOf(enumClass, value.toString());
+            return Enum.valueOf(enumClass, value.toString());
         }
         return value;
     }

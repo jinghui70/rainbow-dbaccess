@@ -59,12 +59,6 @@
             <version>2.7.3</version>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <version>2.7.3</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
             <version>5.8.6</version>
@@ -73,6 +67,12 @@
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <version>2.1.214</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.9.0</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <build>
@@ -116,6 +116,11 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M7</version>
             </plugin>
         </plugins>
     </build>

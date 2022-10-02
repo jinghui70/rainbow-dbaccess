@@ -22,15 +22,6 @@ public class Table {
         this.fields = fields;
     }
 
-    public static Table create(Field... fields) {
-        Table table = create(DEFAULT);
-        return table.add(fields);
-    }
-
-    public static Table create(List<Field> fields) {
-        return new Table(DEFAULT, fields);
-    }
-
     public static Table create(String name) {
         return new Table(name, new ArrayList<>());
     }

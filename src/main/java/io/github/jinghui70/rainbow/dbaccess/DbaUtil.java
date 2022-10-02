@@ -6,8 +6,10 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.dbaccess.annotation.*;
+import io.github.jinghui70.rainbow.utils.ICodeObject;
 
 import java.lang.reflect.Array;
+import java.sql.Types;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -61,8 +63,8 @@ public abstract class DbaUtil {
             ArrayField a = prop.getField().getAnnotation(ArrayField.class);
             if (a == null) {
                 Object value = map.get(fieldName);
-                if (value != null)
-                    prop.setValue(result, value);
+                value = checkEnumPropValue(prop, value);
+                prop.setValue(result, value);
             } else {
                 Class<?> type = prop.getFieldClass().getComponentType();
                 Object array = Array.newInstance(type, a.length());
@@ -80,10 +82,38 @@ public abstract class DbaUtil {
     }
 
     /**
+     * 检查一个属性是否是枚举属性，如果是则转换一个值为枚举值
+     * 转换的原则是：
+     * 1 如果值是数字，则按枚举ordinal匹配
+     * 2 如果枚举实现了ICodeObject，则去匹配code
+     * 3 按枚举name匹配
+     *
+     * @param prop 属性
+     * @param value 输入值
+     * @return 输出值
+     */
+    public static Object checkEnumPropValue(PropDesc prop, Object value) {
+        if (value == null) return null;
+        if (prop.getFieldClass().isEnum()) {
+            Class<Enum> enumClass = (Class<Enum>) prop.getFieldClass();
+            if (value instanceof Number) {
+                value = enumClass.getEnumConstants()[((Number) value).intValue()];
+            } else if (ICodeObject.class.isAssignableFrom(enumClass)) {
+                String code = value.toString();
+                value = Arrays.stream(enumClass.getEnumConstants())
+                        .filter(e -> Objects.equals(code, ((ICodeObject) e).getCode()))
+                        .findAny().orElse(null);
+            } else
+                value = Enum.valueOf(enumClass, value.toString());
+        }
+        return value;
+    }
+
+    /**
      * 把一个对象，转为保存到数据库用到Map之中
      *
-     * @param bean             对象
-     * @param ignoreNullValue  是否忽略为空的值
+     * @param bean            对象
+     * @param ignoreNullValue 是否忽略为空的值
      * @return 转化后的Map
      */
     public static Map<String, Object> beanToMap(Object bean, boolean ignoreNullValue) {
@@ -92,13 +122,18 @@ public abstract class DbaUtil {
             if (prop.getField().getAnnotation(Transient.class) != null)
                 return;
             String fieldName = prop.getRawFieldName();
-            Column filedAnnotation = prop.getField().getAnnotation(Column.class);
-            fieldName = filedAnnotation == null ? StrUtil.toUnderlineCase(fieldName) : filedAnnotation.name();
+            Column column = prop.getField().getAnnotation(Column.class);
+            fieldName = column == null || StrUtil.isEmpty(column.name()) ? StrUtil.toUnderlineCase(fieldName) : column.name();
             Object value = prop.getValue(bean);
             if (null == value && ignoreNullValue)
                 return;
             if (value instanceof Enum<?>) {
-                value = ((Enum<?>) value).ordinal();
+                if (value instanceof ICodeObject)
+                    value = ((ICodeObject) value).getCode();
+                else if (isString(column)) {
+                    value = ((Enum<?>) value).name();
+                } else
+                    value = ((Enum<?>) value).ordinal();
                 result.put(fieldName, value);
                 return;
             }
@@ -129,4 +164,20 @@ public abstract class DbaUtil {
         return result;
     }
 
+    public static boolean isString(Column column) {
+        if (column == null) return false;
+        switch (column.type()) {
+            case Types.CHAR:
+            case Types.VARCHAR:
+            case Types.LONGVARCHAR:
+            case Types.CLOB:
+            case Types.NCHAR:
+            case Types.NVARCHAR:
+            case Types.LONGNVARCHAR:
+            case Types.NCLOB:
+                return true;
+            default:
+                return false;
+        }
+    }
 }

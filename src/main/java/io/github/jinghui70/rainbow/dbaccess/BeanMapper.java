@@ -40,17 +40,18 @@ public class BeanMapper<T> implements RowMapper<T> {
         BeanDesc desc = BeanUtil.getBeanDesc(mappedClass);
         for (PropDesc prop : desc.getProps()) {
             ArrayField a = prop.getField().getAnnotation(ArrayField.class);
-            Column fieldAnnotation = prop.getField().getAnnotation(Column.class);
-            String key = fieldAnnotation == null ? StrUtil.toUnderlineCase(prop.getRawFieldName()) : fieldAnnotation.name();
+            String fieldName = prop.getRawFieldName();
+            Column column = prop.getField().getAnnotation(Column.class);
+            fieldName = column == null || StrUtil.isEmpty(column.name()) ? StrUtil.toUnderlineCase(fieldName) : column.name();
             if (a == null) {
-                propMap.put(key, prop);
+                propMap.put(fieldName, prop);
             } else {
                 if (arrayProp == null)
                     arrayProp = new HashMap<>();
                 arrayProp.put(prop, a.length());
                 String join = a.underline() ? "_" : "";
                 for (int i = 0; i < a.length(); i++) {
-                    String field = String.format("%s%s%d", key, join, i + a.start());
+                    String field = String.format("%s%s%d", fieldName, join, i + a.start());
                     propMap.put(field, new ArrayProp(prop, i));
                 }
             }
@@ -67,8 +68,8 @@ public class BeanMapper<T> implements RowMapper<T> {
     /**
      * 全部字段处理完之后的后处理，比如有些字段需要组合成一个属性
      *
-     * @param postConsumer
-     * @return
+     * @param postConsumer 后处理函数
+     * @return 自己
      */
     public BeanMapper<T> post(BiConsumer<T, ResultSet> postConsumer) {
         this.postConsumer = postConsumer;
@@ -118,7 +119,8 @@ public class BeanMapper<T> implements RowMapper<T> {
                 return decorator.apply(value);
             }
         }
-        return JdbcUtils.getResultSetValue(rs, index, prop.getFieldClass());
+        Object value = JdbcUtils.getResultSetValue(rs, index, prop.getFieldClass());
+        return DbaUtil.checkEnumPropValue(prop, value);
     }
 
     private static class ArrayProp {

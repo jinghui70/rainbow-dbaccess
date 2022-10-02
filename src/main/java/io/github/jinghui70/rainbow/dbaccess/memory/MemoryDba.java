@@ -37,8 +37,22 @@ public class MemoryDba extends Dba implements Closeable {
         }
     }
 
+    /**
+     * 创建一个内存表
+     *
+     * @param table
+     */
     public void createTable(Table table) {
         getJdbcTemplate().update(table.ddl());
     }
 
+    /**
+     * 创建缺省名字为X的内存表
+     *
+     * @param fields
+     */
+    public void createTable(Field... fields) {
+        Table table = Table.create(Table.DEFAULT).add(fields);
+        createTable(table);
+    }
 }

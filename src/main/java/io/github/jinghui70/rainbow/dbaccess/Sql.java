@@ -2,10 +2,7 @@ package io.github.jinghui70.rainbow.dbaccess;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowCallbackHandler;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.SqlTypeValue;
+import org.springframework.jdbc.core.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -138,6 +135,10 @@ public class Sql extends SqlWrapper<Sql> {
 
     public int[] batchUpdate(List<Object[]> batchArgs, int[] argTypes) {
         return getJdbcTemplate().batchUpdate(getSql(), batchArgs, argTypes);
+    }
+
+    public int[] batchUpdate(final BatchPreparedStatementSetter pss) {
+        return getJdbcTemplate().batchUpdate(getSql(), pss);
     }
 
     @Override

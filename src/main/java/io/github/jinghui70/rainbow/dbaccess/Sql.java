@@ -9,6 +9,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.enumCheck;
+
 /**
  * 封装了一个Sql的内容对象
  *
@@ -60,7 +62,7 @@ public class Sql extends SqlWrapper<Sql> {
     @Override
     public Sql set(String field, Object value) {
         set();
-        return append(field).append("=?").addParam(value);
+        return append(field).append("=?").addParam(enumCheck(value));
     }
 
     @Override

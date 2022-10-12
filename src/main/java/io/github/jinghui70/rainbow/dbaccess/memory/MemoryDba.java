@@ -40,7 +40,7 @@ public class MemoryDba extends Dba implements Closeable {
     /**
      * 创建一个内存表
      *
-     * @param table
+     * @param table 表对象
      */
     public void createTable(Table table) {
         getJdbcTemplate().update(table.ddl());
@@ -49,7 +49,7 @@ public class MemoryDba extends Dba implements Closeable {
     /**
      * 创建缺省名字为X的内存表
      *
-     * @param fields
+     * @param fields 字段列表
      */
     public void createTable(Field... fields) {
         Table table = Table.create(Table.DEFAULT).add(fields);

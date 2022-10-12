@@ -15,6 +15,4 @@ public @interface Column {
 
     String name() default "";
 
-    int type() default SqlTypeValue.TYPE_UNKNOWN;
-
 }

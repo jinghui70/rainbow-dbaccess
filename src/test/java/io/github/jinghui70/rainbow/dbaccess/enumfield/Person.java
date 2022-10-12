@@ -1,18 +1,13 @@
 package io.github.jinghui70.rainbow.dbaccess.enumfield;
 
-import io.github.jinghui70.rainbow.dbaccess.annotation.Column;
-
-import java.sql.Types;
-
 public class Person {
 
     private int id;
 
-    // 用来测试按字面保存的枚举
-    @Column(type = Types.VARCHAR)
+    // 用来测试字符保存的枚举
     private Strength arm;
 
-    // 用来测试按顺序号保存的枚举
+    // 用来测试数字保存的枚举
     private Strength leg;
 
     // 用啦测试用code保存的枚举，这种情况可以不写 @Column

@@ -9,8 +9,9 @@ import io.github.jinghui70.rainbow.dbaccess.annotation.*;
 import io.github.jinghui70.rainbow.utils.CodeEnum;
 
 import java.lang.reflect.Array;
-import java.sql.Types;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public abstract class DbaUtil {
@@ -95,16 +96,20 @@ public abstract class DbaUtil {
     @SuppressWarnings("unchecked")
     public static Object checkEnumPropValue(PropDesc prop, Object value) {
         if (value == null) return null;
-        if (prop.getFieldClass().isEnum()) {
-            @SuppressWarnings("rawtypes")
-            Class enumClass = prop.getFieldClass();
-            if (value instanceof Number)
-                return enumClass.getEnumConstants()[((Number) value).intValue()];
-            if (CodeEnum.class.isAssignableFrom(enumClass))
-                return CodeEnum.codeToEnum(enumClass, value.toString());
-            return Enum.valueOf(enumClass, value.toString());
+        if (!prop.getFieldClass().isEnum()) return value;
+        @SuppressWarnings("rawtypes")
+        Class enumClass = prop.getFieldClass();
+        if (CodeEnum.class.isAssignableFrom(enumClass)) {
+            return CodeEnum.codeToEnum(enumClass, value.toString());
         }
-        return value;
+        if (value instanceof Number)
+            return enumClass.getEnumConstants()[((Number) value).intValue()];
+        try {
+            int index = Integer.parseInt(value.toString());
+            return enumClass.getEnumConstants()[index];
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     /**
@@ -128,9 +133,7 @@ public abstract class DbaUtil {
             if (value instanceof Enum<?>) {
                 if (value instanceof CodeEnum)
                     value = ((CodeEnum) value).code();
-                else if (isString(column)) {
-                    value = ((Enum<?>) value).name();
-                } else
+                else
                     value = ((Enum<?>) value).ordinal();
                 result.put(fieldName, value);
                 return;
@@ -162,20 +165,35 @@ public abstract class DbaUtil {
         return result;
     }
 
-    public static boolean isString(Column column) {
-        if (column == null) return false;
-        switch (column.type()) {
-            case Types.CHAR:
-            case Types.VARCHAR:
-            case Types.LONGVARCHAR:
-            case Types.CLOB:
-            case Types.NCHAR:
-            case Types.NVARCHAR:
-            case Types.LONGNVARCHAR:
-            case Types.NCLOB:
-                return true;
-            default:
-                return false;
+
+    /**
+     * 检查参数是否是枚举，枚举默认用取值ordinal()，除非它有code()函数
+     *
+     * @param value 值
+     * @return 检查后的值
+     */
+    public static Object enumCheck(Object value) {
+        if (value==null || !value.getClass().isEnum()) return value;
+        if (value instanceof CodeEnum)
+            return ((CodeEnum) value).code();
+        return ((Enum<?>) value).ordinal();
+    }
+
+    /**
+     * 检查一个数组参数是否是枚举
+     *
+     * @param arr 原数组
+     * @return 处理后数组
+     */
+    public static Object[] enumCheck(Object[] arr) {
+        if (arr==null || arr.length==0) return arr;
+        Class<?> c = arr[0].getClass();
+        boolean hasCode = CodeEnum.class.isAssignableFrom(c);
+        if (!c.isEnum()) return arr;
+        Object[] result = new Object[arr.length];
+        for (int i=0;i<arr.length;i++) {
+            result[i] = hasCode ? ((CodeEnum) arr[i]).code() : ((Enum<?>)arr[i]).ordinal();
         }
+        return result;
     }
 }

@@ -5,7 +5,12 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
+import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.enumCheck;
 
 public class Cnd {
 
@@ -86,13 +91,13 @@ public class Cnd {
                 else if (ArrayUtil.isArray(value) || value instanceof Collection) {
                     inSql(sql);
                 } else if (!rangeSql(sql))
-                    sql.append("=?").addParam(value);
+                    sql.append("=?").addParam(enumCheck(value));
                 break;
             case "!=":
                 if (value == null)
                     sql.append(" is not null");
                 else
-                    sql.append("!=?").addParam(value);
+                    sql.append("!=?").addParam(enumCheck(value));
                 break;
             case LIKE:
             case NOT_LIKE:
@@ -105,7 +110,7 @@ public class Cnd {
                 notInSql(sql);
                 break;
             default:
-                sql.append(op).append("?").addParam(value);
+                sql.append(op).append("?").addParam(enumCheck(value));
                 break;
         }
     }
@@ -116,15 +121,15 @@ public class Cnd {
             return false;
         range.regular();
         if (range.singleValue())
-            sql.append("=?").addParam(range.getFrom());
+            sql.append("=?").addParam(enumCheck(range.getFrom()));
         else if (range.getFrom() != null) {
             if (range.getTo() == null) {
-                sql.append(">=?").addParam(range.getFrom());
+                sql.append(">=?").addParam(enumCheck(range.getFrom()));
             } else {
-                sql.append(StrUtil.SPACE).append("between ? and ?").addParam(range.getFrom(), range.getTo());
+                sql.append(StrUtil.SPACE).append("between ? and ?").addParam(enumCheck(range.getFrom()), enumCheck(range.getTo()));
             }
         } else {
-            sql.append("<=?").addParam(range.getTo());
+            sql.append("<=?").addParam(enumCheck(range.getTo()));
         }
         return true;
     }
@@ -134,14 +139,14 @@ public class Cnd {
             case "=":
                 Assert.notNull(value, "condition value should not be null");
                 if (!rangeNamedSql(sql)) {
-                    sql.append(field).append(op).append(":").append(field).set(field, value);
+                    sql.append(field).append(op).append(":").append(field).set(field, enumCheck(value));
                 }
                 break;
             case IN:
             case NOT_IN:
                 throw new RuntimeException("Named Sql does not support in operator");
             default:
-                sql.append(field).append(op).append(":").append(field).set(field, value);
+                sql.append(field).append(op).append(":").append(field).set(field, enumCheck(value));
                 break;
         }
     }
@@ -161,26 +166,26 @@ public class Cnd {
             return false;
         range.regular();
         sql.append(field).append(" between :").append(field).append(" and :").append(field).append("_T")
-                .set(field, range.getFrom()).set(field + "_T", range.getTo());
+                .set(field, enumCheck(range.getFrom())).set(field + "_T", enumCheck(range.getTo()));
         return true;
     }
 
     private void inSql(Sql sql) {
         Object[] arr = valueToArray();
         if (arr.length == 1) {
-            sql.append("=?").addParam(arr[0]);
+            sql.append("=?").addParam(enumCheck(arr[0]));
         } else
             sql.append(Cnd.IN).append("(").append("?", arr.length, StrUtil.COMMA).append(")")
-                    .addParam(arr);
+                    .addParam(enumCheck(arr));
     }
 
     private void notInSql(Sql sql) {
         Object[] arr = valueToArray();
         if (arr.length == 1) {
-            sql.append("!=?").addParam(arr[0]);
+            sql.append("!=?").addParam(enumCheck(arr[0]));
         } else
             sql.append(Cnd.NOT_IN).append("(").append("?", arr.length, StrUtil.COMMA).append(")")
-                    .addParam(arr);
+                    .addParam(enumCheck(arr));
     }
 
     public Object[] valueToArray() {

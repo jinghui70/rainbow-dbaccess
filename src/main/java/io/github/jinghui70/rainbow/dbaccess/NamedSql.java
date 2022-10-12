@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.enumCheck;
+
 /**
  * 封装了一个Sql的内容对象
  *
@@ -38,8 +40,6 @@ public class NamedSql extends SqlWrapper<NamedSql> {
         return this;
     }
 
-
-
     @Override
     public NamedSql append(Cnd cnd) {
         cnd.toNamedSql(this);
@@ -48,8 +48,11 @@ public class NamedSql extends SqlWrapper<NamedSql> {
 
     public NamedSql resetParams(Map<String, Object> params) {
         this.params.clear();
-        if (MapUtil.isNotEmpty(params))
-            this.params.putAll(params);
+        if (MapUtil.isNotEmpty(params)) {
+            for (Map.Entry<String,Object> entry: params.entrySet()) {
+                this.params.put(entry.getKey(), enumCheck(entry.getValue()));
+            }
+        }
         return this;
     }
 
@@ -61,7 +64,7 @@ public class NamedSql extends SqlWrapper<NamedSql> {
     public NamedSql set(String key, Object value) {
         set();
         append(key).append("=:").append(key);
-        this.params.put(key, value);
+        this.params.put(key, enumCheck(value));
         return this;
     }
 

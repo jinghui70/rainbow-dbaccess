@@ -3,12 +3,16 @@ package io.github.jinghui70.rainbow.dbaccess;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.db.dialect.DriverUtil;
+import io.github.jinghui70.rainbow.dbaccess.dialect.Dialect;
+import io.github.jinghui70.rainbow.dbaccess.dialect.DialectDefault;
+import io.github.jinghui70.rainbow.dbaccess.dialect.DialectOracle;
 import io.github.jinghui70.rainbow.utils.StringBuilderX;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -30,12 +34,32 @@ public class Dba {
     protected Dba() {
     }
 
+    public Dba(DataSource dataSource) {
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
+        this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
+        DataSourceTransactionManager transactionManager = new DataSourceTransactionManager(dataSource);
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
+        initDialect(dataSource);
+    }
+
+    public Dba(DataSource dataSource, Dialect dialect) {
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
+        this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
+        DataSourceTransactionManager transactionManager = new DataSourceTransactionManager(dataSource);
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
+        this.dialect = dialect;
+    }
+
     public Dba(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate,
                TransactionTemplate transactionTemplate) {
         this.jdbcTemplate = jdbcTemplate;
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
         this.transactionTemplate = transactionTemplate;
         DataSource dataSource = Objects.requireNonNull(jdbcTemplate.getDataSource());
+        initDialect(dataSource);
+    }
+
+    protected void initDialect(DataSource dataSource) {
         String driver = DriverUtil.identifyDriver(dataSource).toLowerCase();
         if (driver.contains("oracle"))
             this.dialect = new DialectOracle();
@@ -121,7 +145,7 @@ public class Dba {
      * 插入一个map到一个数据表中
      *
      * @param tableName 表名
-     * @param map map对象
+     * @param map       map对象
      * @return 插入改变的行数，正常应该是1
      */
     public int insert(String tableName, Map<String, Object> map) {
@@ -130,8 +154,9 @@ public class Dba {
 
     /**
      * 插入一条记录到指定的表里，如果已经存在就更新。这个函数H2支持，别的数据库未必支持
+     *
      * @param tableName 数据表名
-     * @param map map对象
+     * @param map       map对象
      * @return 插入改变的行数，正常应该是1
      */
     public int merge(String tableName, Map<String, Object> map) {
@@ -186,6 +211,7 @@ public class Dba {
 
     /**
      * 插入一组数据到指定的表里，如果已经存在就更新。这个函数H2支持，别的数据库未必支持
+     *
      * @param tableName 数据表名
      * @param data      数据
      */
@@ -215,6 +241,17 @@ public class Dba {
      */
     public int update(Object bean) {
         String tableName = DbaUtil.tableName(bean.getClass());
+        return update(tableName, bean);
+    }
+
+    /**
+     * 更新一个对象
+     *
+     * @param tableName 表名
+     * @param bean      待更新对象对象
+     * @return 更新数据库行数，正常情况下应该为1
+     */
+    public int update(String tableName, Object bean) {
         Map<String, Object> map = DbaUtil.beanToMap(bean, false);
         return update(tableName, map, DbaUtil.keyProps(bean.getClass()));
     }

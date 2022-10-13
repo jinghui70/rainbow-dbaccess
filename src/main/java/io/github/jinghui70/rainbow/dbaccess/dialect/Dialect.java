@@ -1,4 +1,4 @@
-package io.github.jinghui70.rainbow.dbaccess;
+package io.github.jinghui70.rainbow.dbaccess.dialect;
 
 /**
  * 数据库方言接口

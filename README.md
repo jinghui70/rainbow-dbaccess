@@ -27,11 +27,11 @@ In SpringBoot project, rainbow-dbaccess supports automatic configuration and can
 @Autowired
 private Dba dba;
 ```
-You can also create a ``dba`` object by passing a ``dataSource`` into the constructor.
+You can also create a ```dba``` object by passing a ```dataSource``` into the constructor.
 ## Basic Usage
-The underlying layer of ```Dba`` is ``JdbcTemplate`` or ``NamedJdbcTemplate``, the usage is similar. except that the sql statements and parameters are encapsulated into ``Sql`` or ``NamedSql`` objects. The main job of these two objects is to splice Sql and collect parameters.
+The underlying layer of ```Dba``` is ```JdbcTemplate``` or ```NamedJdbcTemplate```, the usage is similar. except that the sql statements and parameters are encapsulated into ```Sql``` or ```NamedSql``` objects. The main job of these two objects is to splice Sql and collect parameters.
 
-They are both derived from ``StringBuilderWrapper``, a base class that allows better splicing of strings. The ``Sql`` object uses a list to keep the parameters, and the ``NamedSql`` object uses a Map to keep the parameters.
+They are both derived from ```StringBuilderWrapper```, a base class that allows better splicing of strings. The ```Sql``` object uses a list to keep the parameters, and the ```NamedSql``` object uses a Map to keep the parameters.
 
 For add, delete, update, use ```execute()``` to execute, for query, use various queryForXXX to get results.
 
@@ -50,7 +50,7 @@ dba.sql("select * from student where gender=?").addParam("男").append(" and age
 dba.sql("select * from student where gender=? and age>?").addParam("男"，16);
 dba.sql("select * from student").where("gender", "男").and("age",">", 16);
 ```
-The three statements above have the same effect, and the last statement, the ``where`` and ``and`` functions each enclose a query condition object, ``Cnd``, which supports the following operators.
+The three statements above have the same effect, and the last statement, the ```where``` and ```and``` functions each enclose a query condition object, ```Cnd```, which supports the following operators.
 ```
 "<=", "<", ">=", ">", "=", "!=", IN, LIKE, NOT_IN, NOT_LIKE
 ```
@@ -64,9 +64,9 @@ dba.select("count(1)").from("student").where("id",sql).queryForInt();
 dba.select("name").from("student").where("id", Cnd.NOT_IN, sql).queryForValueList(String.class);
 ```
 ### where 1=1
-A lot of code will be written in this way, especially when using the loop to add conditions, the first condition in front to use where, the subsequent to use and, so someone invented ```where 1=1``` to simplify Sql splicing
+A lot of code will be written in this way, especially when using the loop to add conditions, someone invented ```where 1=1``` to simplify Sql splicing
 
-Now there is no need for this at all, you can write both where and and, and there will be no problem with the executed sql.
+Now there is no need for this at all, you can write ether ```where``` or ```and```, and Dba will do the math.
 
 ### Query result
 To query only one field, use the following function.
@@ -87,11 +87,11 @@ dba.select("date").from("foo").where("id",1).queryForString();
 dba.select("code").from("foo").queryForValueList(String.class);
 ```
 When querying multiple fields JdbcTemplate uses RowMapper to map objects, Dba provides three Mappers.
-* MapRowMapper Used to map to Map
-* BeanMapper Used to map to Object
-* ObjectArrayMapper Used to map to Object[]
+* **MapRowMapper** Used to map to Map
+* **BeanMapper** Used to map to Object
+* **ObjectArrayMapper** Used to map to Object[]
 
-> The default principle for BeanMapper object mapping is that the database field name is a horizontal concatenation (kebab-case) and the object property is a CamalCase. if the property has the ``@Column`` annotation, it is mapped by the field name specified by the annotation.
+> BeanMapper assumes that the database field name is in horizontal concatenation (kebab-case) by default, and the object property is in CamelCase. But if the property has a ```@Column``` annotation, it uses the field name specified by the annotation.
 > 
 > BeanMapper also supports mapping of array properties, just add @ArrayField annotation to the property, you can map the value[] property to VALUE_1,VALUE_2... 
 > 
@@ -121,7 +121,8 @@ More complex result processing：
 * queryToGroup：Group the query result
 * query: Process each record yourself
 
-Paging queries, achieved by different database dialects ``Dialect`` (database dialects are set at the time of Dba creation).```java
+Paging queries, achieved by different database dialects ```Dialect``` (database dialects are set at the time of Dba creation).
+```java
 // Take the first page, 20 items per page
 PageData<Student> data = dba.select(*).from("student").pageQuery(Student.class , 1, 20);
 // Top Ten
@@ -148,8 +149,25 @@ dba.insert("TBL_STUDENT", maps);
 // Update an object whose primary key property has ``@Id`` annotation
 dba.update(student);
 ```
-> For every ``insert`` function, Dba has a corresponding ``merge`` function，to conditionally insert or update data depending on its presence。This function is not supported by all databases, so be careful when using it.
+> For every ```insert``` function, Dba has a corresponding ```merge``` function，to conditionally insert or update data depending on its presence。This function is not supported by all databases, so be careful when using it.
 
+## Transaction
+```java
+// simple transaction
+dba.transaction(()->{
+  dba.insert(...);
+  dba.deleteFrom("xxx").where(...).execute();
+  dba.sql("update ....").execute();
+})
+
+// or return a value
+Object result = dba.transaction((status)->{
+    dba.insert(...);
+    dba.deleteFrom("xxx").where(...).execute();
+    Object result = ...;
+    return result;
+})
+```
 ## Memory Table
 When developing, we usually use List, Set, Map and other collection class objects to maintain data in memory, but when we encounter complex business logic, these collection classes sometimes do not meet the needs well. Thankfully, H2 provides in-memory tables that allow us to use Sql to process data in memory.
 ```java
@@ -161,4 +179,5 @@ try(MemoryDba mDba = new MemoryDba()) { // Guaranteed final release of memory ta
         ...
     ));
     // mDba can now be used freely
+}
 ```

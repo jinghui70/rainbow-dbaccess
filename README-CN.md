@@ -151,6 +151,24 @@ dba.insert("TBL_STUDENT", maps);
 dba.update(student);
 ```
 > 每一个```insert```函数，Dba都另有一个对应的```merge```函数，提供有则更新无则插入功能。这个函数不是所有的数据库都支持，使用的时候需要注意。
+
+## 事务
+```java
+// 简单包裹一个事务
+dba.transaction(()->{
+  dba.insert(...);
+  dba.deleteFrom("xxx").where(...).execute();
+  dba.sql("update ....").execute();
+})
+
+// 或者返回一个对象
+Object result = dba.transaction((status)->{
+    dba.insert(...);
+    dba.deleteFrom("xxx").where(...).execute();
+    Object result = ...;
+    return result;
+})
+```
 ## 内存表
 开发时一般会用到List、Set、Map等集合类对象在内存中维护数据，但是对于复杂的业务逻辑，这些集合类有时不能很好的满足开发需求。 感谢H2提供了内存表，使得我们可以在内存中使用Sql来处理数据。
 ```java

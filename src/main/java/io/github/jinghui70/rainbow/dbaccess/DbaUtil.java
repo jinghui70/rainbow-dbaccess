@@ -16,6 +16,10 @@ import java.util.stream.Collectors;
 
 public abstract class DbaUtil {
 
+    public static final String MERGE = "merge";
+
+    public static final String INSERT = "insert";
+
     /**
      * 根据一个对象的类，得到它对应的数据表名
      *

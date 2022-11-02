@@ -18,7 +18,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 /**
@@ -31,9 +30,9 @@ public class BeanMapper<T> implements RowMapper<T> {
     private final Class<T> mappedClass;
     private final Map<String, Object> propMap = new CaseInsensitiveMap<>();
     private Map<PropDesc, Integer> arrayProp;
-    private Map<String, Function<String,?>> transformMap;
+    private Map<String, Function<String, ?>> transformMap;
 
-    private BiConsumer<T, ResultSet> postConsumer;
+    private BeanMapperPostProcessor<T> postProcessor;
 
     private BeanMapper(Class<T> mappedClass) {
         this.mappedClass = mappedClass;
@@ -58,6 +57,10 @@ public class BeanMapper<T> implements RowMapper<T> {
         }
     }
 
+    public static <T> BeanMapper<T> of(Class<T> clazz) {
+        return new BeanMapper<>(clazz);
+    }
+
     public BeanMapper<T> decode(String field, Function<String, ?> function) {
         if (transformMap == null)
             transformMap = new HashMap<>();
@@ -68,11 +71,11 @@ public class BeanMapper<T> implements RowMapper<T> {
     /**
      * 全部字段处理完之后的后处理，比如有些字段需要组合成一个属性
      *
-     * @param postConsumer 后处理函数
+     * @param postProcessor 后处理函数
      * @return 自己
      */
-    public BeanMapper<T> post(BiConsumer<T, ResultSet> postConsumer) {
-        this.postConsumer = postConsumer;
+    public BeanMapper<T> post(BeanMapperPostProcessor<T> postProcessor) {
+        this.postProcessor = postProcessor;
         return this;
     }
 
@@ -105,15 +108,15 @@ public class BeanMapper<T> implements RowMapper<T> {
                 }
             }
         }
-        if (postConsumer!=null) {
-            postConsumer.accept(result, rs);
+        if (postProcessor != null) {
+            postProcessor.process(result, rs);
         }
         return result;
     }
 
     protected Object getPropValue(ResultSet rs, int index, PropDesc prop) throws SQLException {
-        if (transformMap!=null) {
-            Function<String,?> decorator = transformMap.get(prop.getRawFieldName());
+        if (transformMap != null) {
+            Function<String, ?> decorator = transformMap.get(prop.getRawFieldName());
             if (decorator != null) {
                 String value = rs.getString(index);
                 return decorator.apply(value);
@@ -131,9 +134,5 @@ public class BeanMapper<T> implements RowMapper<T> {
             this.prop = prop;
             this.index = index;
         }
-    }
-
-    public static <T> BeanMapper<T> of(Class<T> clazz) {
-        return new BeanMapper<>(clazz);
     }
 }

@@ -6,7 +6,7 @@
 
     <groupId>io.github.jinghui70</groupId>
     <artifactId>rainbow-dbaccess</artifactId>
-    <version>5.1.6</version>
+    <version>5.1.7</version>
 
     <name>Rainbow DBAccess</name>
     <description>Rainbow DBAccess</description>
@@ -57,6 +57,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
             <version>2.7.3</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jdbc</artifactId>
+            <version>5.3.22</version>
         </dependency>
         <dependency>
             <groupId>cn.hutool</groupId>

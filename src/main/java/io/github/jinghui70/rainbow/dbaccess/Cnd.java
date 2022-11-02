@@ -175,7 +175,7 @@ public class Cnd {
         if (arr.length == 1) {
             sql.append("=?").addParam(enumCheck(arr[0]));
         } else
-            sql.append(Cnd.IN).append("(").append("?", arr.length, StrUtil.COMMA).append(")")
+            sql.append(Cnd.IN).append("(").repeat("?", arr.length).append(")")
                     .addParam(enumCheck(arr));
     }
 
@@ -184,7 +184,7 @@ public class Cnd {
         if (arr.length == 1) {
             sql.append("!=?").addParam(enumCheck(arr[0]));
         } else
-            sql.append(Cnd.NOT_IN).append("(").append("?", arr.length, StrUtil.COMMA).append(")")
+            sql.append(Cnd.NOT_IN).append("(").repeat("?", arr.length).append(")")
                     .addParam(enumCheck(arr));
     }
 

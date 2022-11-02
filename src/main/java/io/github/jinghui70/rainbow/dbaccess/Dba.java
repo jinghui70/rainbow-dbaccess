@@ -19,7 +19,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 import javax.sql.DataSource;
 import java.util.*;
 
-import static java.util.stream.Collectors.toList;
+import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.INSERT;
+import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.MERGE;
 
 public class Dba {
 
@@ -59,18 +60,18 @@ public class Dba {
         initDialect(dataSource);
     }
 
-    protected void initDialect(DataSource dataSource) {
-        String driver = DriverUtil.identifyDriver(dataSource).toLowerCase();
-        if (driver.contains("oracle"))
-            this.dialect = new DialectOracle();
-    }
-
     public Dba(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate,
                TransactionTemplate transactionTemplate, Dialect dialect) {
         this.jdbcTemplate = jdbcTemplate;
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
         this.transactionTemplate = transactionTemplate;
         this.dialect = dialect;
+    }
+
+    protected void initDialect(DataSource dataSource) {
+        String driver = DriverUtil.identifyDriver(dataSource).toLowerCase();
+        if (driver.contains("oracle"))
+            this.dialect = new DialectOracle();
     }
 
     public JdbcTemplate getJdbcTemplate() {
@@ -123,10 +124,10 @@ public class Dba {
      * @param bean 需要插入的对象
      * @return 插入改变的行数，正常应该是1
      */
-    public int insert(Object bean) {
-        String tableName = DbaUtil.tableName(bean.getClass());
-        Map<String, Object> map = DbaUtil.beanToMap(bean, true);
-        return insert(tableName, map);
+    @SuppressWarnings("unchecked")
+    public <T> int insert(T bean) {
+        Assert.notNull(bean, "can't insert null object");
+        return new ObjectDba<>(this, (Class<T>) bean.getClass()).insert(bean);
     }
 
     /**
@@ -135,10 +136,32 @@ public class Dba {
      * @param bean 需要插入的对象
      * @return 插入改变的行数，正常应该是1
      */
-    public int merge(Object bean) {
-        String tableName = DbaUtil.tableName(bean.getClass());
-        Map<String, Object> map = DbaUtil.beanToMap(bean, true);
-        return merge(tableName, map);
+    @SuppressWarnings("unchecked")
+    public <T> int merge(T bean) {
+        Assert.notNull(bean, "can't insert null object");
+        return new ObjectDba<>(this, (Class<T>) bean.getClass()).merge(bean);
+    }
+
+    /**
+     * 插入一组数据
+     *
+     * @param beans 数据的集合
+     */
+    @SuppressWarnings("unchecked")
+    public <T> void insert(List<T> beans) {
+        if (CollUtil.isEmpty(beans)) return;
+        new ObjectDba<>(this, (Class<T>) beans.get(0).getClass()).insert(beans);
+    }
+
+    /**
+     * 插入一组数据，如果已经存在就更新。这个函数H2支持，别的数据库未必支持
+     *
+     * @param beans 数据的集合
+     */
+    @SuppressWarnings("unchecked")
+    public <T> void merge(List<T> beans) {
+        if (CollUtil.isEmpty(beans)) return;
+        new ObjectDba<>(this, (Class<T>) beans.get(0).getClass()).merge(beans);
     }
 
     /**
@@ -149,7 +172,7 @@ public class Dba {
      * @return 插入改变的行数，正常应该是1
      */
     public int insert(String tableName, Map<String, Object> map) {
-        return doInsert(tableName, map, "insert");
+        return doInsert(tableName, map, INSERT);
     }
 
     /**
@@ -160,43 +183,16 @@ public class Dba {
      * @return 插入改变的行数，正常应该是1
      */
     public int merge(String tableName, Map<String, Object> map) {
-        return doInsert(tableName, map, "merge");
+        return doInsert(tableName, map, MERGE);
     }
 
-    public int doInsert(String tableName, Map<String, Object> map, String type) {
-        Sql sql = sql(type).append(" into ").append(tableName).append("(");
+    public int doInsert(String tableName, Map<String, Object> map, String action) {
+        Sql sql = sql(action).append(" into ").append(tableName).append("(");
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             sql.append(entry.getKey()).appendTempComma().addParam(entry.getValue());
         }
-        sql.clearTemp().append(") values (").append("?", map.size(), ",").append(")");
+        sql.clearTemp().append(") values (").repeat("?", map.size()).append(")");
         return sql.execute();
-    }
-
-    /**
-     * 插入一组数据
-     *
-     * @param beans 数据的集合
-     */
-    public void insert(Collection<?> beans) {
-        doInsert(beans, "insert");
-    }
-
-    /**
-     * 插入一组数据，如果已经存在就更新。这个函数H2支持，别的数据库未必支持
-     *
-     * @param beans 数据的集合
-     */
-    public void merge(Collection<?> beans) {
-        doInsert(beans, "merge");
-    }
-
-    private void doInsert(Collection<?> beans, String type) {
-        if (CollUtil.isEmpty(beans))
-            return;
-        Object first = CollUtil.get(beans, 0);
-        String tableName = DbaUtil.tableName(first.getClass());
-        List<Map<String, Object>> data = beans.stream().map(bean -> DbaUtil.beanToMap(bean, false)).collect(toList());
-        doInsert(tableName, data, type);
     }
 
     /**
@@ -206,7 +202,7 @@ public class Dba {
      * @param data      数据列表
      */
     public void insert(String tableName, List<Map<String, Object>> data) {
-        doInsert(tableName, data, "insert");
+        doInsert(tableName, data, INSERT);
     }
 
     /**
@@ -216,14 +212,14 @@ public class Dba {
      * @param data      数据
      */
     public void merge(String tableName, List<Map<String, Object>> data) {
-        doInsert(tableName, data, "merge");
+        doInsert(tableName, data, MERGE);
     }
 
-    private void doInsert(String tableName, List<Map<String, Object>> data, String type) {
+    private void doInsert(String tableName, List<Map<String, Object>> data, String action) {
         if (CollUtil.isEmpty(data))
             return;
         List<String> keys = new ArrayList<>(data.get(0).keySet());
-        StringBuilderX sql = new StringBuilderX(type).append(" into ").append(tableName) //
+        StringBuilderX sql = new StringBuilderX(action).append(" into ").append(tableName) //
                 .append("(").join(keys).append(") values("); //
         for (String key : keys) {
             sql.append(":").append(key).appendTempComma();
@@ -239,10 +235,10 @@ public class Dba {
      * @param bean 待更新对象对象
      * @return 更新数据库行数，正常情况下应该为1
      */
-    public int update(Object bean) {
-        String tableName = DbaUtil.tableName(bean.getClass());
-        return update(tableName, bean);
-    }
+    @SuppressWarnings("unchecked")
+    public <T> int update(T bean) {
+        Assert.notNull(bean);
+        return new ObjectDba<>(this, (Class<T>) bean.getClass()).update(bean);    }
 
     /**
      * 更新一个对象
@@ -251,41 +247,10 @@ public class Dba {
      * @param bean      待更新对象对象
      * @return 更新数据库行数，正常情况下应该为1
      */
-    public int update(String tableName, Object bean) {
-        Map<String, Object> map = DbaUtil.beanToMap(bean, false);
-        return update(tableName, map, DbaUtil.keyProps(bean.getClass()));
-    }
-
-    /**
-     * 更新一个数据表记录
-     *
-     * @param tableName 数据表名
-     * @param map       数据
-     * @param keys      主键字段名
-     * @return 更新的条数
-     */
-    public int update(String tableName, Map<String, Object> map, Collection<String> keys) {
-        Assert.notEmpty(keys);
-        Sql sql = sql("update ").append(tableName).append(" set ");
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            String field = entry.getKey();
-            Object value = entry.getValue();
-            if (!CollUtil.contains(keys, field)) {
-                sql.append(field);
-                if (value == null)
-                    sql.append("=null");
-                else
-                    sql.append("=?").addParam(value);
-                sql.appendTempComma();
-            }
-        }
-        sql.clearTemp();
-        for (String key : keys) {
-            Object value = map.get(key);
-            Assert.notNull(value, "update key value should not be null");
-            sql.where(key, value);
-        }
-        return sql.execute();
+    @SuppressWarnings("unchecked")
+    public <T> int update(String tableName, T bean) {
+        Assert.notNull(bean);
+        return new ObjectDba<>(this, (Class<T>) bean.getClass()).update(tableName, bean);
     }
 
     /**

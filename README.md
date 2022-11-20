@@ -181,3 +181,38 @@ try(MemoryDba mDba = new MemoryDba()) { // Guaranteed final release of memory ta
     // mDba can now be used freely
 }
 ```
+
+## Support for enum
+Object properties, conditional parameters support the direct use of enumerations, the default value stored in the database is the ordinal value of the enumeration.
+To save an arbitrary string value, make this enumeration implement the ``CodeEnum`` interface.
+
+## Support for tree structure data
+The tree structure usually have a field pointing to upper level，
+For example, look at the following table:
+
+|PARENT_NO | MY_NO | NAME  |
+|----------|-------|-------|
+|root| 01    | Asia  |
+|01| 0101  | China |
+
+```java
+class Country extends TreeNode<Country> {
+    private String myNo;
+    private String name;
+    ...
+}
+List<Country> list = dba.sql("select PARENT_NO AS PID,MY_NO AS ID, MY_NO,NAME from COUNTRY").queryForTree(Country.class)
+```
+> Note that you need to have ``PID, ID`` in the query fields, the result object can be without these two fields.
+>
+> Derived from a TreeNode, the resulting object will have the ```children``` property
+
+If you don't want to derive from a TreeNode, you can use ````WrapTreeNode````, written as follows:
+```java
+class Country {
+    private String myNo;
+    private String name;
+    ...
+}
+List<WrapTreeNode<Country>> list = dba.sql("select PARENT_NO AS PID,MY_NO AS ID, MY_NO,NAME from COUNTRY").queryForWrapTree(Country.class)
+```

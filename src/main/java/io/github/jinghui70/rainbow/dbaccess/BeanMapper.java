@@ -95,7 +95,7 @@ public class BeanMapper<T> implements RowMapper<T> {
                     Object value = getPropValue(rs, index, p);
                     p.setValue(result, value);
                 } else {
-                    ArrayProp ap = (BeanMapper.ArrayProp) prop;
+                    ArrayProp ap = (ArrayProp) prop;
                     Class<?> type = ap.prop.getFieldClass().getComponentType();
                     Object array = ap.prop.getValue(result);
                     if (array == null) {

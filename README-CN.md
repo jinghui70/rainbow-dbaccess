@@ -182,3 +182,41 @@ try(MemoryDba mDba = new MemoryDba()) { // 要保证最后释放内存表
     // mDba 可以随意使用了
 }
 ```
+
+## 对枚举的支持
+对象属性、条件参数支持直接使用枚举，默认存到数据库中的是枚举的 ordinal 值。
+如果要保存任意设定的字符串值，请让这个枚举实现```CodeEnum```接口。
+
+## 树形结构的支持
+树形结构通常会有一个字段指向上级，如下面定义的表结构：
+
+|PARENT_NO | MY_NO | NAME |
+|----------|-------|------|
+|root| 01    | 亚洲   |
+|01| 0101  | 中国   |
+
+定义对象如下：
+```java
+class Country extends TreeNode<Country> {
+    private String myNo;
+    private String name;
+    ...
+}
+```
+查询方法如下：
+```java
+List<Country> list = dba.sql("select PARENT_NO AS PID,MY_NO AS ID, MY_NO,NAME from COUNTRY").queryForTree(Country.class)
+```
+> 注意需要查询字段中要有```PID、ID```两个字段，结果对象可以不必有这两个字段。
+> 
+> 从 TreeNode 派生，得到的对象会有```children```属性
+
+如果不希望从TreeNode派生，可以用```WrapTreeNode```来包裹对象，写法如下:
+```java
+class Country {
+    private String myNo;
+    private String name;
+    ...
+}
+List<WrapTreeNode<Country>> list = dba.sql("select PARENT_NO AS PID,MY_NO AS ID, MY_NO,NAME from COUNTRY").queryForWrapTree(Country.class)
+```

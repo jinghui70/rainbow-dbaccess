@@ -101,7 +101,7 @@ public class Cnd {
                 break;
             case LIKE:
             case NOT_LIKE:
-                sql.append(op).append("?").addParam('%' + value.toString() + '%');
+                sql.append(op).append("?").addParam(value.toString());
                 break;
             case IN:
                 inSql(sql);
@@ -136,17 +136,18 @@ public class Cnd {
 
     public void toNamedSql(NamedSql sql) {
         switch (op) {
+            case "":
             case "=":
                 Assert.notNull(value, "condition value should not be null");
                 if (!rangeNamedSql(sql)) {
-                    sql.append(field).append(op).append(":").append(field).set(field, enumCheck(value));
+                    sql.append(field).append(op).append(":").append(field).setParam(field, value);
                 }
                 break;
             case IN:
             case NOT_IN:
                 throw new RuntimeException("Named Sql does not support in operator");
             default:
-                sql.append(field).append(op).append(":").append(field).set(field, enumCheck(value));
+                sql.append(field).append(op).append(":").append(field).setParam(field, value);
                 break;
         }
     }
@@ -166,7 +167,7 @@ public class Cnd {
             return false;
         range.regular();
         sql.append(field).append(" between :").append(field).append(" and :").append(field).append("_T")
-                .set(field, enumCheck(range.getFrom())).set(field + "_T", enumCheck(range.getTo()));
+                .setParam(field, range.getFrom()).setParam(field + "_T", range.getTo());
         return true;
     }
 

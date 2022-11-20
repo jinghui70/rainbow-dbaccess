@@ -46,8 +46,35 @@ public class NamedSql extends SqlWrapper<NamedSql> {
         return this;
     }
 
-    public NamedSql resetParams(Map<String, Object> params) {
+    @Override
+    public NamedSql set(String key) {
+        if (key.contains(":=")) return super.set(key);
+        set();
+        append(key).append("=:").append(key);
+        return this;
+    }
+
+    @Override
+    public NamedSql set(String key, Object value) {
+        set(key);
+        return setParam(key, value);
+    }
+
+    public Map<String, Object> getParams() {
+        return params;
+    }
+
+    public NamedSql setParam(String key, Object value) {
+        this.params.put(key, enumCheck(value));
+        return this;
+    }
+
+    public NamedSql clearParam() {
         this.params.clear();
+        return this;
+    }
+
+    public NamedSql setParam(Map<String, Object> params) {
         if (MapUtil.isNotEmpty(params)) {
             for (Map.Entry<String,Object> entry: params.entrySet()) {
                 this.params.put(entry.getKey(), enumCheck(entry.getValue()));
@@ -56,16 +83,8 @@ public class NamedSql extends SqlWrapper<NamedSql> {
         return this;
     }
 
-    public Map<String, Object> getParams() {
-        return params;
-    }
-
-    @Override
-    public NamedSql set(String key, Object value) {
-        set();
-        append(key).append("=:").append(key);
-        this.params.put(key, enumCheck(value));
-        return this;
+    public NamedSql resetParams(Map<String, Object> params) {
+        return clearParam().setParam(params);
     }
 
     /**

@@ -2,6 +2,8 @@ package io.github.jinghui70.rainbow.dbaccess;
 
 import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.utils.StringBuilderWrapper;
+import io.github.jinghui70.rainbow.utils.TreeNode;
+import io.github.jinghui70.rainbow.utils.WrapTreeNode;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowCallbackHandler;
@@ -290,6 +292,43 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
 
     public PageData<Map<String, Object>> pageQuery(int pageNo, int pageSize) {
         return pageQuery(MapRowMapper.INSTANCE, pageNo, pageSize);
+    }
+
+    public <T extends TreeNode<T>> List<T> queryForTree(Class<T> objectType) {
+        return queryForTree(BeanMapper.of(objectType));
+    }
+
+    public <T> List<WrapTreeNode<T>> queryForWrapTree(Class<T> objectType) {
+        return queryForWrapTree(BeanMapper.of(objectType));
+    }
+
+    public <T> List<WrapTreeNode<T>> queryForWrapTree(RowMapper<T> mapper) {
+        return queryForTree((rs, rowNum) -> new WrapTreeNode<>(mapper.mapRow(rs, rowNum)));
+    }
+
+    public <T extends TreeNode<T>> List<T> queryForTree(RowMapper<T> mapper) {
+        List<T> result = new ArrayList<>();
+        Map<String, List<T>> map = new LinkedHashMap<>();
+        Map<String, T> itemMap = new HashMap<>();
+        AtomicInteger row = new AtomicInteger(1);
+        query(rs -> {
+            String pid = rs.getString("PID");
+            String id = rs.getString("ID");
+            T item = mapper.mapRow(rs, row.getAndIncrement());
+            List<T> list = map.computeIfAbsent(pid, (p)-> new ArrayList<>());
+            list.add(item);
+            itemMap.put(id, item);
+        });
+        for (Map.Entry<String, List<T>> entry: map.entrySet()) {
+            String id = entry.getKey();
+            List<T> children = entry.getValue();
+            T item = itemMap.get(id);
+            if (item==null) {
+                result.addAll(children);
+            } else
+                item.setChildren(children);
+        }
+        return result;
     }
 
     @Override

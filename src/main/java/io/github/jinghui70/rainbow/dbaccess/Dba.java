@@ -17,7 +17,10 @@ import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.sql.DataSource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.INSERT;
 import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.MERGE;
@@ -122,6 +125,7 @@ public class Dba {
      * 插入一个对象
      *
      * @param bean 需要插入的对象
+     * @param <T>  对象泛型
      * @return 插入改变的行数，正常应该是1
      */
     @SuppressWarnings("unchecked")
@@ -134,6 +138,7 @@ public class Dba {
      * 插入一个对象，如果已经存在就更新。这个函数H2支持，别的数据库未必支持
      *
      * @param bean 需要插入的对象
+     * @param <T>  对象泛型
      * @return 插入改变的行数，正常应该是1
      */
     @SuppressWarnings("unchecked")
@@ -146,6 +151,7 @@ public class Dba {
      * 插入一组数据
      *
      * @param beans 数据的集合
+     * @param <T>   对象泛型
      */
     @SuppressWarnings("unchecked")
     public <T> void insert(List<T> beans) {
@@ -157,6 +163,7 @@ public class Dba {
      * 插入一组数据，如果已经存在就更新。这个函数H2支持，别的数据库未必支持
      *
      * @param beans 数据的集合
+     * @param <T>   对象泛型
      */
     @SuppressWarnings("unchecked")
     public <T> void merge(List<T> beans) {
@@ -233,18 +240,21 @@ public class Dba {
      * 更新一个对象
      *
      * @param bean 待更新对象对象
+     * @param <T>  对象泛型
      * @return 更新数据库行数，正常情况下应该为1
      */
     @SuppressWarnings("unchecked")
     public <T> int update(T bean) {
         Assert.notNull(bean);
-        return new ObjectDba<>(this, (Class<T>) bean.getClass()).update(bean);    }
+        return new ObjectDba<>(this, (Class<T>) bean.getClass()).update(bean);
+    }
 
     /**
      * 更新一个对象
      *
      * @param tableName 表名
      * @param bean      待更新对象对象
+     * @param <T>       对象泛型
      * @return 更新数据库行数，正常情况下应该为1
      */
     @SuppressWarnings("unchecked")

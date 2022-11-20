@@ -69,7 +69,8 @@ public abstract class StringBuilderWrapper<T extends StringBuilderWrapper<T>> im
 
     /**
      * 把一个字符串复制多遍，用逗号分隔符，添加进来
-     * @param str 字符串
+     *
+     * @param str   字符串
      * @param times 复制次数
      * @return 自己
      */
@@ -79,8 +80,9 @@ public abstract class StringBuilderWrapper<T extends StringBuilderWrapper<T>> im
 
     /**
      * 把一个字符串复制多遍，用指定分隔符，添加进来
-     * @param str 字符串
-     * @param times 复制次数
+     *
+     * @param str       字符串
+     * @param times     复制次数
      * @param delimiter 分隔符
      * @return 自己
      */
@@ -96,6 +98,7 @@ public abstract class StringBuilderWrapper<T extends StringBuilderWrapper<T>> im
 
     /**
      * 一组对象，转为String，以逗号分隔，添加进来
+     *
      * @param objects 字符串集合
      * @return 自己
      */
@@ -106,7 +109,7 @@ public abstract class StringBuilderWrapper<T extends StringBuilderWrapper<T>> im
     /**
      * 添加一组对象，转为toString字符串
      *
-     * @param objects 对象列表
+     * @param objects   对象列表
      * @param delimiter 分隔符
      * @return 自己
      */
@@ -118,6 +121,7 @@ public abstract class StringBuilderWrapper<T extends StringBuilderWrapper<T>> im
      * 添加一组对象，转为toString字符串，以逗号分隔
      *
      * @param array 对象列表
+     * @param <O>   对象泛型
      * @return 自己
      */
     public <O> T join(O[] array) {
@@ -127,8 +131,9 @@ public abstract class StringBuilderWrapper<T extends StringBuilderWrapper<T>> im
     /**
      * 添加一组对象，转为toString字符串，以指定分隔符分隔
      *
-     * @param array 对象列表
+     * @param array     对象列表
      * @param delimiter 分隔符
+     * @param <O>       对象泛型
      * @return 自己
      */
     public <O> T join(O[] array, String delimiter) {
@@ -138,10 +143,10 @@ public abstract class StringBuilderWrapper<T extends StringBuilderWrapper<T>> im
     /**
      * 一组对象，转为字符串后添加进来
      *
-     * @param list 对象列表
-     * @param toString 对象转为字符串的函数
+     * @param list      对象列表
+     * @param toString  对象转为字符串的函数
      * @param delimiter 分隔符
-     * @param <O> 对象泛型
+     * @param <O>       对象泛型
      * @return 自己
      */
     public <O> T join(Collection<O> list, Function<O, String> toString, String delimiter) {
@@ -157,10 +162,10 @@ public abstract class StringBuilderWrapper<T extends StringBuilderWrapper<T>> im
     /**
      * 一组对象，转为字符串后添加进来
      *
-     * @param array 对象列表
-     * @param toString 对象转为字符串的函数
+     * @param array     对象列表
+     * @param toString  对象转为字符串的函数
      * @param delimiter 分隔符
-     * @param <O> 对象泛型
+     * @param <O>       对象泛型
      * @return 自己
      */
     public <O> T join(O[] array, Function<O, String> toString, String delimiter) {

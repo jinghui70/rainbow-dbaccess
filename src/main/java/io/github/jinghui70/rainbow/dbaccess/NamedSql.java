@@ -1,5 +1,6 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.map.MapUtil;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -48,7 +49,7 @@ public class NamedSql extends SqlWrapper<NamedSql> {
 
     @Override
     public NamedSql set(String key) {
-        if (key.contains(":=")) return super.set(key);
+        if (key.contains("=:")) return super.set(key);
         set();
         append(key).append("=:").append(key);
         return this;
@@ -76,7 +77,7 @@ public class NamedSql extends SqlWrapper<NamedSql> {
 
     public NamedSql setParam(Map<String, Object> params) {
         if (MapUtil.isNotEmpty(params)) {
-            for (Map.Entry<String,Object> entry: params.entrySet()) {
+            for (Map.Entry<String, Object> entry : params.entrySet()) {
                 this.params.put(entry.getKey(), enumCheck(entry.getValue()));
             }
         }
@@ -126,7 +127,15 @@ public class NamedSql extends SqlWrapper<NamedSql> {
     }
 
     public int[] batchUpdate(List<Map<String, Object>> data) {
-        return dba.getNamedParameterJdbcTemplate().batchUpdate(getSql(), SqlParameterSourceUtils.createBatch(data.toArray()));
+        Map[] maps = new Map[data.size()];
+        int i = 0;
+        for (Map<String, Object> map : data) {
+            maps[i++] = map;
+            if (CollUtil.isNotEmpty(getParams())) {
+                map.putAll(getParams());
+            }
+        }
+        return dba.getNamedParameterJdbcTemplate().batchUpdate(getSql(), maps);
     }
 
 }

@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.RowMapper;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 /**
  * 封装了一个Sql的内容对象
@@ -226,8 +227,8 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return result;
     }
 
-    public <K, V> Map<K, V> queryToMap(ResultSetFunction<K> keyFunc, RowMapper<V> rowMapper) {
-        Map<K, V> result = new HashMap<>();
+    public <K, V> Map<K, V> queryToMap(ResultSetFunction<K> keyFunc, RowMapper<V> rowMapper, Supplier<Map<K,V>> supplier) {
+        Map<K, V> result = supplier.get();
         AtomicInteger rowNum = new AtomicInteger(0);
         query((rs) -> {
             K key = keyFunc.apply(rs);
@@ -237,10 +238,17 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return result;
     }
 
+    public <K, V> Map<K, V> queryToMap(ResultSetFunction<K> keyFunc, RowMapper<V> rowMapper) {
+        return queryToMap(keyFunc, rowMapper, HashMap::new);
+    }
+
     public <K> Map<K, Map<String, Object>> queryToMap(ResultSetFunction<K> keyFunc) {
         return queryToMap(keyFunc, MapRowMapper.INSTANCE);
     }
 
+    public <K, V> Map<K, V> queryToMap(ResultSetFunction<K> keyFunc, Class<V> clazz, Supplier<Map<K,V>> supplier) {
+        return queryToMap(keyFunc, BeanMapper.of(clazz), supplier);
+    }
     public <K, V> Map<K, V> queryToMap(ResultSetFunction<K> keyFunc, Class<V> clazz) {
         return queryToMap(keyFunc, BeanMapper.of(clazz));
     }
@@ -303,7 +311,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     }
 
     public <T> List<WrapTreeNode<T>> queryForWrapTree(RowMapper<T> mapper) {
-        return queryForTree((rs, rowNum) -> new WrapTreeNode<>(mapper.mapRow(rs, rowNum)));
+        return queryForTree((rs, rowNum) -> new WrapTreeNode<T>(mapper.mapRow(rs, rowNum)));
     }
 
     public <T extends TreeNode<T>> List<T> queryForTree(RowMapper<T> mapper) {
@@ -315,15 +323,15 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
             String pid = rs.getString("PID");
             String id = rs.getString("ID");
             T item = mapper.mapRow(rs, row.getAndIncrement());
-            List<T> list = map.computeIfAbsent(pid, (p)-> new ArrayList<>());
+            List<T> list = map.computeIfAbsent(pid, (p) -> new ArrayList<>());
             list.add(item);
             itemMap.put(id, item);
         });
-        for (Map.Entry<String, List<T>> entry: map.entrySet()) {
+        for (Map.Entry<String, List<T>> entry : map.entrySet()) {
             String id = entry.getKey();
             List<T> children = entry.getValue();
             T item = itemMap.get(id);
-            if (item==null) {
+            if (item == null) {
                 result.addAll(children);
             } else
                 item.setChildren(children);

@@ -1,25 +1,23 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
-import org.springframework.jdbc.core.ColumnMapRowMapper;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.util.LinkedCaseInsensitiveMap;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class MapRowMapper extends ColumnMapRowMapper {
+public class MapRowMapper implements RowMapper<Map<String, Object>> {
 
-    public static ColumnMapRowMapper INSTANCE = new ColumnMapRowMapper();
+    public static MapRowMapper INSTANCE = new MapRowMapper();
 
     // 指定key改名
     private Map<String, String> keyMappingMap;
-
-    // 用函数改名
-    private Function<String, String> keyChangeFunction;
 
     // 值加工
     private Map<String, Function<?,?>> transformMap;
@@ -41,17 +39,6 @@ public class MapRowMapper extends ColumnMapRowMapper {
         if (keyMappingMap == null)
             keyMappingMap = new LinkedCaseInsensitiveMap<>();
         keyMappingMap.put(oldKey, newKey);
-        return this;
-    }
-
-    /**
-     * 设置统一的key改名函数
-     *
-     * @param keyChangeFunction 改名函数，比如可以统一转为CamelCase
-     * @return 自己
-     */
-    public MapRowMapper rename(Function<String, String> keyChangeFunction) {
-        this.keyChangeFunction = keyChangeFunction;
         return this;
     }
 
@@ -103,13 +90,11 @@ public class MapRowMapper extends ColumnMapRowMapper {
         return this;
     }
 
-    @Override
     protected String getColumnKey(String columnName) {
+        columnName = columnName.toUpperCase();
         if (keyMappingMap != null) {
             return keyMappingMap.getOrDefault(columnName, columnName);
         }
-        if (keyChangeFunction != null)
-            return keyChangeFunction.apply(columnName);
         return columnName;
     }
 
@@ -130,6 +115,14 @@ public class MapRowMapper extends ColumnMapRowMapper {
         if (postConsumer != null)
             postConsumer.accept(mapOfColValues);
         return mapOfColValues;
+    }
+
+    protected Map<String, Object> createColumnMap(int columnCount) {
+        return new LinkedHashMap<>(columnCount);
+    }
+
+    protected Object getColumnValue(ResultSet rs, int index) throws SQLException {
+        return JdbcUtils.getResultSetValue(rs, index);
     }
 
     protected <F> Object transform(String key, F value) {

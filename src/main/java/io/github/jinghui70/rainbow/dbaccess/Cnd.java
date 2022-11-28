@@ -140,7 +140,7 @@ public class Cnd {
             case "=":
                 Assert.notNull(value, "condition value should not be null");
                 if (!rangeNamedSql(sql)) {
-                    sql.append(field).append(op).append(":").append(field).setParam(field, value);
+                    sql.append(field).append("=:").append(field).setParam(field, value);
                 }
                 break;
             case IN:

@@ -1,5 +1,6 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.utils.StringBuilderWrapper;
 import io.github.jinghui70.rainbow.utils.TreeNode;
@@ -110,6 +111,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     }
 
     public S and(Cnd cnd) {
+        if (cnd==null) return (S) this;
         return where(cnd);
     }
 
@@ -227,7 +229,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return result;
     }
 
-    public <K, V> Map<K, V> queryToMap(ResultSetFunction<K> keyFunc, RowMapper<V> rowMapper, Supplier<Map<K,V>> supplier) {
+    public <K, V> Map<K, V> queryToMap(ResultSetFunction<K> keyFunc, RowMapper<V> rowMapper, Supplier<Map<K, V>> supplier) {
         Map<K, V> result = supplier.get();
         AtomicInteger rowNum = new AtomicInteger(0);
         query((rs) -> {
@@ -246,9 +248,10 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return queryToMap(keyFunc, MapRowMapper.INSTANCE);
     }
 
-    public <K, V> Map<K, V> queryToMap(ResultSetFunction<K> keyFunc, Class<V> clazz, Supplier<Map<K,V>> supplier) {
+    public <K, V> Map<K, V> queryToMap(ResultSetFunction<K> keyFunc, Class<V> clazz, Supplier<Map<K, V>> supplier) {
         return queryToMap(keyFunc, BeanMapper.of(clazz), supplier);
     }
+
     public <K, V> Map<K, V> queryToMap(ResultSetFunction<K> keyFunc, Class<V> clazz) {
         return queryToMap(keyFunc, BeanMapper.of(clazz));
     }
@@ -311,7 +314,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     }
 
     public <T> List<WrapTreeNode<T>> queryForWrapTree(RowMapper<T> mapper) {
-        return queryForTree((rs, rowNum) -> new WrapTreeNode<T>(mapper.mapRow(rs, rowNum)));
+        return queryForTree((rs, rowNum) -> new WrapTreeNode<>(mapper.mapRow(rs, rowNum)));
     }
 
     public <T extends TreeNode<T>> List<T> queryForTree(RowMapper<T> mapper) {
@@ -349,4 +352,10 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return (S) this;
     }
 
+    public abstract int execute();
+
+    public int transactionExecute() {
+        Assert.notNull(dba);
+        return dba.transaction((ts) -> execute());
+    }
 }

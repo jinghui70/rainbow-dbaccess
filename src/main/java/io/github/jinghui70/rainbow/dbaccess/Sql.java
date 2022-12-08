@@ -122,6 +122,7 @@ public class Sql extends SqlWrapper<Sql> {
      *
      * @return 执行影响的行数
      */
+    @Override
     public int execute() {
         if (noParams())
             return getJdbcTemplate().update(getSql());

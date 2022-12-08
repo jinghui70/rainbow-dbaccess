@@ -6,7 +6,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 import java.util.HashMap;
 import java.util.List;
@@ -93,6 +93,7 @@ public class NamedSql extends SqlWrapper<NamedSql> {
      *
      * @return 影响的行数
      */
+    @Override
     public int execute() {
         return dba.getNamedParameterJdbcTemplate().update(getSql(), params);
     }
@@ -127,15 +128,13 @@ public class NamedSql extends SqlWrapper<NamedSql> {
     }
 
     public int[] batchUpdate(List<Map<String, Object>> data) {
-        Map[] maps = new Map[data.size()];
-        int i = 0;
-        for (Map<String, Object> map : data) {
-            maps[i++] = map;
-            if (CollUtil.isNotEmpty(getParams())) {
-                map.putAll(getParams());
-            }
+        MapSqlParameterSource[] sources = data.stream().map(MapSqlParameterSource::new)
+                .toArray(MapSqlParameterSource[]::new);
+        if (CollUtil.isNotEmpty(getParams())) {
+            for (MapSqlParameterSource s : sources)
+                s.addValues(getParams());
         }
-        return dba.getNamedParameterJdbcTemplate().batchUpdate(getSql(), maps);
+        return dba.getNamedParameterJdbcTemplate().batchUpdate(getSql(), sources);
     }
 
 }

@@ -216,7 +216,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
 
     public int count() {
         String sql = String.format("SELECT COUNT(*) FROM (%s) C", getSql());
-        return queryForValue(sql, int.class);
+        return queryForValue(sql, Integer.class);
     }
 
     public <K, V> Map<K, V> queryToMap(ResultSetFunction<K> keyFunc, ResultSetFunction<V> valueFunction) {

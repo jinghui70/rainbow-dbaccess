@@ -19,7 +19,7 @@ Add the following to the dependencies in the project's pom.xml:
 <dependency>
     <groupId>io.github.jinghui70</groupId>
     <artifactId>rainbow-dbaccess</artifactId>
-    <version>5.1.8</version>
+    <version>5.1.9</version>
 </dependency>
 ```
 In SpringBoot project, rainbow-dbaccess supports automatic configuration and can be injected directly

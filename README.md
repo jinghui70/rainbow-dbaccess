@@ -19,7 +19,7 @@ Add the following to the dependencies in the project's pom.xml:
 <dependency>
     <groupId>io.github.jinghui70</groupId>
     <artifactId>rainbow-dbaccess</artifactId>
-    <version>5.1.9</version>
+    <version>5.1.10</version>
 </dependency>
 ```
 In SpringBoot project, rainbow-dbaccess supports automatic configuration and can be injected directly
@@ -124,16 +124,23 @@ More complex result processing：
 Paging queries, achieved by different database dialects ```Dialect``` (database dialects are set at the time of Dba creation).
 ```java
 // Take the first page, 20 items per page
-PageData<Student> data = dba.select(*).from("student").pageQuery(Student.class , 1, 20);
+PageData<Student> data = dba.select("*").from("student").pageQuery(Student.class , 1, 20);
 // Top Ten
-List<Student> data = dba.select(*).from("student").limit(10).queryForList(Student.class);
+List<Student> data = dba.select("*").from("student").limit(10).queryForList(Student.class);
 // Take the 10th to 20th
-List<Student> data = dba.select(*).from("student").range(10,20).queryForList(Student.class);
+List<Student> data = dba.select("*").from("student").range(10,20).queryForList(Student.class);
 ```
 
 ## Insert and Update
 
-For ordinary insert updates, you can write sql directly. for Bean objects, Dba provides a more convenient method.
+For ordinary insert updates, you can write sql directly. 
+```java
+dba.sql("insert into STUDENT(ID,NAME,AGE).values(?,?.?)").addParam("007","JAMES",40).execute();
+
+dba.update("STUDENT").set("NAME","BOND").set("AGE",27).where("ID", "007").execute();
+```
+
+For Bean objects, Dba provides a more convenient method.
 ```java
 // insert a bean，The object table name and the class name are kebab-camelCase relationship by default, you can also add annotation @Table on the class to specify the table name
 dba.insert(student);

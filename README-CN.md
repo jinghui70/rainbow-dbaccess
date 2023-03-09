@@ -20,7 +20,7 @@
 <dependency>
     <groupId>io.github.jinghui70</groupId>
     <artifactId>rainbow-dbaccess</artifactId>
-    <version>5.1.9</version>
+    <version>5.1.10</version>
 </dependency>
 ```
 在SpringBoot项目中，rainbow-dbaccess支持自动配置，可以直接注入：
@@ -125,16 +125,23 @@ List<Student> students = sql.queryForList(Student.class);
 分页查询，通过不同的数据库方言```Dialect```实现分页查询（数据库方言是在创建Dba的时候设置的）：
 ```java
 // 取第一页，每页20条
-PageData<Student> data = dba.select(*).from("student").pageQuery(Student.class , 1, 20);
+PageData<Student> data = dba.select("*").from("student").pageQuery(Student.class , 1, 20);
 // 取前十
-List<Student> data = dba.select(*).from("student").limit(10).queryForList(Student.class);
+List<Student> data = dba.select("*").from("student").limit(10).queryForList(Student.class);
 // 取第10条到第20条
-List<Student> data = dba.select(*).from("student").range(10,20).queryForList(Student.class);
+List<Student> data = dba.select("*").from("student").range(10,20).queryForList(Student.class);
 ```
 
 ## 插入和更新
 
-普通的插入更新，可以直接写sql实现。对于Bean对象，Dba提供了更方便的方法。
+普通的插入更新，可以直接写sql实现。
+```java
+dba.sql("insert into STUDENT(ID,NAME,AGE).values(?,?.?)").addParam("007","JAMES",40).execute();
+
+dba.update("STUDENT").set("NAME","BOND").set("AGE",27).where("ID", "007").execute();
+```
+
+对于Bean对象的插入更新，Dba提供了更方便的方法。
 ```java
 // 插入一个对象，对象表名与类名默认是 kebab-camelCase关系,也可以在类上标记@Table指定表名
 dba.insert(student);

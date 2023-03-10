@@ -20,7 +20,7 @@
 <dependency>
     <groupId>io.github.jinghui70</groupId>
     <artifactId>rainbow-dbaccess</artifactId>
-    <version>5.1.10</version>
+    <version>5.1.11</version>
 </dependency>
 ```
 在SpringBoot项目中，rainbow-dbaccess支持自动配置，可以直接注入：

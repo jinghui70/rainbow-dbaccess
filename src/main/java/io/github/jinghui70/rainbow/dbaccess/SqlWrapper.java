@@ -98,6 +98,14 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return (S) this;
     }
 
+    public S where(Collection<Cnd> cnds) {
+        for(Cnd cnd: cnds) {
+            where();
+            append(cnd);
+        }
+        return (S) this;
+    }
+
     public S where(String field, Object value) {
         return where(new Cnd(field, value));
     }

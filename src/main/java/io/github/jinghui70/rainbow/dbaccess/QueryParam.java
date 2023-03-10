@@ -1,15 +1,17 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 
+import java.util.List;
 import java.util.Map;
 
 public class QueryParam {
 
     private String entity;
 
-    private Cnd[] cnds;
+    private List<Cnd> cnds;
 
     private String sortField;
 
@@ -27,11 +29,11 @@ public class QueryParam {
         this.entity = entity;
     }
 
-    public Cnd[] getCnds() {
+    public List<Cnd> getCnds() {
         return cnds;
     }
 
-    public void setCnds(Cnd[] cnds) {
+    public void setCnds(List<Cnd> cnds) {
         this.cnds = cnds;
     }
 
@@ -67,19 +69,28 @@ public class QueryParam {
         this.pageSize = pageSize;
     }
 
-    public boolean hasCnd() {
-        return cnds != null && cnds.length > 0;
-    }
-
     @Override
     public String toString() {
         return "QueryParam[" + JSONUtil.toJsonStr(this) + "]";
     }
 
+    public QueryParam setDefaultSort(String sortField) {
+        return setDefaultSort(sortField, false);
+    }
+
+    public QueryParam setDefaultSort(String sortField, boolean sortDesc) {
+        if (StrUtil.isBlank(this.sortField)) {
+            this.sortField = sortField;
+            this.sortDesc = sortDesc;
+        }
+        return this;
+    }
+
     public Sql toSql(Dba dba) {
         Sql sql = dba.sql("select *").from(entity);
-        if (hasCnd())
-            sql.where(cnds);
+        if (CollUtil.isNotEmpty(cnds))
+            for (Cnd cnd: cnds)
+                sql.where(cnd);
         if (StrUtil.isNotBlank(sortField)) {
             sql.orderBy(sortField);
             if (sortDesc)

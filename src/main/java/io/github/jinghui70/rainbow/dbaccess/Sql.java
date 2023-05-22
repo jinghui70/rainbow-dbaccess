@@ -179,7 +179,7 @@ public class Sql extends SqlWrapper<Sql> {
     }
 
     @Override
-    public <T> T queryForValue(String sql, Class<T> requiredType) throws DataAccessException {
+    protected  <T> T queryForValue(String sql, Class<T> requiredType) throws DataAccessException {
         if (noParams())
             return getJdbcTemplate().queryForObject(sql, requiredType);
         else if (types==null)
@@ -189,12 +189,12 @@ public class Sql extends SqlWrapper<Sql> {
     }
 
     @Override
-    public <T> List<T> queryForValueList(Class<T> elementType) throws DataAccessException {
+    protected  <T> List<T> queryForValueList(String sql, Class<T> elementType) throws DataAccessException {
         if (noParams())
-            return getJdbcTemplate().queryForList(getSql(), elementType);
+            return getJdbcTemplate().queryForList(sql, elementType);
         else if (types==null)
-            return getJdbcTemplate().queryForList(getSql(), elementType, getParamArray());
+            return getJdbcTemplate().queryForList(sql, elementType, getParamArray());
         else
-            return getJdbcTemplate().queryForList(getSql(), getParamArray(), getTypeArray(),elementType);
+            return getJdbcTemplate().queryForList(sql, getParamArray(), getTypeArray(),elementType);
     }
 }

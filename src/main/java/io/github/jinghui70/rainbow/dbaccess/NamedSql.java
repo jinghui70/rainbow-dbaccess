@@ -123,8 +123,8 @@ public class NamedSql extends SqlWrapper<NamedSql> {
     }
 
     @Override
-    public <T> List<T> queryForValueList(Class<T> elementType) throws DataAccessException {
-        return dba.getNamedParameterJdbcTemplate().queryForList(getSql(), params, elementType);
+    protected <T> List<T> queryForValueList(String sql, Class<T> elementType) throws DataAccessException {
+        return dba.getNamedParameterJdbcTemplate().queryForList(sql, params, elementType);
     }
 
     public int[] batchUpdate(List<Map<String, Object>> data) {

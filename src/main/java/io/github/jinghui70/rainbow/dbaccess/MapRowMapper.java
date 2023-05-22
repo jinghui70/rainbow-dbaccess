@@ -28,6 +28,13 @@ public class MapRowMapper implements RowMapper<Map<String, Object>> {
     // 忽略空
     private boolean ignoreNull;
 
+    private KeyType keyType = KeyType.UPPER_CASE;
+
+    public MapRowMapper setKeyType(KeyType keyType) {
+        this.keyType = keyType;
+        return this;
+    }
+
     /**
      * 字段改名配置
      *
@@ -91,7 +98,7 @@ public class MapRowMapper implements RowMapper<Map<String, Object>> {
     }
 
     protected String getColumnKey(String columnName) {
-        columnName = columnName.toUpperCase();
+        columnName = keyType.apply(columnName);
         if (keyMappingMap != null) {
             return keyMappingMap.getOrDefault(columnName, columnName);
         }

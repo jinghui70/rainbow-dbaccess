@@ -1,10 +1,12 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.utils.StringBuilderWrapper;
 import io.github.jinghui70.rainbow.utils.TreeNode;
 import io.github.jinghui70.rainbow.utils.WrapTreeNode;
+import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowCallbackHandler;
@@ -42,6 +44,11 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         this.dba = dba;
     }
 
+    /**
+     * 获取当前拼的sql内容
+     *
+     * @return sql
+     */
     public String getSql() {
         String sql = sb.toString();
         if (range == null) return sql;
@@ -49,17 +56,37 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return dba.getDialect().wrapRangeSql(sql, range.getFrom(), range.getTo());
     }
 
+    /**
+     * 复用当前对象，重新设置sql内容
+     *
+     * @param sql 新的sql
+     */
     public void setSql(String sql) {
         sb.setLength(0);
         sb.append(sql);
     }
 
+    /**
+     * 添加一个条件
+     *
+     * @param cnd 条件对象
+     * @return 返回自己
+     */
     public abstract S append(Cnd cnd);
 
+    /**
+     * 拼 from table
+     *
+     * @param table 表名
+     * @return 返回自己
+     */
     public S from(String table) {
         return append(" FROM ").append(table);
     }
 
+    /**
+     * 判断是不是第一个set
+     */
     protected void set() {
         if (set)
             append(",");
@@ -69,13 +96,29 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         }
     }
 
+    /**
+     * 拼update语句的一个set部分
+     *
+     * @param field 字段
+     * @param value 新值
+     * @return 返回自己
+     */
     public abstract S set(String field, Object value);
 
+    /**
+     * 拼update语句的一个set部分，用于上一个方法不方便的时候。比如 set a = a + ?, 或者 a=a+:deltaA
+     *
+     * @param set 需要set的内容
+     * @return 返回自己
+     */
     public S set(String set) {
         set();
         return append(set);
     }
 
+    /**
+     * 判断是不是第一个where
+     */
     protected void where() {
         if (where) {
             append(Cnd.AND);
@@ -85,11 +128,23 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         }
     }
 
+    /**
+     * 添加一个条件，需要自己处理条件内容，比如 where("a=1")或者where("a=?").addParam(1)
+     *
+     * @param cnd 条件字符串
+     * @return 返回自己
+     */
     public S where(String cnd) {
         where();
         return append(cnd);
     }
 
+    /**
+     * 添加一组条件
+     *
+     * @param cnds 条件数组
+     * @return 返回自己
+     */
     public S where(Cnd... cnds) {
         for (Cnd cnd : cnds) {
             where();
@@ -98,28 +153,56 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return (S) this;
     }
 
+    /**
+     * 添加条件列表
+     *
+     * @param cnds 条件列表
+     * @return 返回自己
+     */
     public S where(Collection<Cnd> cnds) {
-        for(Cnd cnd: cnds) {
-            where();
-            append(cnd);
-        }
+        if (CollUtil.isNotEmpty(cnds))
+            for (Cnd cnd : cnds) {
+                where();
+                append(cnd);
+            }
         return (S) this;
     }
 
+    /**
+     * 添加一个相等的条件
+     *
+     * @param field 字段名
+     * @param value 条件取值
+     * @return 返回自己
+     */
     public S where(String field, Object value) {
         return where(new Cnd(field, value));
     }
 
+    /**
+     * 添加一个条件
+     *
+     * @param field 字段名
+     * @param op    操作符
+     * @param value 条件取值
+     * @return 返回自己
+     */
     public S where(String field, String op, Object value) {
         return where(new Cnd(field, op, value));
     }
 
+    /**
+     * 添加一个And条件
+     *
+     * @param cnd 条件字符串
+     * @return 返回自己
+     */
     public S and(String cnd) {
         return where(cnd);
     }
 
     public S and(Cnd cnd) {
-        if (cnd==null) return (S) this;
+        if (cnd == null) return (S) this;
         return where(cnd);
     }
 
@@ -149,12 +232,18 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return or(new Cnd(field, op, value));
     }
 
-    public S orderBy(Collection<String> fields) {
-        return append(" ORDER BY ").join(fields);
-    }
-
     public S orderBy(String fields) {
         return append(" ORDER BY ").append(fields);
+    }
+
+    public S orderBy(SortField... sortFields) {
+        return append(" ORDER BY ").join(sortFields);
+    }
+
+    public S orderBy(List<SortField> sortFields) {
+        if (CollUtil.isNotEmpty(sortFields))
+            return append(" ORDER BY ").join(sortFields);
+        return (S) this;
     }
 
     public S groupBy(Collection<String> fields) {
@@ -165,42 +254,33 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return append(" GROUP BY ").append(fields);
     }
 
+    /**
+     * 查询并按回调函数进行结果处理
+     *
+     * @param rch 处理每行数据的回调函数
+     */
     public abstract void query(RowCallbackHandler rch);
 
+    /**
+     * 查询一个对象，查询结果应该是一条记录或空
+     *
+     * @param mapper 对象Mapper
+     * @param <T>    对象泛型
+     * @return 结果对象或null
+     * @throws DataAccessException 底层异常
+     */
     public abstract <T> T queryForObject(RowMapper<T> mapper) throws DataAccessException;
 
-    protected abstract <T> T queryForValue(String sql, Class<T> requiredType) throws DataAccessException;
-
-    protected abstract <T> List<T> queryForList(String sql, RowMapper<T> rowMapper) throws DataAccessException;
-
-    public abstract <T> List<T> queryForValueList(Class<T> elementType) throws DataAccessException;
-
-    public Map<String, Object> queryForMap() throws DataAccessException {
-        Map<String, Object> result = queryForObject(MapRowMapper.INSTANCE);
-        return result == null ? Collections.emptyMap() : result;
-    }
-
-    public <T> T queryForObject(Class<T> objectType) throws DataAccessException {
-        return queryForObject(BeanMapper.of(objectType));
-    }
-
-    public <T> List<T> queryForList(RowMapper<T> rowMapper) throws DataAccessException {
-        return queryForList(getSql(), rowMapper);
-    }
-
-    public <T> List<T> queryForList(Class<T> objectType) throws DataAccessException {
-        return queryForList(BeanMapper.of(objectType));
-    }
-
     /**
-     * 查询一个map列表
+     * 查询一条记录的一个字段，由派生类实现。
      *
-     * @return Map封装记录的列表
-     * @throws DataAccessException 数据处理异常
+     * @param sql          查询sql，多了这个参数是为了本类返回Option
+     * @param requiredType 数据类型
+     * @param <T>          数据泛型
+     * @return 查询结果
+     * @throws DataAccessException 底层异常
      */
-    public List<Map<String, Object>> queryForList() throws DataAccessException {
-        return queryForList(MapRowMapper.INSTANCE);
-    }
+    protected abstract <T> T queryForValue(String sql, Class<T> requiredType) throws DataAccessException;
 
     public <T> Optional<T> queryForValue(Class<T> requiredType) throws DataAccessException {
         try {
@@ -208,6 +288,17 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
+    }
+
+    public <T> T queryForObject(Class<T> objectType) throws DataAccessException {
+        if (BeanUtils.isSimpleValueType(objectType))
+            return queryForValue(getSql(), objectType);
+        return queryForObject(BeanMapper.of(objectType));
+    }
+
+    public Map<String, Object> queryForMap() throws DataAccessException {
+        Map<String, Object> result = queryForObject(MapRowMapper.INSTANCE);
+        return result == null ? Collections.emptyMap() : result;
     }
 
     public String queryForString() {
@@ -220,6 +311,64 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
 
     public double queryForDouble() {
         return queryForValue(Double.class).orElse(0.0);
+    }
+
+    /**
+     * 由派生类实现，获取对象列表
+     *
+     * @param sql       查询语句
+     * @param rowMapper 对象Mapper
+     * @param <T>       对象泛型
+     * @return 结果列表
+     * @throws DataAccessException 数据底层异常
+     */
+    protected abstract <T> List<T> queryForList(String sql, RowMapper<T> rowMapper) throws DataAccessException;
+
+    /**
+     * 获取对象列表
+     *
+     * @param rowMapper 对象Mapper
+     * @param <T>       对象泛型
+     * @return 结果列表
+     * @throws DataAccessException 数据底层异常
+     */
+    public <T> List<T> queryForList(RowMapper<T> rowMapper) throws DataAccessException {
+        return queryForList(getSql(), rowMapper);
+    }
+
+    /**
+     * 由派生类实现，获取基本类型列表
+     *
+     * @param sql         查询语句
+     * @param elementType 数据类型
+     * @param <T>         数据泛型
+     * @return 结果列表
+     * @throws DataAccessException 数据底层异常
+     */
+    protected abstract <T> List<T> queryForValueList(String sql, Class<T> elementType) throws DataAccessException;
+
+    /**
+     * 查询一个对象列表
+     *
+     * @param objectType 对象类型
+     * @param <T>        类型泛型
+     * @return 结果列表
+     * @throws DataAccessException 数据底层异常
+     */
+    public <T> List<T> queryForList(Class<T> objectType) throws DataAccessException {
+        if (BeanUtils.isSimpleValueType(objectType))
+            return queryForValueList(getSql(), objectType);
+        return queryForList(BeanMapper.of(objectType));
+    }
+
+    /**
+     * 查询一个map列表
+     *
+     * @return Map封装记录的列表
+     * @throws DataAccessException 数据处理异常
+     */
+    public List<Map<String, Object>> queryForList() throws DataAccessException {
+        return queryForList(MapRowMapper.INSTANCE);
     }
 
     public int count() {
@@ -306,6 +455,15 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     }
 
     public <T> PageData<T> pageQuery(Class<T> objectType, int pageNo, int pageSize) {
+        if (BeanUtils.isSimpleValueType(objectType)) {
+            int count = count();
+            if (count == 0 || count <= (pageNo - 1) * pageSize)
+                return new PageData<>(count);
+            String sql = pageNo == 1 ? dba.getDialect().wrapLimitSql(getSql(), pageSize)
+                    : dba.getDialect().wrapPagedSql(getSql(), pageNo, pageSize);
+            List<T> list = queryForValueList(sql, objectType);
+            return new PageData<>(count, list);
+        }
         return pageQuery(BeanMapper.of(objectType), pageNo, pageSize);
     }
 
@@ -346,6 +504,35 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
                 result.addAll(children);
             } else
                 item.setChildren(children);
+        }
+        return result;
+    }
+
+    public List<Map<String, Object>> queryForTree() {
+        return queryForTree(MapRowMapper.INSTANCE);
+    }
+
+    public List<Map<String, Object>> queryForTree(MapRowMapper mapper) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        Map<String, List<Map<String, Object>>> map = new LinkedHashMap<>();
+        Map<String, Map<String, Object>> itemMap = new HashMap<>();
+        AtomicInteger row = new AtomicInteger(1);
+        query(rs -> {
+            String pid = rs.getString("PID");
+            String id = rs.getString("ID");
+            Map<String, Object> item = mapper.mapRow(rs, row.getAndIncrement());
+            List<Map<String, Object>> list = map.computeIfAbsent(pid, (p) -> new ArrayList<>());
+            list.add(item);
+            itemMap.put(id, item);
+        });
+        for (Map.Entry<String, List<Map<String, Object>>> entry : map.entrySet()) {
+            String id = entry.getKey();
+            List<Map<String, Object>> children = entry.getValue();
+            Map<String, Object> item = itemMap.get(id);
+            if (item == null) {
+                result.addAll(children);
+            } else
+                item.put("children", children);
         }
         return result;
     }

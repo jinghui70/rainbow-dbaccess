@@ -12,7 +12,7 @@ import java.util.Map;
 
 import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.enumCheck;
 
-public class Cnd {
+public class Cnd implements ICnd {
 
     public static final String IN = " in ";
     public static final String NOT_IN = " not in ";
@@ -72,6 +72,7 @@ public class Cnd {
         this.value = value;
     }
 
+    @Override
     public void toSql(Sql sql) {
         sql.append(field);
         if (value instanceof Sql) {
@@ -134,6 +135,7 @@ public class Cnd {
         return true;
     }
 
+    @Override
     public void toNamedSql(NamedSql sql) {
         switch (op) {
             case "":

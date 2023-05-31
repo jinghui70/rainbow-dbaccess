@@ -169,6 +169,16 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     }
 
     /**
+     * AND + 添加条件列表
+     *
+     * @param cnds 条件列表
+     * @return 返回自己
+     */
+    public S and(Collection<Cnd> cnds) {
+        return where(cnds);
+    }
+
+    /**
      * 添加一个相等的条件
      *
      * @param field 字段名
@@ -234,16 +244,6 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
 
     public S orderBy(String fields) {
         return append(" ORDER BY ").append(fields);
-    }
-
-    public S orderBy(SortField... sortFields) {
-        return append(" ORDER BY ").join(sortFields);
-    }
-
-    public S orderBy(List<SortField> sortFields) {
-        if (CollUtil.isNotEmpty(sortFields))
-            return append(" ORDER BY ").join(sortFields);
-        return (S) this;
     }
 
     public S groupBy(Collection<String> fields) {

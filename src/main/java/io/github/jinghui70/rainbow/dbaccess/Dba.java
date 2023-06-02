@@ -155,8 +155,12 @@ public class Dba {
      */
     @SuppressWarnings("unchecked")
     public <T> void insert(List<T> beans) {
+        insert(beans, 0);
+    }
+
+    public <T> void insert(List<T> beans, int batchSize) {
         if (CollUtil.isEmpty(beans)) return;
-        new ObjectDba<>(this, (Class<T>) beans.get(0).getClass()).insert(beans);
+        new ObjectDba<>(this, (Class<T>) beans.get(0).getClass()).insert(beans, batchSize);
     }
 
     /**

@@ -12,7 +12,10 @@ import java.util.Map;
 
 import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.enumCheck;
 
-public class Cnd implements ICnd {
+/**
+ * 描述一个查询条件的对象，条件的三要素：字段名、比较符、条件值
+ */
+public class Cnd {
 
     public static final String IN = " in ";
     public static final String NOT_IN = " not in ";
@@ -26,7 +29,7 @@ public class Cnd implements ICnd {
     public static final String AND = " AND ";
     public static final String OR = " OR ";
 
-    private String field;
+    protected String field;
 
     private String op = "";
 
@@ -72,7 +75,6 @@ public class Cnd implements ICnd {
         this.value = value;
     }
 
-    @Override
     public void toSql(Sql sql) {
         sql.append(field);
         if (value instanceof Sql) {
@@ -135,7 +137,6 @@ public class Cnd implements ICnd {
         return true;
     }
 
-    @Override
     public void toNamedSql(NamedSql sql) {
         switch (op) {
             case "":
@@ -204,5 +205,6 @@ public class Cnd implements ICnd {
     public String toString() {
         return "{" + field + " " + op + " " + value + "}";
     }
-
 }
+
+

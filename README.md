@@ -26,7 +26,7 @@ Add the following to the dependencies in the project's pom.xml:
 <dependency>
     <groupId>io.github.jinghui70</groupId>
     <artifactId>rainbow-dbaccess</artifactId>
-    <version>5.1.12</version>
+    <version>5.1.13</version>
 </dependency>
 ```
 

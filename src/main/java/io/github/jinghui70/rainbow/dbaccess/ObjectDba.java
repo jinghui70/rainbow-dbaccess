@@ -76,7 +76,7 @@ public class ObjectDba<T> {
             ArrayField arrayAnnotation = propDesc.getField().getAnnotation(ArrayField.class);
             if (arrayAnnotation == null) {
                 boolean key = propDesc.getField().getAnnotation(Id.class) != null;
-                props.add( new PropInfo(fieldName, propDesc, type, key));
+                props.add(new PropInfo(fieldName, propDesc, type, key));
             } else {
                 String join = arrayAnnotation.underline() ? "_" : "";
                 for (int i = 0; i < arrayAnnotation.length(); i++) {
@@ -204,13 +204,15 @@ public class ObjectDba<T> {
 
     public int update(String table, T object) {
         Sql sql = dba.update(table);
-        for (PropInfo propInfo: propArray) {
-            if (propInfo.key) {
-                sql.where(propInfo.fieldName, propInfo.getValue(object));
-            } else
+        for (PropInfo propInfo : propArray) {
+            if (!propInfo.key)
                 sql.set(propInfo.fieldName, propInfo.getValue(object));
         }
-       return sql.execute();
+        for (PropInfo propInfo : propArray) {
+            if (propInfo.key)
+                sql.where(propInfo.fieldName, propInfo.getValue(object));
+        }
+        return sql.execute();
     }
 
 }

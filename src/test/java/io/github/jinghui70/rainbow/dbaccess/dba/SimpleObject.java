@@ -1,7 +1,10 @@
 package io.github.jinghui70.rainbow.dbaccess.dba;
 
+import io.github.jinghui70.rainbow.dbaccess.annotation.Id;
+
 public class SimpleObject {
 
+    @Id
     private int id;
 
     private String name;

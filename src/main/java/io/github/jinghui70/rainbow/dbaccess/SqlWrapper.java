@@ -243,11 +243,9 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     }
 
     public S orderBy(String fields) {
-        return append(" ORDER BY ").append(fields);
-    }
-
-    public S groupBy(Collection<String> fields) {
-        return append(" GROUP BY ").join(fields);
+        if (StrUtil.isNotBlank(fields))
+            return append(" ORDER BY ").append(fields);
+        return (S) this;
     }
 
     public S groupBy(String fields) {

@@ -153,11 +153,11 @@ public class Dba {
      * @param beans 数据的集合
      * @param <T>   对象泛型
      */
-    @SuppressWarnings("unchecked")
     public <T> void insert(List<T> beans) {
         insert(beans, 0);
     }
 
+    @SuppressWarnings("unchecked")
     public <T> void insert(List<T> beans, int batchSize) {
         if (CollUtil.isEmpty(beans)) return;
         new ObjectDba<>(this, (Class<T>) beans.get(0).getClass()).insert(beans, batchSize);

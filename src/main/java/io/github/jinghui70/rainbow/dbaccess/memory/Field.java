@@ -12,6 +12,8 @@ public class Field {
 
     private boolean key;
 
+    private boolean autoIncrement;
+
     private boolean mandatory;
 
     private Object defaultValue;
@@ -102,6 +104,15 @@ public class Field {
 
     public Field setKey(boolean key) {
         this.key = key;
+        return this;
+    }
+
+    public boolean isAutoIncrement() {
+        return autoIncrement;
+    }
+
+    public Field setAutoIncrement(boolean autoIncrement) {
+        this.autoIncrement = autoIncrement;
         return this;
     }
 

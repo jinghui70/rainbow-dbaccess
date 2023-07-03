@@ -12,10 +12,8 @@ import java.util.Objects;
 public class Table {
 
     public static final String DEFAULT = "X";
-
-    private String name;
-
     private final List<Field> fields;
+    private String name;
 
     public Table(String name, List<Field> fields) {
         this.name = name;
@@ -65,6 +63,9 @@ public class Table {
                 default:
                     break;
             }
+            // 自增主键
+            if (field.isKey() && field.isAutoIncrement())
+                sql.append(" AUTO_INCREMENT");
             if (Objects.nonNull(field.getDefaultValue())) {
                 sql.append(" DEFAULT ").append(field.getDefaultValue());
             }

@@ -1,5 +1,6 @@
 package io.github.jinghui70.rainbow.dbaccess.dba;
 
+import io.github.jinghui70.rainbow.dbaccess.annotation.ArrayField;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Id;
 
 public class SimpleObject {
@@ -9,12 +10,16 @@ public class SimpleObject {
 
     private String name;
 
+    @ArrayField(length = 3)
+    private double[] score;
+
     public SimpleObject() {
     }
 
-    public SimpleObject(int id, String name) {
+    public SimpleObject(int id, String name, double[] score) {
         this.id = id;
         this.name = name;
+        this.score = score;
     }
 
     public int getId() {
@@ -31,5 +36,13 @@ public class SimpleObject {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public double[] getScore() {
+        return score;
+    }
+
+    public void setScore(double[] score) {
+        this.score = score;
     }
 }

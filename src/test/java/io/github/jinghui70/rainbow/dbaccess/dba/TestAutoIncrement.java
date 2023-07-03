@@ -14,20 +14,21 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class TestObjectDba {
+public class TestAutoIncrement {
 
     private static MemoryDba mDba;
-    private static ObjectDba<SimpleObject> oDba;
+    private static ObjectDba<AutoIncrementObject> oDba;
 
     @BeforeAll
     static void createDB() {
         mDba = new MemoryDba();
-        mDba.createTable(Field.createKeyInt("ID"), Field.createString("NAME"),
-                Field.createDouble("SCORE0"),
-                Field.createDouble("SCORE1"),
-                Field.createDouble("SCORE2")
+        mDba.createTable(Field.createKeyInt("ID").setAutoIncrement(true),
+                Field.createString("NAME"),
+                Field.createDouble("SCORE_1"),
+                Field.createDouble("SCORE_2"),
+                Field.createDouble("SCORE_3")
         );
-        oDba = new ObjectDba<>(mDba, SimpleObject.class);
+        oDba = new ObjectDba<>(mDba, AutoIncrementObject.class);
     }
 
     @AfterAll
@@ -40,35 +41,34 @@ public class TestObjectDba {
         mDba.deleteFrom(Table.DEFAULT).execute();
     }
 
-    private List<SimpleObject> list() {
-        List<SimpleObject> list = new ArrayList<>();
+    private List<AutoIncrementObject> list() {
+        List<AutoIncrementObject> list = new ArrayList<>();
         for (int i = 1; i <= 10; i++) {
             double[] score = new double[3];
             score[0] = i * 10;
             score[1] = i * 10 + 1;
             score[2] = i * 10 + 2;
-            list.add(new SimpleObject(i, "name" + i, score));
+            list.add(new AutoIncrementObject("name" + i, score));
         }
         return list;
     }
 
     @Test
     public void testInsert() {
-        oDba.insert(Table.DEFAULT, list());
-        List<SimpleObject> list = mDba.select("*").from("X").orderBy("ID").queryForList(SimpleObject.class);
+        oDba.insert(list());
+        List<AutoIncrementObject> list = mDba.select("*").from("X").orderBy("ID").queryForList(AutoIncrementObject.class);
         assertEquals(10, list.size());
-        SimpleObject o = list.get(9);
-        assertEquals(10, o.getId());
+        AutoIncrementObject o = list.get(9);
         assertEquals("name10", o.getName());
-        assertEquals(100, o.getScore()[0]);
-        assertEquals(101, o.getScore()[1]);
-        assertEquals(102, o.getScore()[2]);
+        assertEquals(100, o.getScores()[0]);
+        assertEquals(101, o.getScores()[1]);
+        assertEquals(102, o.getScores()[2]);
     }
 
     @Test
     public void testBatchInsert() {
         oDba.insert(Table.DEFAULT, list(), 3);
-        List<SimpleObject> list = mDba.select("*").from(Table.DEFAULT).orderBy("ID").queryForList(SimpleObject.class);
+        List<AutoIncrementObject> list = mDba.select("*").from(Table.DEFAULT).orderBy("ID").queryForList(AutoIncrementObject.class);
         assertEquals(10, list.size());
         for (int i = 1; i <= 10; i++)
             assertEquals(i, list.get(i - 1).getId());
@@ -79,15 +79,16 @@ public class TestObjectDba {
 
     @Test
     public void testUpdate() {
-        SimpleObject o = new SimpleObject(27, "tom", null);
+        AutoIncrementObject o = new AutoIncrementObject("tom", null);
         oDba.insert(Table.DEFAULT, o);
+        o = mDba.select("*").from(Table.DEFAULT).where("NAME", "tom").queryForObject(AutoIncrementObject.class);
         o.setName("oldTom");
-        o.setScore(new double[]{100, 110});
+        o.setScores(new double[]{100, 110});
         oDba.update(Table.DEFAULT, o);
-        o = mDba.select("*").from(Table.DEFAULT).where("ID", 27).queryForObject(SimpleObject.class);
+        o = mDba.select("*").from(Table.DEFAULT).where("ID", o.getId()).queryForObject(AutoIncrementObject.class);
         assertEquals("oldTom", o.getName());
-        assertEquals(100, o.getScore()[0]);
-        assertEquals(110, o.getScore()[1]);
-        assertEquals(0, o.getScore()[2]);
+        assertEquals(100, o.getScores()[0]);
+        assertEquals(110, o.getScores()[1]);
+        assertEquals(0, o.getScores()[2]);
     }
 }

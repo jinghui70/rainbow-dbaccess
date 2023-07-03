@@ -28,11 +28,11 @@ class PropInfo {
     PropDesc prop;
     int type;
     int index;
-    boolean key;
+    Id id;
 
-    PropInfo(String fieldName, PropDesc prop, int type, boolean key) {
+    PropInfo(String fieldName, PropDesc prop, int type, Id id) {
         this(fieldName, prop, type, -1);
-        this.key = key;
+        this.id = id;
     }
 
     PropInfo(String fieldName, PropDesc prop, int type, int index) {
@@ -53,6 +53,10 @@ class PropInfo {
             }
         }
         return DbaUtil.enumCheck(value);
+    }
+
+    boolean isAutoIncrement() {
+        return id != null && id.autoIncrement();
     }
 }
 
@@ -75,8 +79,8 @@ public class ObjectDba<T> {
                     StrUtil.toUnderlineCase(propDesc.getRawFieldName()) : column.name();
             ArrayField arrayAnnotation = propDesc.getField().getAnnotation(ArrayField.class);
             if (arrayAnnotation == null) {
-                boolean key = propDesc.getField().getAnnotation(Id.class) != null;
-                props.add(new PropInfo(fieldName, propDesc, type, key));
+                Id id = propDesc.getField().getAnnotation(Id.class);
+                props.add(new PropInfo(fieldName, propDesc, type, id));
             } else {
                 String join = arrayAnnotation.underline() ? "_" : "";
                 for (int i = 0; i < arrayAnnotation.length(); i++) {
@@ -88,11 +92,18 @@ public class ObjectDba<T> {
         propArray = props.toArray(new PropInfo[0]);
     }
 
-    protected String sql(String action, String table) {
-        return new StringBuilderX(action).append(" into ").append(table).append("(")
-                .join(propArray, p -> p.fieldName, StrUtil.COMMA)
-                .append(") values(").repeat("?", propArray.length).append(")")
-                .toString();
+    protected String insertSql(String action, String table) {
+        StringBuilderX sb = new StringBuilderX(action).append(" into ").append(table).append("(");
+        int count = propArray.length;
+        for (PropInfo propInfo : propArray) {
+            if (propInfo.isAutoIncrement()) {
+                count--;
+                continue;
+            }
+            sb.append(propInfo.fieldName).appendTempComma();
+        }
+        sb.clearTemp().append(") values(").repeat("?", count).append(")");
+        return sb.toString();
     }
 
     public int insert(T object) {
@@ -112,27 +123,11 @@ public class ObjectDba<T> {
     }
 
     private int doInsert(String table, T object, String action) {
-        Sql sql = dba.sql(action).append(" into ").append(table).append("(");
-        for (PropInfo p : propArray) {
-            Object value = p.prop.getValue(object);
-            if (value == null) continue;
-            if (p.index >= 0) {
-                try {
-                    value = Array.get(value, p.index);
-                    if (value != null) {
-                        sql.append(p.fieldName).appendTemp(StrUtil.COMMA);
-                        sql.addTypeParam(DbaUtil.enumCheck(value), p.type);
-                    }
-                } catch (ArrayIndexOutOfBoundsException e) {
-                    // do Nothing
-                }
-            } else {
-                sql.append(p.fieldName).appendTemp(StrUtil.COMMA);
-                sql.addTypeParam(DbaUtil.enumCheck(value), p.type);
-            }
-        }
-        sql.clearTemp().append(") VALUES (").repeat("?", sql.getParams().size()).append(")");
-        return sql.execute();
+        Integer result = dba.getJdbcTemplate().execute(insertSql(action, table), (PreparedStatementCallback<Integer>) ps -> {
+            setValues(ps, object);
+            return ps.executeUpdate();
+        });
+        return result == null ? 0 : result;
     }
 
     public void insert(Collection<T> objects) {
@@ -168,7 +163,7 @@ public class ObjectDba<T> {
     }
 
     public void doInsert(String table, Collection<T> objects, String action, int batchSize) {
-        dba.getJdbcTemplate().execute(sql(action, table), (PreparedStatementCallback<int[]>) ps -> {
+        dba.getJdbcTemplate().execute(insertSql(action, table), (PreparedStatementCallback<int[]>) ps -> {
             if (JdbcUtils.supportsBatchUpdates(ps.getConnection())) {
                 int i = 0;
                 for (T t : objects) {
@@ -192,9 +187,10 @@ public class ObjectDba<T> {
     }
 
     private void setValues(PreparedStatement ps, T object) throws SQLException {
-        for (int i = 1; i <= propArray.length; i++) {
-            PropInfo p = propArray[i - 1];
-            StatementCreatorUtils.setParameterValue(ps, i, p.type, p.getValue(object));
+        int i = 1;
+        for (PropInfo p : propArray) {
+            if (p.isAutoIncrement()) continue;
+            StatementCreatorUtils.setParameterValue(ps, i++, p.type, p.getValue(object));
         }
     }
 
@@ -205,11 +201,11 @@ public class ObjectDba<T> {
     public int update(String table, T object) {
         Sql sql = dba.update(table);
         for (PropInfo propInfo : propArray) {
-            if (!propInfo.key)
+            if (propInfo.id == null)
                 sql.set(propInfo.fieldName, propInfo.getValue(object));
         }
         for (PropInfo propInfo : propArray) {
-            if (propInfo.key)
+            if (propInfo.id != null)
                 sql.where(propInfo.fieldName, propInfo.getValue(object));
         }
         return sql.execute();

@@ -10,15 +10,12 @@ import io.github.jinghui70.rainbow.dbaccess.annotation.Transient;
 import io.github.jinghui70.rainbow.utils.StringBuilderX;
 import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.jdbc.core.SqlTypeValue;
-import org.springframework.jdbc.core.StatementCreatorUtils;
 import org.springframework.jdbc.support.JdbcUtils;
 
 import java.lang.reflect.Array;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.INSERT;
 import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.MERGE;
@@ -124,7 +121,7 @@ public class ObjectDba<T> {
 
     private int doInsert(String table, T object, String action) {
         Integer result = dba.getJdbcTemplate().execute(insertSql(action, table), (PreparedStatementCallback<Integer>) ps -> {
-            setValues(ps, object);
+            setValues(ps, object, null);
             return ps.executeUpdate();
         });
         return result == null ? 0 : result;
@@ -163,11 +160,12 @@ public class ObjectDba<T> {
     }
 
     public void doInsert(String table, Collection<T> objects, String action, int batchSize) {
+        Map<Integer, Integer> nullTypeCache = new HashMap<>();
         dba.getJdbcTemplate().execute(insertSql(action, table), (PreparedStatementCallback<int[]>) ps -> {
             if (JdbcUtils.supportsBatchUpdates(ps.getConnection())) {
                 int i = 0;
                 for (T t : objects) {
-                    setValues(ps, t);
+                    setValues(ps, t, nullTypeCache);
                     ps.addBatch();
                     if (batchSize > 0 && ++i == batchSize) {
                         ps.executeBatch();
@@ -178,7 +176,7 @@ public class ObjectDba<T> {
                     ps.executeBatch();
             } else {
                 for (T t : objects) {
-                    setValues(ps, t);
+                    setValues(ps, t, nullTypeCache);
                     ps.executeUpdate();
                 }
             }
@@ -186,11 +184,11 @@ public class ObjectDba<T> {
         });
     }
 
-    private void setValues(PreparedStatement ps, T object) throws SQLException {
+    private void setValues(PreparedStatement ps, T object, Map<Integer, Integer> nullTypeCache) throws SQLException {
         int i = 1;
         for (PropInfo p : propArray) {
             if (p.isAutoIncrement()) continue;
-            StatementCreatorUtils.setParameterValue(ps, i++, p.type, p.getValue(object));
+            DbaUtil.setParameterValue(ps, i++, p.type, p.getValue(object), nullTypeCache);
         }
     }
 

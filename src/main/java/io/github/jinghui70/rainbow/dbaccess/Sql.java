@@ -4,10 +4,9 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.*;
 
 import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.enumCheck;
 
@@ -133,15 +132,58 @@ public class Sql extends SqlWrapper<Sql> {
     }
 
     public int[] batchUpdate(List<Object[]> batchArgs) {
-        return getJdbcTemplate().batchUpdate(getSql(), batchArgs);
+        return batchUpdate(batchArgs, new int[0]);
     }
 
     public int[] batchUpdate(List<Object[]> batchArgs, int[] argTypes) {
-        return getJdbcTemplate().batchUpdate(getSql(), batchArgs, argTypes);
+        Map<Integer, Integer> nullTypeCache = new HashMap<>();
+        return getJdbcTemplate().batchUpdate(
+                getSql(),
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        Object[] values = batchArgs.get(i);
+                        int colIndex = 0;
+                        for (Object value : values) {
+                            colIndex++;
+                            int colType;
+                            if (argTypes.length < colIndex) {
+                                colType = SqlTypeValue.TYPE_UNKNOWN;
+                            } else {
+                                colType = argTypes[colIndex - 1];
+                            }
+                            DbaUtil.setParameterValue(ps, colIndex, colType, value, nullTypeCache);
+                        }
+                    }
+
+                    @Override
+                    public int getBatchSize() {
+                        return batchArgs.size();
+                    }
+                }
+        );
     }
 
-    public int[] batchUpdate(final BatchPreparedStatementSetter pss) {
-        return getJdbcTemplate().batchUpdate(getSql(), pss);
+    public int[][] batchUpdate(List<Object[]> batchArgs, int batchSize) {
+        return batchUpdate(batchArgs, batchSize, new int[0]);
+    }
+
+    public int[][] batchUpdate(List<Object[]> batchArgs, int batchSize, final int[] argTypes) {
+        Map<Integer, Integer> nullTypeCache = new HashMap<>();
+        return getJdbcTemplate().batchUpdate(getSql(), batchArgs, batchSize,
+                (ps, argument) -> {
+                    int colIndex = 0;
+                    for (Object value : argument) {
+                        colIndex++;
+                        int colType;
+                        if (argTypes.length < colIndex) {
+                            colType = SqlTypeValue.TYPE_UNKNOWN;
+                        } else {
+                            colType = argTypes[colIndex - 1];
+                        }
+                        DbaUtil.setParameterValue(ps, colIndex, colType, value, nullTypeCache);
+                    }
+                });
     }
 
     @Override
@@ -159,7 +201,7 @@ public class Sql extends SqlWrapper<Sql> {
         try {
             if (noParams())
                 return getJdbcTemplate().queryForObject(getSql(), mapper);
-            else if (types==null)
+            else if (types == null)
                 return getJdbcTemplate().queryForObject(getSql(), mapper, getParamArray());
             else
                 return getJdbcTemplate().queryForObject(getSql(), getParamArray(), getTypeArray(), mapper);
@@ -172,29 +214,29 @@ public class Sql extends SqlWrapper<Sql> {
     protected <T> List<T> queryForList(String sql, RowMapper<T> rowMapper) throws DataAccessException {
         if (noParams())
             return getJdbcTemplate().query(sql, rowMapper);
-        else if (types==null)
+        else if (types == null)
             return getJdbcTemplate().query(sql, rowMapper, getParamArray());
         else
             return getJdbcTemplate().query(sql, getParamArray(), getTypeArray(), rowMapper);
     }
 
     @Override
-    protected  <T> T queryForValue(String sql, Class<T> requiredType) throws DataAccessException {
+    protected <T> T queryForValue(String sql, Class<T> requiredType) throws DataAccessException {
         if (noParams())
             return getJdbcTemplate().queryForObject(sql, requiredType);
-        else if (types==null)
+        else if (types == null)
             return getJdbcTemplate().queryForObject(sql, requiredType, getParamArray());
         else
             return getJdbcTemplate().queryForObject(sql, getParamArray(), getTypeArray(), requiredType);
     }
 
     @Override
-    protected  <T> List<T> queryForValueList(String sql, Class<T> elementType) throws DataAccessException {
+    protected <T> List<T> queryForValueList(String sql, Class<T> elementType) throws DataAccessException {
         if (noParams())
             return getJdbcTemplate().queryForList(sql, elementType);
-        else if (types==null)
+        else if (types == null)
             return getJdbcTemplate().queryForList(sql, elementType, getParamArray());
         else
-            return getJdbcTemplate().queryForList(sql, getParamArray(), getTypeArray(),elementType);
+            return getJdbcTemplate().queryForList(sql, getParamArray(), getTypeArray(), elementType);
     }
 }

@@ -25,7 +25,7 @@ JdbcTemplate已经提供了很好的基础，因此，只需要向前再迈一�
 <dependency>
     <groupId>io.github.jinghui70</groupId>
     <artifactId>rainbow-dbaccess</artifactId>
-    <version>5.1.17</version>
+    <version>5.1.18</version>
 </dependency>
 ```
 

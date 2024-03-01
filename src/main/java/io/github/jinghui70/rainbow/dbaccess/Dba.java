@@ -43,7 +43,7 @@ public class Dba {
         this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
         DataSourceTransactionManager transactionManager = new DataSourceTransactionManager(dataSource);
         this.transactionTemplate = new TransactionTemplate(transactionManager);
-        initDialect(dataSource);
+        initDialect();
     }
 
     public Dba(DataSource dataSource, Dialect dialect) {
@@ -59,8 +59,7 @@ public class Dba {
         this.jdbcTemplate = jdbcTemplate;
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
         this.transactionTemplate = transactionTemplate;
-        DataSource dataSource = Objects.requireNonNull(jdbcTemplate.getDataSource());
-        initDialect(dataSource);
+        initDialect();
     }
 
     public Dba(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate,
@@ -71,9 +70,15 @@ public class Dba {
         this.dialect = dialect;
     }
 
-    protected void initDialect(DataSource dataSource) {
-        String driver = DriverUtil.identifyDriver(dataSource).toLowerCase();
-        if (driver.contains("oracle"))
+    public String getDriver() {
+        DataSource dataSource = Objects.requireNonNull(jdbcTemplate.getDataSource());
+        return DriverUtil.identifyDriver(dataSource);
+    }
+
+    protected void initDialect() {
+        String driver = getDriver();
+        if (driver == null) return;
+        if (driver.toLowerCase().contains("oracle"))
             this.dialect = new DialectOracle();
     }
 

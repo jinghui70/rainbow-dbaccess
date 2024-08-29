@@ -38,20 +38,23 @@ public class Dba {
     protected Dba() {
     }
 
-    public Dba(DataSource dataSource) {
+    protected void initDataSource(DataSource dataSource, Dialect dialect) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
         this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
         DataSourceTransactionManager transactionManager = new DataSourceTransactionManager(dataSource);
         this.transactionTemplate = new TransactionTemplate(transactionManager);
-        initDialect();
+        if (dialect != null)
+            this.dialect = dialect;
+        else
+            initDialect();
+    }
+
+    public Dba(DataSource dataSource) {
+        initDataSource(dataSource, null);
     }
 
     public Dba(DataSource dataSource, Dialect dialect) {
-        this.jdbcTemplate = new JdbcTemplate(dataSource);
-        this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
-        DataSourceTransactionManager transactionManager = new DataSourceTransactionManager(dataSource);
-        this.transactionTemplate = new TransactionTemplate(transactionManager);
-        this.dialect = dialect;
+        initDataSource(dataSource, dialect);
     }
 
     public Dba(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate,

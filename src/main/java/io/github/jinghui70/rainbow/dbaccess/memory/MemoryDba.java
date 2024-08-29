@@ -2,8 +2,6 @@ package io.github.jinghui70.rainbow.dbaccess.memory;
 
 import cn.hutool.core.exceptions.ExceptionUtil;
 import io.github.jinghui70.rainbow.dbaccess.Dba;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import java.io.Closeable;
 import java.sql.SQLException;
@@ -24,8 +22,7 @@ public class MemoryDba extends Dba implements Closeable {
             throw ExceptionUtil.wrapRuntime(e);
         }
         MemoryDataSource ds = new MemoryDataSource(conn);
-        jdbcTemplate = new JdbcTemplate(ds);
-        namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
+        initDataSource(ds, null);
     }
 
     @Override

@@ -1,8 +1,10 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import io.github.jinghui70.rainbow.dbaccess.cnd.Cnd;
+import io.github.jinghui70.rainbow.dbaccess.mapper.MapRowMapper;
+import io.github.jinghui70.rainbow.dbaccess.object.BeanMapper;
 import io.github.jinghui70.rainbow.utils.StringBuilderWrapper;
 import io.github.jinghui70.rainbow.utils.TreeNode;
 import io.github.jinghui70.rainbow.utils.WrapTreeNode;
@@ -547,8 +549,4 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
 
     public abstract int execute();
 
-    public int transactionExecute() {
-        Assert.notNull(dba);
-        return dba.transaction((ts) -> execute());
-    }
 }

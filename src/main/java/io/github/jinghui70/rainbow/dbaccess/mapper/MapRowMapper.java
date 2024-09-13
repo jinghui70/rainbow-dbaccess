@@ -1,4 +1,4 @@
-package io.github.jinghui70.rainbow.dbaccess;
+package io.github.jinghui70.rainbow.dbaccess.mapper;
 
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.JdbcUtils;
@@ -20,20 +20,13 @@ public class MapRowMapper implements RowMapper<Map<String, Object>> {
     private Map<String, String> keyMappingMap;
 
     // 值加工
-    private Map<String, Function<?,?>> transformMap;
+    private Map<String, Function<?, ?>> transformMap;
 
     // 后处理
     private Consumer<Map<String, Object>> postConsumer;
 
     // 忽略空
     private boolean ignoreNull;
-
-    private KeyType keyType = KeyType.UPPER_CASE;
-
-    public MapRowMapper setKeyType(KeyType keyType) {
-        this.keyType = keyType;
-        return this;
-    }
 
     /**
      * 字段改名配置
@@ -98,10 +91,10 @@ public class MapRowMapper implements RowMapper<Map<String, Object>> {
     }
 
     protected String getColumnKey(String columnName) {
-        columnName = keyType.apply(columnName);
-        if (keyMappingMap != null) {
-            return keyMappingMap.getOrDefault(columnName, columnName);
-        }
+//        columnName = keyType.apply(columnName);
+//        if (keyMappingMap != null) {
+//            return keyMappingMap.getOrDefault(columnName, columnName);
+//        }
         return columnName;
     }
 
@@ -135,7 +128,7 @@ public class MapRowMapper implements RowMapper<Map<String, Object>> {
     protected <F> Object transform(String key, F value) {
         if (transformMap != null) {
             @SuppressWarnings("unchecked")
-            Function<F,?> decorator = (Function<F,?>) transformMap.get(key);
+            Function<F, ?> decorator = (Function<F, ?>) transformMap.get(key);
             if (decorator != null)
                 return decorator.apply(value);
         }

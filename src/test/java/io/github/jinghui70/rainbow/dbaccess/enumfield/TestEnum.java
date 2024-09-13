@@ -1,7 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess.enumfield;
 
-import io.github.jinghui70.rainbow.dbaccess.Cnd;
 import io.github.jinghui70.rainbow.dbaccess.Sql;
+import io.github.jinghui70.rainbow.dbaccess.cnd.Cnd;
 import io.github.jinghui70.rainbow.dbaccess.memory.Field;
 import io.github.jinghui70.rainbow.dbaccess.memory.MemoryDba;
 import io.github.jinghui70.rainbow.dbaccess.memory.Table;

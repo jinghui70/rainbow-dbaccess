@@ -1,5 +1,6 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
+import io.github.jinghui70.rainbow.dbaccess.cnd.Cnd;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.*;
@@ -132,10 +133,6 @@ public class Sql extends SqlWrapper<Sql> {
     }
 
     public int[] batchUpdate(List<Object[]> batchArgs) {
-        return batchUpdate(batchArgs, new int[0]);
-    }
-
-    public int[] batchUpdate(List<Object[]> batchArgs, int[] argTypes) {
         Map<Integer, Integer> nullTypeCache = new HashMap<>();
         return getJdbcTemplate().batchUpdate(
                 getSql(),
@@ -143,16 +140,9 @@ public class Sql extends SqlWrapper<Sql> {
                     @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
                         Object[] values = batchArgs.get(i);
-                        int colIndex = 0;
+                        int colIndex = 1;
                         for (Object value : values) {
-                            colIndex++;
-                            int colType;
-                            if (argTypes.length < colIndex) {
-                                colType = SqlTypeValue.TYPE_UNKNOWN;
-                            } else {
-                                colType = argTypes[colIndex - 1];
-                            }
-                            DbaUtil.setParameterValue(ps, colIndex, colType, value, nullTypeCache);
+                            DbaUtil.setParameterValue(ps, colIndex++, value, nullTypeCache);
                         }
                     }
 
@@ -165,23 +155,12 @@ public class Sql extends SqlWrapper<Sql> {
     }
 
     public int[][] batchUpdate(List<Object[]> batchArgs, int batchSize) {
-        return batchUpdate(batchArgs, batchSize, new int[0]);
-    }
-
-    public int[][] batchUpdate(List<Object[]> batchArgs, int batchSize, final int[] argTypes) {
         Map<Integer, Integer> nullTypeCache = new HashMap<>();
         return getJdbcTemplate().batchUpdate(getSql(), batchArgs, batchSize,
                 (ps, argument) -> {
-                    int colIndex = 0;
+                    int colIndex = 1;
                     for (Object value : argument) {
-                        colIndex++;
-                        int colType;
-                        if (argTypes.length < colIndex) {
-                            colType = SqlTypeValue.TYPE_UNKNOWN;
-                        } else {
-                            colType = argTypes[colIndex - 1];
-                        }
-                        DbaUtil.setParameterValue(ps, colIndex, colType, value, nullTypeCache);
+                        DbaUtil.setParameterValue(ps, colIndex++, value, nullTypeCache);
                     }
                 });
     }

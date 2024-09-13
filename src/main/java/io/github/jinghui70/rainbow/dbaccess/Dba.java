@@ -6,6 +6,7 @@ import cn.hutool.db.dialect.DriverUtil;
 import io.github.jinghui70.rainbow.dbaccess.dialect.Dialect;
 import io.github.jinghui70.rainbow.dbaccess.dialect.DialectDefault;
 import io.github.jinghui70.rainbow.dbaccess.dialect.DialectOracle;
+import io.github.jinghui70.rainbow.dbaccess.object.ObjectDba;
 import io.github.jinghui70.rainbow.utils.StringBuilderX;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;

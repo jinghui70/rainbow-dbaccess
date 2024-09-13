@@ -18,6 +18,10 @@ public class Field {
 
     private Object defaultValue;
 
+    public static Field create(String name) {
+        return new Field().setName(name);
+    }
+
     public static Field createDouble(String name) {
         return new Field().setName(name).setType(DataType.DOUBLE).setDefaultValue(0);
     }

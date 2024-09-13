@@ -1,6 +1,6 @@
 package io.github.jinghui70.rainbow.dbaccess.annotation;
 
-import org.springframework.jdbc.core.SqlTypeValue;
+import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldMapper;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -18,11 +18,7 @@ public @interface Column {
      */
     String name() default "";
 
-    /**
-     * 字段类型
-     *
-     * @return 字段类型
-     */
-    int type() default SqlTypeValue.TYPE_UNKNOWN;
+    LobType lobType() default LobType.NONE;
 
+    Class<? extends FieldMapper> mapper() default FieldMapper.class;
 }

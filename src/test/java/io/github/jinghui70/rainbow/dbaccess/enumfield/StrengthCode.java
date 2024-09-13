@@ -1,6 +1,6 @@
 package io.github.jinghui70.rainbow.dbaccess.enumfield;
 
-import io.github.jinghui70.rainbow.utils.CodeEnum;
+import io.github.jinghui70.rainbow.dbaccess.enumSupport.CodeEnum;
 
 public enum StrengthCode implements CodeEnum {
 

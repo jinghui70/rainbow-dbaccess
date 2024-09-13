@@ -1,6 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
 import cn.hutool.core.lang.Assert;
+import io.github.jinghui70.rainbow.dbaccess.cnd.Cnd;
 import io.github.jinghui70.rainbow.utils.StringBuilderX;
 
 import java.util.List;

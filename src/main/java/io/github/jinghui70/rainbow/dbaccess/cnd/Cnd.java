@@ -1,9 +1,12 @@
-package io.github.jinghui70.rainbow.dbaccess;
+package io.github.jinghui70.rainbow.dbaccess.cnd;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
+import io.github.jinghui70.rainbow.dbaccess.NamedSql;
+import io.github.jinghui70.rainbow.dbaccess.Range;
+import io.github.jinghui70.rainbow.dbaccess.Sql;
 
 import java.util.Arrays;
 import java.util.Collection;

@@ -17,13 +17,13 @@ import java.util.Map;
 import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.INSERT;
 import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.MERGE;
 
-public class ObjectDba<T> {
+public class ObjectDao<T> {
 
     protected Dba dba;
     protected Class<T> clazz;
     protected List<PropInfo> propArray;
 
-    public ObjectDba(Dba dba, Class<T> clazz) {
+    public ObjectDao(Dba dba, Class<T> clazz) {
         this.dba = dba;
         this.clazz = clazz;
         propArray = PropInfo.getPropInfoList(clazz);

@@ -65,7 +65,7 @@ public class PropInfo {
     }
 
     /**
-     * 从对象中取值
+     * 从对象中取值，准备用来保存到数据库中
      *
      * @param object
      * @return
@@ -99,6 +99,26 @@ public class PropInfo {
         return JdbcUtils.getResultSetValue(rs, index, type);
     }
 
+    /**
+     * 保存一个值到对象中
+     *
+     * @param object
+     * @param value
+     */
+    public void setValue(Object object, Object value) {
+        if (index >= 0) {
+            Object array = propDesc.getValue(object);
+            if (array == null) {
+                array = newArray();
+                propDesc.setValue(object, array);
+            }
+            if (value != null)
+                Array.set(array, index, value);
+        } else {
+            propDesc.setValue(object, value);
+        }
+    }
+
     public boolean isAutoIncrement() {
         return id != null && id.autoIncrement();
     }
@@ -113,7 +133,7 @@ public class PropInfo {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static FieldMapper<?> getMapper(Column column, PropDesc propDesc) {
         Class<?> fieldClass = propDesc.getFieldClass();
-        if (column == null) return fieldClass.isEnum() ? new EnumMapper(fieldClass) : null;
+        if (column == null) return checkEnumMapper(fieldClass);
         Class<? extends FieldMapper> mapperClass = column.mapper();
         if (mapperClass != FieldMapper.class) {
             return ReflectUtil.newInstance(mapperClass);
@@ -129,8 +149,13 @@ public class PropInfo {
             case CLOB: // 暂时没有必要做特殊处理，因为对象中的字符串要读到内存中，当做普通的字符串处理了
                 return null;
             default:
-                return fieldClass.isEnum() ? new EnumMapper(fieldClass) : null;
+                return checkEnumMapper(fieldClass);
         }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static FieldMapper<?> checkEnumMapper(Class<?> fieldClass) {
+        return fieldClass.isEnum() ? new EnumMapper(fieldClass) : null;
     }
 
     /**
@@ -153,6 +178,7 @@ public class PropInfo {
                 Id id = propDesc.getField().getAnnotation(Id.class);
                 result.add(new PropInfo(fieldName, propDesc, mapper, id));
             } else {
+                if (mapper == null) mapper = checkEnumMapper(propDesc.getFieldClass().getComponentType());
                 String join = arrayAnnotation.underline() ? "_" : "";
                 for (int i = 0; i < arrayAnnotation.length(); i++) {
                     String field = String.format("%s%s%d", fieldName, join, i + arrayAnnotation.start());

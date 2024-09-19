@@ -1,4 +1,4 @@
-package io.github.jinghui70.rainbow.dbaccess.dba;
+package io.github.jinghui70.rainbow.dbaccess.objecttest;
 
 import io.github.jinghui70.rainbow.dbaccess.annotation.ArrayField;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Id;
@@ -10,7 +10,7 @@ public class SimpleObject {
 
     private String name;
 
-    @ArrayField(length = 3)
+    @ArrayField(length = 3, underline = true, start = 1)
     private double[] score;
 
     public SimpleObject() {

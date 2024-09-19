@@ -3,7 +3,8 @@ package io.github.jinghui70.rainbow.dbaccess.dba;
 import io.github.jinghui70.rainbow.dbaccess.memory.Field;
 import io.github.jinghui70.rainbow.dbaccess.memory.MemoryDba;
 import io.github.jinghui70.rainbow.dbaccess.memory.Table;
-import io.github.jinghui70.rainbow.dbaccess.object.ObjectDba;
+import io.github.jinghui70.rainbow.dbaccess.object.ObjectDao;
+import io.github.jinghui70.rainbow.dbaccess.objecttest.AutoIncrementObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class TestAutoIncrement {
 
     private static MemoryDba mDba;
-    private static ObjectDba<AutoIncrementObject> oDba;
+    private static ObjectDao<AutoIncrementObject> oDba;
 
     @BeforeAll
     static void createDB() {
@@ -28,7 +29,7 @@ public class TestAutoIncrement {
                 Field.createDouble("SCORE_2"),
                 Field.createDouble("SCORE_3")
         );
-        oDba = new ObjectDba<>(mDba, AutoIncrementObject.class);
+        oDba = new ObjectDao<>(mDba, AutoIncrementObject.class);
     }
 
     @AfterAll

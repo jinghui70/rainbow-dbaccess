@@ -4,13 +4,12 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
+import io.github.jinghui70.rainbow.dbaccess.GeneralSql;
 import io.github.jinghui70.rainbow.dbaccess.NamedSql;
 import io.github.jinghui70.rainbow.dbaccess.Range;
 import io.github.jinghui70.rainbow.dbaccess.Sql;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.enumCheck;
@@ -25,32 +24,51 @@ public class Cnd {
     public static final String LIKE = " like ";
     public static final String NOT_LIKE = " not like ";
 
-    public static final List<String> OPERATORS = Arrays.asList("<=", "<", ">=", ">", "=", "!=", IN, LIKE, NOT_IN,
-            NOT_LIKE);
-
     public static final String WHERE = " WHERE ";
     public static final String AND = " AND ";
     public static final String OR = " OR ";
 
     protected String field;
 
-    private String op = "";
+    private Op op;
 
     private Object value;
 
-    public Cnd() {
+    protected Cnd() {
     }
 
     public Cnd(String field, Object value) {
+        this(field, Op.EQ, value);
+    }
+
+    @Deprecated
+    public Cnd(String field, String opStr, Object value) {
         this.field = field;
+        this.op = Enum.valueOf(Op.class, opStr.toLowerCase());
         this.value = value;
     }
 
-    public Cnd(String field, String op, Object value) {
+    public Cnd(String field, Op op, Object value) {
         this.field = field;
-        setOp(op);
-        this.value = value;
+        this.op = op;
+        switch (op) {
+            case LIKE:
+            case NOT_LIKE:
+                this.value = StrUtil.format("%{}%", value);
+                break;
+            case LIKE_LEFT:
+            case NOT_LIKE_LEFT:
+                this.value = "%" + value;
+                break;
+            case LIKE_RIGHT:
+            case NOT_LIKE_RIGHT:
+                this.value = value + "%";
+                break;
+            default:
+                this.value = value;
+        }
     }
+
 
     public String getField() {
         return field;
@@ -58,16 +76,6 @@ public class Cnd {
 
     public void setField(String field) {
         this.field = field;
-    }
-
-    public String getOp() {
-        return op;
-    }
-
-    public void setOp(String op) {
-        op = op.toLowerCase();
-        Assert.isTrue(Cnd.OPERATORS.contains(op), "bad condition op: {}", op);
-        this.op = op;
     }
 
     public Object getValue() {
@@ -78,20 +86,15 @@ public class Cnd {
         this.value = value;
     }
 
-    public void toSql(Sql sql) {
+    public void toSql(GeneralSql<?> sql) {
         sql.append(field);
         if (value instanceof Sql) {
-            if (StrUtil.isEmpty(op))
-                sql.append(Cnd.IN);
-            else
-                sql.append(op);
-            sql.append("(").append((Sql) value).append(")");
+            sql.append(op == Op.EQ ? Op.IN.str() : op.str())
+                    .append("(").append((Sql) value).append(")");
             return;
         }
-
         switch (op) {
-            case "":
-            case "=":
+            case EQ:
                 if (value == null)
                     sql.append(" is null");
                 else if (ArrayUtil.isArray(value) || value instanceof Collection) {
@@ -99,7 +102,7 @@ public class Cnd {
                 } else if (!rangeSql(sql))
                     sql.append("=?").addParam(enumCheck(value));
                 break;
-            case "!=":
+            case NE:
                 if (value == null)
                     sql.append(" is not null");
                 else
@@ -116,12 +119,12 @@ public class Cnd {
                 notInSql(sql);
                 break;
             default:
-                sql.append(op).append("?").addParam(enumCheck(value));
+                sql.append(op.str()).append("?").addParam(enumCheck(value));
                 break;
         }
     }
 
-    private boolean rangeSql(Sql sql) {
+    private boolean rangeSql(GeneralSql<?> sql) {
         Range<?> range = paramToRange();
         if (range == null)
             return false;
@@ -142,8 +145,7 @@ public class Cnd {
 
     public void toNamedSql(NamedSql sql) {
         switch (op) {
-            case "":
-            case "=":
+            case EQ:
                 Assert.notNull(value, "condition value should not be null");
                 if (!rangeNamedSql(sql)) {
                     sql.append(field).append("=:").append(field).setParam(field, value);
@@ -177,7 +179,7 @@ public class Cnd {
         return true;
     }
 
-    private void inSql(Sql sql) {
+    private void inSql(GeneralSql<?> sql) {
         Object[] arr = valueToArray();
         if (arr.length == 1) {
             sql.append("=?").addParam(enumCheck(arr[0]));
@@ -186,7 +188,7 @@ public class Cnd {
                     .addParam(enumCheck(arr));
     }
 
-    private void notInSql(Sql sql) {
+    private void notInSql(GeneralSql<?> sql) {
         Object[] arr = valueToArray();
         if (arr.length == 1) {
             sql.append("!=?").addParam(enumCheck(arr[0]));

@@ -6,7 +6,7 @@ import cn.hutool.db.dialect.DriverUtil;
 import io.github.jinghui70.rainbow.dbaccess.dialect.Dialect;
 import io.github.jinghui70.rainbow.dbaccess.dialect.DialectDefault;
 import io.github.jinghui70.rainbow.dbaccess.dialect.DialectOracle;
-import io.github.jinghui70.rainbow.dbaccess.object.ObjectDba;
+import io.github.jinghui70.rainbow.dbaccess.object.ObjectDao;
 import io.github.jinghui70.rainbow.utils.StringBuilderX;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -107,11 +107,21 @@ public class Dba {
     }
 
     public Sql sql(String sql) {
-        return new Sql(this).append(sql);
+        return sql().append(sql);
+    }
+
+    public Sql select() {
+        return sql("SELECT *");
     }
 
     public Sql select(String select) {
         return sql("SELECT ").append(select);
+    }
+
+    public <T> ObjectSql<T> select(Class<T> selectClass) {
+        ObjectSql<T> sql = new ObjectSql<T>(this, selectClass);
+        sql.append("SELECT * FROM ").append(DbaUtil.tableName(selectClass));
+        return sql;
     }
 
     public Sql update(String table) {
@@ -120,6 +130,10 @@ public class Dba {
 
     public Sql deleteFrom(String table) {
         return sql("DELETE FROM ").append(table);
+    }
+
+    public <T> ObjectSql<T> deleteFrom(Class<T> deleteClass) {
+        return new ObjectSql<T>(this, deleteClass).append("DELETE ").from(DbaUtil.tableName(deleteClass));
     }
 
     public NamedSql namedSql() {
@@ -140,7 +154,7 @@ public class Dba {
     @SuppressWarnings("unchecked")
     public <T> int insert(T bean) {
         Assert.notNull(bean, "can't insert null object");
-        return new ObjectDba<>(this, (Class<T>) bean.getClass()).insert(bean);
+        return new ObjectDao<>(this, (Class<T>) bean.getClass()).insert(bean);
     }
 
     /**
@@ -153,7 +167,7 @@ public class Dba {
     @SuppressWarnings("unchecked")
     public <T> int merge(T bean) {
         Assert.notNull(bean, "can't insert null object");
-        return new ObjectDba<>(this, (Class<T>) bean.getClass()).merge(bean);
+        return new ObjectDao<>(this, (Class<T>) bean.getClass()).merge(bean);
     }
 
     /**
@@ -169,7 +183,7 @@ public class Dba {
     @SuppressWarnings("unchecked")
     public <T> void insert(List<T> beans, int batchSize) {
         if (CollUtil.isEmpty(beans)) return;
-        new ObjectDba<>(this, (Class<T>) beans.get(0).getClass()).insert(beans, batchSize);
+        new ObjectDao<>(this, (Class<T>) beans.get(0).getClass()).insert(beans, batchSize);
     }
 
     /**
@@ -181,7 +195,7 @@ public class Dba {
     @SuppressWarnings("unchecked")
     public <T> void merge(List<T> beans) {
         if (CollUtil.isEmpty(beans)) return;
-        new ObjectDba<>(this, (Class<T>) beans.get(0).getClass()).merge(beans);
+        new ObjectDao<>(this, (Class<T>) beans.get(0).getClass()).merge(beans);
     }
 
     /**
@@ -259,7 +273,7 @@ public class Dba {
     @SuppressWarnings("unchecked")
     public <T> int update(T bean) {
         Assert.notNull(bean);
-        return new ObjectDba<>(this, (Class<T>) bean.getClass()).update(bean);
+        return new ObjectDao<>(this, (Class<T>) bean.getClass()).update(bean);
     }
 
     /**
@@ -273,7 +287,7 @@ public class Dba {
     @SuppressWarnings("unchecked")
     public <T> int update(String tableName, T bean) {
         Assert.notNull(bean);
-        return new ObjectDba<>(this, (Class<T>) bean.getClass()).update(tableName, bean);
+        return new ObjectDao<>(this, (Class<T>) bean.getClass()).update(tableName, bean);
     }
 
     /**

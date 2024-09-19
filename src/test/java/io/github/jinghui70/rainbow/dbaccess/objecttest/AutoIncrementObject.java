@@ -1,4 +1,4 @@
-package io.github.jinghui70.rainbow.dbaccess.dba;
+package io.github.jinghui70.rainbow.dbaccess.objecttest;
 
 import io.github.jinghui70.rainbow.dbaccess.annotation.ArrayField;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Column;

@@ -10,8 +10,6 @@ import io.github.jinghui70.rainbow.dbaccess.memory.DataType;
 import io.github.jinghui70.rainbow.dbaccess.memory.Field;
 import io.github.jinghui70.rainbow.dbaccess.memory.MemoryDba;
 import io.github.jinghui70.rainbow.dbaccess.memory.Table;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
@@ -19,8 +17,6 @@ import java.util.*;
 
 @TestConfiguration
 public class DbaConfig {
-
-    private static final Logger logger = LoggerFactory.getLogger(DbaConfig.class);
 
     public static void initTable(MemoryDba dba, String... tables) {
         Set<String> tableSet = new HashSet<>();
@@ -42,7 +38,6 @@ public class DbaConfig {
             JSONObject entity = entities.getJSONObject(i);
             String name = entity.getStr("defKey").toUpperCase();
             if (!tableSet.contains(name)) continue;
-            logger.info("create table {}", name);
             dba.sql("DROP TABLE IF EXISTS " + name).execute();
             dba.createTable(readTable(name, entity.getJSONArray("fields"), typeMap, domainMap));
             tableSet.remove(name);

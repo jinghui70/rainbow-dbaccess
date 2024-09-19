@@ -31,4 +31,4 @@ build/
 ### VS Code ###
 .vscode/
 
-/src/test/resource/.back_dba/
+/src/test/resources/.back_dba/

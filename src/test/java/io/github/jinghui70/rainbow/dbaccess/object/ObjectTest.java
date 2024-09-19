@@ -1,4 +1,4 @@
-package io.github.jinghui70.rainbow.dbaccess.objecttest;
+package io.github.jinghui70.rainbow.dbaccess.object;
 
 import io.github.jinghui70.rainbow.dbaccess.BaseTest;
 import io.github.jinghui70.rainbow.dbaccess.DbaConfig;

@@ -1,11 +1,9 @@
-package io.github.jinghui70.rainbow.dbaccess.objecttest;
+package io.github.jinghui70.rainbow.dbaccess.object;
 
 import io.github.jinghui70.rainbow.dbaccess.annotation.ArrayField;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Column;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Id;
-import io.github.jinghui70.rainbow.dbaccess.annotation.Table;
 
-@Table(name = "X")
 public class AutoIncrementObject {
 
     @Id(autoIncrement = true)

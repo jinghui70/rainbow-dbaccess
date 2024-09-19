@@ -10,6 +10,7 @@ import io.github.jinghui70.rainbow.dbaccess.annotation.Column;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Id;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Table;
 import io.github.jinghui70.rainbow.dbaccess.enumSupport.CodeEnum;
+import io.github.jinghui70.rainbow.dbaccess.enumSupport.OrdinalEnum;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldValue;
 
 import java.math.BigDecimal;
@@ -67,7 +68,9 @@ public abstract class DbaUtil {
         if (value == null || !value.getClass().isEnum()) return value;
         if (value instanceof CodeEnum)
             return ((CodeEnum) value).code();
-        return ((Enum<?>) value).ordinal();
+        if (value instanceof OrdinalEnum)
+            return ((Enum<?>) value).ordinal();
+        return ((Enum<?>) value).name();
     }
 
     /**

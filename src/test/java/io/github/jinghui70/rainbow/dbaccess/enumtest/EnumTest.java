@@ -2,9 +2,9 @@ package io.github.jinghui70.rainbow.dbaccess.enumtest;
 
 import io.github.jinghui70.rainbow.dbaccess.BaseTest;
 import io.github.jinghui70.rainbow.dbaccess.DbaConfig;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import javax.annotation.PostConstruct;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class EnumTest extends BaseTest {
 
-    @PostConstruct
+    @BeforeEach
     void init() {
         DbaConfig.initTable(dba, "T_ENUM");
     }

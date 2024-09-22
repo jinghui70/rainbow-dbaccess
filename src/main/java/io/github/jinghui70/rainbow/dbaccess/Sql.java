@@ -33,6 +33,22 @@ public class Sql extends GeneralSql<Sql> {
         return queryForList(MapRowMapper.INSTANCE);
     }
 
+    public PageData<Map<String, Object>> pageQuery(int pageNo, int pageSize) {
+        return pageQuery(MapRowMapper.INSTANCE, pageNo, pageSize);
+    }
+
+    public List<Map<String, Object>> queryForTree() {
+        return queryForTree(MapRowMapper.INSTANCE);
+    }
+
+    public <K> Map<K, Map<String, Object>> queryToMap(ResultSetFunction<K> keyFunc) {
+        return queryToMap(keyFunc, MapRowMapper.INSTANCE);
+    }
+
+    public <K> Map<K, List<Map<String, Object>>> queryToGroup(ResultSetFunction<K> keyFunc) {
+        return queryToGroup(keyFunc, MapRowMapper.INSTANCE);
+    }
+
     public static Sql create() {
         return new Sql();
     }

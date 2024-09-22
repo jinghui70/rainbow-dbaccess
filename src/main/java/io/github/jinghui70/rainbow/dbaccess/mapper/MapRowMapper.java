@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * {@link org.springframework.jdbc.core.RowMapper} implementation that creates a {@link Map}
@@ -34,6 +35,7 @@ public class MapRowMapper extends ColumnMapRowMapper {
 
     private Set<String> ignoreKeySet;
 
+    private Consumer<Map<String, Object>> postConsumer;
 
     /**
      * Ignore the specified keys when mapping.
@@ -95,6 +97,19 @@ public class MapRowMapper extends ColumnMapRowMapper {
     }
 
     /**
+     * Set a consumer for the Map returned by {@link #mapRow(ResultSet, int)}.
+     * The consumer will be called after the Map is generated.
+     * The consumer can be used to do some extra processing for the Map.
+     *
+     * @param consumer the consumer
+     * @return this
+     */
+    public MapRowMapper post(Consumer<Map<String, Object>> consumer) {
+        postConsumer = consumer;
+        return this;
+    }
+
+    /**
      * Implement the RowMapper interface, mapping the column values to a Map.
      * The key of the Map is the column name, and the value is the column value.
      * If the column value is null and ignoreNull is true, the key will not be put into the Map.
@@ -119,6 +134,9 @@ public class MapRowMapper extends ColumnMapRowMapper {
             if (value != null || !ignoreNull)
                 mapOfColumnValues.putIfAbsent(key, value);
         }
+        if (postConsumer != null) {
+            postConsumer.accept(mapOfColumnValues);
+        }
         return mapOfColumnValues;
     }
 
@@ -137,6 +155,7 @@ public class MapRowMapper extends ColumnMapRowMapper {
         FieldMapper<?> mapper = mapperMap.get(Integer.toString(columnIndex));
         return mapper == null ? mapperMap.get(column) : mapper;
     }
+
 
     /**
      * Create a new instance of MapRowMapper.

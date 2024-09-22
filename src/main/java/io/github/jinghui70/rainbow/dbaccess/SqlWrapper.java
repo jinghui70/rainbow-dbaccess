@@ -453,9 +453,6 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return queryToMap(keyFunc, rowMapper, HashMap::new);
     }
 
-    public <K> Map<K, Map<String, Object>> queryToMap(ResultSetFunction<K> keyFunc) {
-        return queryToMap(keyFunc, MapRowMapper.INSTANCE);
-    }
 
     public <K, V> Map<K, V> queryToMap(ResultSetFunction<K> keyFunc, Class<V> clazz, Supplier<Map<K, V>> supplier) {
         return queryToMap(keyFunc, BeanMapper.of(clazz), supplier);
@@ -475,10 +472,6 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
             list.add(value);
         });
         return result;
-    }
-
-    public <K> Map<K, List<Map<String, Object>>> queryToGroup(ResultSetFunction<K> keyFunc) {
-        return queryToGroup(keyFunc, MapRowMapper.INSTANCE);
     }
 
     public <K, T> Map<K, List<T>> queryToGroup(ResultSetFunction<K> keyFunc, Class<T> clazz) {
@@ -519,10 +512,6 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return pageQuery(BeanMapper.of(objectType), pageNo, pageSize);
     }
 
-    public PageData<Map<String, Object>> pageQuery(int pageNo, int pageSize) {
-        return pageQuery(MapRowMapper.INSTANCE, pageNo, pageSize);
-    }
-
     public <T extends TreeNode<T>> List<T> queryForTree(Class<T> objectType) {
         return queryForTree(BeanMapper.of(objectType));
     }
@@ -558,10 +547,6 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
                 item.setChildren(children);
         }
         return result;
-    }
-
-    public List<Map<String, Object>> queryForTree() {
-        return queryForTree(MapRowMapper.INSTANCE);
     }
 
     public List<Map<String, Object>> queryForTree(MapRowMapper mapper) {

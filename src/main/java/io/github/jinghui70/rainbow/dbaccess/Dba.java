@@ -119,13 +119,15 @@ public class Dba {
     }
 
     public <T> ObjectSql<T> select(Class<T> selectClass) {
-        ObjectSql<T> sql = new ObjectSql<T>(this, selectClass);
-        sql.append("SELECT * FROM ").append(DbaUtil.tableName(selectClass));
-        return sql;
+        return new ObjectSql<T>(this, selectClass).append("SELECT * FROM ").append(DbaUtil.tableName(selectClass));
     }
 
     public Sql update(String table) {
         return sql("UPDATE ").append(table);
+    }
+
+    public <T> ObjectSql<T> update(Class<T> updateClass) {
+        return new ObjectSql<T>(this, updateClass).append("UPDATE ").append(DbaUtil.tableName(updateClass));
     }
 
     public Sql deleteFrom(String table) {
@@ -133,7 +135,7 @@ public class Dba {
     }
 
     public <T> ObjectSql<T> deleteFrom(Class<T> deleteClass) {
-        return new ObjectSql<T>(this, deleteClass).append("DELETE ").from(DbaUtil.tableName(deleteClass));
+        return new ObjectSql<T>(this, deleteClass).append("DELETE FROM ").append(DbaUtil.tableName(deleteClass));
     }
 
     public NamedSql namedSql() {

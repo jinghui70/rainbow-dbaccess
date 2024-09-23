@@ -111,7 +111,11 @@ public class Dba {
     }
 
     public Sql select() {
-        return sql("SELECT *");
+        return sql("SELECT ");
+    }
+
+    public Sql selectAll() {
+        return select("*");
     }
 
     public Sql select(String select) {
@@ -120,6 +124,10 @@ public class Dba {
 
     public <T> ObjectSql<T> select(Class<T> selectClass) {
         return new ObjectSql<T>(this, selectClass).append("SELECT * FROM ").append(DbaUtil.tableName(selectClass));
+    }
+
+    public <T> T selectById(Class<T> selectClass, Object id) {
+        return select(selectClass).where("id", id).queryForObject();
     }
 
     public Sql update(String table) {

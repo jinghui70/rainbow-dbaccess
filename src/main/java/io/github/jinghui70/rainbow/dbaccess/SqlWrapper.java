@@ -526,50 +526,53 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
 
     public <T extends TreeNode<T>> List<T> queryForTree(RowMapper<T> mapper) {
         List<T> result = new ArrayList<>();
-        Map<String, List<T>> map = new LinkedHashMap<>();
+        Map<String, String> parentIdMap = new LinkedHashMap<>();
         Map<String, T> itemMap = new HashMap<>();
         AtomicInteger row = new AtomicInteger(1);
         query(rs -> {
             String pid = rs.getString("PID");
             String id = rs.getString("ID");
+            parentIdMap.put(id, pid);
             T item = mapper.mapRow(rs, row.getAndIncrement());
-            List<T> list = map.computeIfAbsent(pid, (p) -> new ArrayList<>());
-            list.add(item);
             itemMap.put(id, item);
         });
-        for (Map.Entry<String, List<T>> entry : map.entrySet()) {
+        for (Map.Entry<String, String> entry : parentIdMap.entrySet()) {
             String id = entry.getKey();
-            List<T> children = entry.getValue();
+            String pid = entry.getValue();
             T item = itemMap.get(id);
-            if (item == null) {
-                result.addAll(children);
+            T parent = itemMap.get(pid);
+            if (parent == null) {
+                result.add(item);
             } else
-                item.setChildren(children);
+                parent.addChild(item);
         }
         return result;
     }
 
     public List<Map<String, Object>> queryForTree(MapRowMapper mapper) {
         List<Map<String, Object>> result = new ArrayList<>();
-        Map<String, List<Map<String, Object>>> map = new LinkedHashMap<>();
+        Map<String, String> parentIdMap = new LinkedHashMap<>();
         Map<String, Map<String, Object>> itemMap = new HashMap<>();
         AtomicInteger row = new AtomicInteger(1);
         query(rs -> {
             String pid = rs.getString("PID");
             String id = rs.getString("ID");
+            parentIdMap.put(id, pid);
             Map<String, Object> item = mapper.mapRow(rs, row.getAndIncrement());
-            List<Map<String, Object>> list = map.computeIfAbsent(pid, (p) -> new ArrayList<>());
-            list.add(item);
             itemMap.put(id, item);
         });
-        for (Map.Entry<String, List<Map<String, Object>>> entry : map.entrySet()) {
+        for (Map.Entry<String, String> entry : parentIdMap.entrySet()) {
             String id = entry.getKey();
-            List<Map<String, Object>> children = entry.getValue();
+            String pid = entry.getValue();
             Map<String, Object> item = itemMap.get(id);
-            if (item == null) {
-                result.addAll(children);
-            } else
-                item.put("children", children);
+            Map<String, Object> parent = itemMap.get(pid);
+            if (parent == null) {
+                result.add(item);
+            } else {
+                List<Map<String, Object>> children = (List<Map<String, Object>>) parent.computeIfAbsent("children",
+                        k -> new ArrayList<Map<String, Object>>());
+                children.add(item);
+            }
         }
         return result;
     }

@@ -1,5 +1,6 @@
 package io.github.jinghui70.rainbow.dbaccess.object;
 
+import cn.hutool.core.lang.Assert;
 import io.github.jinghui70.rainbow.dbaccess.Dba;
 import io.github.jinghui70.rainbow.dbaccess.DbaUtil;
 import io.github.jinghui70.rainbow.dbaccess.Sql;
@@ -9,10 +10,8 @@ import org.springframework.jdbc.support.JdbcUtils;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.INSERT;
 import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.MERGE;
@@ -21,18 +20,20 @@ public class ObjectDao<T> {
 
     protected Dba dba;
     protected Class<T> clazz;
-    protected List<PropInfo> propArray;
+    protected LinkedHashMap<String, PropInfo> propMap;
+    protected List<PropInfo> keyArray;
 
     public ObjectDao(Dba dba, Class<T> clazz) {
         this.dba = dba;
         this.clazz = clazz;
-        propArray = PropInfo.getPropInfoList(clazz);
+        propMap = PropInfoCache.get(clazz);
+        keyArray = propMap.values().stream().filter(p -> p.getId() != null).collect(Collectors.toList());
     }
 
     protected String insertSql(String action, String table) {
         StringBuilderX sb = new StringBuilderX(action).append(" into ").append(table).append("(");
-        int count = propArray.size();
-        for (PropInfo propInfo : propArray) {
+        int count = propMap.size();
+        for (PropInfo propInfo : propMap.values()) {
             if (propInfo.isAutoIncrement()) {
                 count--;
                 continue;
@@ -126,7 +127,7 @@ public class ObjectDao<T> {
 
     private void setValues(PreparedStatement ps, T object, Map<Integer, Integer> nullTypeCache) throws SQLException {
         int i = 1;
-        for (PropInfo p : propArray) {
+        for (PropInfo p : propMap.values()) {
             if (p.isAutoIncrement()) continue;
             DbaUtil.setParameterValue(ps, i++, p.getValue(object), nullTypeCache);
         }
@@ -137,18 +138,61 @@ public class ObjectDao<T> {
     }
 
     public int update(String table, T object) {
+        Assert.isTrue(keyArray.size() > 0, "no key field defined");
         Sql sql = dba.update(table);
-        for (PropInfo propInfo : propArray) {
+        for (PropInfo propInfo : propMap.values()) {
             if (propInfo.getId() == null) {
-
                 sql.set(propInfo.getFieldName(), propInfo.getValue(object));
             }
         }
-        for (PropInfo propInfo : propArray) {
+        for (PropInfo propInfo : keyArray) {
             if (propInfo.getId() != null)
                 sql.where(propInfo.getFieldName(), propInfo.getValue(object));
         }
         return sql.execute();
     }
 
+    public T selectById(Object id) {
+        return dba.selectAll().from(DbaUtil.tableName(clazz)).where("id", id)
+                .queryForObject(getMapper());
+    }
+
+    public T selectByKey(Object... keys) {
+        Assert.isTrue(keyArray.size() > 0, "no key field defined");
+        Assert.equals(keyArray.size(), keys.length, "argument size not match");
+        Sql sql = dba.selectAll().from(DbaUtil.tableName(clazz));
+        for (int i = 0; i < keyArray.size(); i++) {
+            PropInfo propInfo = keyArray.get(i);
+            sql.where(propInfo.getFieldName(), keys[i]);
+        }
+        return sql.queryForObject(getMapper());
+    }
+
+    public BeanMapper<T> getMapper() {
+        return new BeanMapper<>(clazz, propMap);
+    }
+
+    public int delete(T object) {
+        Assert.isTrue(keyArray.size() > 0, "no key field defined");
+        Sql sql = dba.deleteFrom(DbaUtil.tableName(clazz));
+        for (PropInfo propInfo : keyArray) {
+            sql.where(propInfo.getFieldName(), propInfo.getValue(object));
+        }
+        return sql.execute();
+    }
+
+    public int deleteById(Object id) {
+        return dba.deleteFrom(DbaUtil.tableName(clazz)).where("id", id).execute();
+    }
+
+    public int deleteByKey(Object... keys) {
+        Assert.isTrue(keyArray.size() > 0, "no key field defined");
+        Assert.equals(keyArray.size(), keys.length, "argument size not match");
+        Sql sql = dba.deleteFrom(DbaUtil.tableName(clazz));
+        for (int i = 0; i < keyArray.size(); i++) {
+            PropInfo propInfo = keyArray.get(i);
+            sql.where(propInfo.getFieldName(), keys[i]);
+        }
+        return sql.execute();
+    }
 }

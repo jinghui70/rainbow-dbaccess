@@ -126,10 +126,6 @@ public class Dba {
         return new ObjectSql<T>(this, selectClass).append("SELECT * FROM ").append(DbaUtil.tableName(selectClass));
     }
 
-    public <T> T selectById(Class<T> selectClass, Object id) {
-        return select(selectClass).where("id", id).queryForObject();
-    }
-
     public Sql update(String table) {
         return sql("UPDATE ").append(table);
     }
@@ -140,6 +136,11 @@ public class Dba {
 
     public Sql deleteFrom(String table) {
         return sql("DELETE FROM ").append(table);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> int delete(T object) {
+        return new ObjectDao<T>(this, (Class<T>) object.getClass()).delete(object);
     }
 
     public <T> ObjectSql<T> deleteFrom(Class<T> deleteClass) {
@@ -300,6 +301,22 @@ public class Dba {
         return new ObjectDao<>(this, (Class<T>) bean.getClass()).update(tableName, bean);
     }
 
+    public <T> int deleteById(Class<T> deleteClass, Object id) {
+        return deleteFrom(DbaUtil.tableName(deleteClass)).where("id", id).execute();
+    }
+
+    public <T> int deleteByKey(Class<T> deleteClass, Object... keys) {
+        return new ObjectDao<T>(this, deleteClass).deleteByKey(keys);
+    }
+
+    public <T> T selectById(Class<T> selectClass, Object id) {
+        return select(selectClass).where("id", id).queryForObject();
+    }
+
+    public <T> T selectByKey(Class<T> selectClass, Object... keys) {
+        return new ObjectDao<T>(this, selectClass).selectByKey(keys);
+    }
+    
     /**
      * 检查一个数据表是否存在
      *

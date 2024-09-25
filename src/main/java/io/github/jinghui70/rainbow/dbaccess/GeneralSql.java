@@ -154,10 +154,10 @@ public abstract class GeneralSql<S extends GeneralSql<S>> extends SqlWrapper<S> 
     }
 
     @Override
-    public <T> T queryForObject(RowMapper<T> mapper) throws DataAccessException {
+    public <T> T queryForObject(String sql, RowMapper<T> mapper) throws DataAccessException {
         ResultSetExtractor<List<T>> extractor = new RowMapperResultSetExtractor<>(mapper, 1);
         try {
-            List<T> results = query(getSql(), extractor);
+            List<T> results = query(sql, extractor);
             return DataAccessUtils.nullableSingleResult(results);
         } catch (EmptyResultDataAccessException e) {
             return null;

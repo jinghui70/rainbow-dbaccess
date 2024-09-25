@@ -357,7 +357,11 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return queryForValueOptional(LocalDate.class);
     }
 
-    protected abstract <T> T queryForObject(RowMapper<T> mapper) throws DataAccessException;
+    protected abstract <T> T queryForObject(String sql, RowMapper<T> mapper) throws DataAccessException;
+
+    public <T> T queryForObject(RowMapper<T> mapper) throws DataAccessException {
+        return queryForObject(getSql(), mapper);
+    }
 
     public <T> Optional<T> queryForObjectOptional(RowMapper<T> mapper) throws DataAccessException {
         try {
@@ -417,8 +421,14 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     }
 
     public int count() {
-        String sql = String.format("SELECT COUNT(*) FROM (%s) C", getSql());
-        return queryForValue(Integer.class);
+        String sql = getSql().toLowerCase();
+        if (sql.contains("distinct") || sql.contains("group by") || sql.contains("union")) {
+            sql = String.format("SELECT COUNT(*) FROM (%s) C", sql);
+        } else {
+            int orderBy = sql.lastIndexOf(" order by");
+            sql = "select count(1) " + sql.substring(sql.indexOf("from"), orderBy > 0 ? orderBy : sql.length());
+        }
+        return queryForObject(sql, new SingleColumnRowMapper<>(Integer.class));
     }
 
     public <K, V> Map<K, V> queryToMap(ResultSetFunction<K> keyFunc, ResultSetFunction<V> valueFunction) {

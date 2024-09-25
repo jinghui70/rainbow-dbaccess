@@ -105,9 +105,9 @@ public class NamedSql extends SqlWrapper<NamedSql> {
     }
 
     @Override
-    public <T> T queryForObject(RowMapper<T> mapper) throws DataAccessException {
+    public <T> T queryForObject(String sql, RowMapper<T> mapper) throws DataAccessException {
         try {
-            return dba.getNamedParameterJdbcTemplate().queryForObject(getSql(), params, mapper);
+            return dba.getNamedParameterJdbcTemplate().queryForObject(sql, params, mapper);
         } catch (EmptyResultDataAccessException e) {
             return null;
         }

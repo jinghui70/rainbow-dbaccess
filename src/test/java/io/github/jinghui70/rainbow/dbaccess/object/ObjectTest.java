@@ -2,6 +2,8 @@ package io.github.jinghui70.rainbow.dbaccess.object;
 
 import io.github.jinghui70.rainbow.dbaccess.BaseTest;
 import io.github.jinghui70.rainbow.dbaccess.DbaConfig;
+import io.github.jinghui70.rainbow.dbaccess.PageData;
+import io.github.jinghui70.rainbow.dbaccess.Sql;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -68,4 +70,46 @@ public class ObjectTest extends BaseTest {
         assertEquals(0, o.getScore()[2]);
     }
 
+    @Test
+    public void testPageQuery() {
+        dba.insert(list());
+        PageData<SimpleObject> data = dba.select(SimpleObject.class).orderBy("ID").pageQuery(2, 2);
+        assertEquals(10, data.getTotal());
+        assertEquals(2, data.getRows().size());
+
+        SimpleObject o = data.getRows().get(0);
+        assertEquals(3, o.getId());
+        assertEquals("name3", o.getName());
+        assertEquals(30, o.getScore()[0]);
+        assertEquals(31, o.getScore()[1]);
+        assertEquals(32, o.getScore()[2]);
+
+        data = dba.select(SimpleObject.class).pageQuery(2, 2);
+        assertEquals(10, data.getTotal());
+        assertEquals(2, data.getRows().size());
+
+        data = dba.select(SimpleObject.class)
+                .where("id", new Sql("select id from SIMPLE_OBJECT order by id"))
+                .orderBy("ID")
+                .pageQuery(2, 2);
+        assertEquals(10, data.getTotal());
+        assertEquals(2, data.getRows().size());
+        assertEquals("name3", o.getName());
+    }
+
+    @Test
+    public void testSelect() {
+        dba.insert(list());
+        SimpleObject obj = dba.selectById(SimpleObject.class, 1);
+        assertEquals("name1", obj.getName());
+        obj = dba.selectByKey(SimpleObject.class, 1);
+        assertEquals("name1", obj.getName());
+
+        dba.delete(obj);
+        dba.deleteById(SimpleObject.class, 2);
+        dba.deleteByKey(SimpleObject.class, 3);
+
+        int count = dba.select().from("SIMPLE_OBJECT").count();
+        assertEquals(7, count);
+    }
 }

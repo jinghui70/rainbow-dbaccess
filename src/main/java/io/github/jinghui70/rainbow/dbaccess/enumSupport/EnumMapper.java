@@ -24,12 +24,13 @@ public class EnumMapper<T extends Enum<T>> extends FieldMapper<T> {
 
     @Override
     public T formDB(ResultSet rs, int index) throws SQLException {
-        if (rs.wasNull()) return null;
         if (isOrdinal) {
             int value = rs.getInt(index);
+            if (rs.wasNull()) return null;
             return EnumUtil.getEnumAt(enumClass, value);
         }
         String value = rs.getString(index);
+        if (value == null) return null;
         if (isCode) {
             for (T t : enumClass.getEnumConstants()) {
                 if (Objects.equals(value, ((CodeEnum) t).code()))
@@ -42,7 +43,9 @@ public class EnumMapper<T extends Enum<T>> extends FieldMapper<T> {
 
     @Override
     public void saveToDB(PreparedStatement ps, int paramIndex, Object value) throws SQLException {
-        if (isOrdinal)
+        if (value == null)
+            ps.setObject(paramIndex, value);
+        else if (isOrdinal)
             ps.setInt(paramIndex, ((Enum<?>) value).ordinal());
         else if (isCode)
             ps.setString(paramIndex, ((CodeEnum) value).code());

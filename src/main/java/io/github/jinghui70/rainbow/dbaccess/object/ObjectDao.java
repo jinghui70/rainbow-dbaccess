@@ -139,8 +139,10 @@ public class ObjectDao<T> {
     public int update(String table, T object) {
         Sql sql = dba.update(table);
         for (PropInfo propInfo : propArray) {
-            if (propInfo.getId() == null)
+            if (propInfo.getId() == null) {
+
                 sql.set(propInfo.getFieldName(), propInfo.getValue(object));
+            }
         }
         for (PropInfo propInfo : propArray) {
             if (propInfo.getId() != null)

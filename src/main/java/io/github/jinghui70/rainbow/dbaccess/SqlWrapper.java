@@ -17,6 +17,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -288,20 +289,20 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     /**
      * 查询一条记录的一个字段，由派生类实现。
      *
-     * @param sql          查询sql，多了这个参数是为了本类返回Option
      * @param requiredType 数据类型
      * @param <T>          数据泛型
      * @return 查询结果
      * @throws DataAccessException 底层异常
      */
-    protected abstract <T> T queryForValue(String sql, Class<T> requiredType) throws DataAccessException;
-
     @SuppressWarnings("rawtypes")
+    private <T> RowMapper<T> typeToMapper(Class<T> requiredType) {
+        return requiredType.isEnum()
+                ? new SingleColumnFieldRowMapper(new EnumMapper(requiredType))
+                : new SingleColumnRowMapper<>(requiredType);
+    }
+
     public <T> T queryForValue(Class<T> requiredType) throws DataAccessException {
-        if (requiredType.isEnum()) {
-            return (T) queryForValue(new EnumMapper(requiredType));
-        }
-        return queryForValue(getSql(), requiredType);
+        return queryForObject(typeToMapper(requiredType));
     }
 
     public <T> Optional<T> queryForValueOptional(Class<T> requiredType) throws DataAccessException {
@@ -349,14 +350,14 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     }
 
     public LocalDate queryForDate() {
-        return queryForValue(getSql(), LocalDate.class);
+        return queryForValue(LocalDate.class);
     }
 
     public Optional<LocalDate> queryForDateOptional() {
         return queryForValueOptional(LocalDate.class);
     }
 
-    public abstract <T> T queryForObject(RowMapper<T> mapper) throws DataAccessException;
+    protected abstract <T> T queryForObject(RowMapper<T> mapper) throws DataAccessException;
 
     public <T> Optional<T> queryForObjectOptional(RowMapper<T> mapper) throws DataAccessException {
         try {
@@ -368,7 +369,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
 
     public <T> T queryForObject(Class<T> objectType) throws DataAccessException {
         if (BeanUtils.isSimpleValueType(objectType))
-            return queryForValue(getSql(), objectType);
+            return queryForValue(objectType);
         return queryForObject(BeanMapper.of(objectType));
     }
 
@@ -386,7 +387,6 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     /**
      * 获取对象列表
      *
-     * @param sql       查询语句
      * @param rowMapper 对象Mapper
      * @param <T>       对象泛型
      * @return 结果列表
@@ -394,18 +394,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
      */
     protected abstract <T> List<T> queryForList(String sql, RowMapper<T> rowMapper);
 
-    /**
-     * 由派生类实现，获取基本类型列表
-     *
-     * @param sql          查询语句
-     * @param requiredType 数据类型
-     * @param <T>          数据泛型
-     * @return 结果列表
-     * @throws DataAccessException 数据底层异常
-     */
-    protected abstract <T> List<T> queryForValueList(String sql, Class<T> requiredType) throws DataAccessException;
-
-    public <T> List<T> queryForList(RowMapper<T> rowMapper) throws DataAccessException {
+    protected <T> List<T> queryForList(RowMapper<T> rowMapper) {
         return queryForList(getSql(), rowMapper);
     }
 
@@ -419,13 +408,17 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
      */
     public <T> List<T> queryForList(Class<T> objectType) throws DataAccessException {
         if (BeanUtils.isSimpleValueType(objectType))
-            return queryForValueList(getSql(), objectType);
-        return queryForList(getSql(), BeanMapper.of(objectType));
+            return queryForList(typeToMapper(objectType));
+        return queryForList(BeanMapper.of(objectType));
+    }
+
+    public <T> List<T> queryForList(FieldMapper<T> fieldMapper) throws DataAccessException {
+        return queryForList(new SingleColumnFieldRowMapper<>(fieldMapper));
     }
 
     public int count() {
         String sql = String.format("SELECT COUNT(*) FROM (%s) C", getSql());
-        return queryForValue(sql, Integer.class);
+        return queryForValue(Integer.class);
     }
 
     public <K, V> Map<K, V> queryToMap(ResultSetFunction<K> keyFunc, ResultSetFunction<V> valueFunction) {
@@ -506,7 +499,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
                 return new PageData<>(count);
             String sql = pageNo == 1 ? dba.getDialect().wrapLimitSql(getSql(), pageSize)
                     : dba.getDialect().wrapPagedSql(getSql(), pageNo, pageSize);
-            List<T> list = queryForValueList(sql, objectType);
+            List<T> list = queryForList(sql, typeToMapper(objectType));
             return new PageData<>(count, list);
         }
         return pageQuery(BeanMapper.of(objectType), pageNo, pageSize);

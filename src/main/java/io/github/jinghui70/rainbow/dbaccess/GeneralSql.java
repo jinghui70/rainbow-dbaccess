@@ -3,10 +3,8 @@ package io.github.jinghui70.rainbow.dbaccess;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Cnd;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowCallbackHandler;
-import org.springframework.jdbc.core.RowMapper;
+import org.springframework.dao.support.DataAccessUtils;
+import org.springframework.jdbc.core.*;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -96,10 +94,6 @@ public abstract class GeneralSql<S extends GeneralSql<S>> extends SqlWrapper<S> 
         return params.isEmpty();
     }
 
-    private Object[] getParamArray() {
-        return params.toArray();
-    }
-
     /**
      * 执行当前sql
      *
@@ -110,7 +104,7 @@ public abstract class GeneralSql<S extends GeneralSql<S>> extends SqlWrapper<S> 
         if (noParams())
             return getJdbcTemplate().update(getSql());
         else
-            return getJdbcTemplate().update(getSql(), getParamArray());
+            return getJdbcTemplate().update(getSql(), new ArgumentSetter(params));
     }
 
     public int[] batchUpdate(List<Object[]> batchArgs) {
@@ -151,24 +145,20 @@ public abstract class GeneralSql<S extends GeneralSql<S>> extends SqlWrapper<S> 
         if (noParams())
             getJdbcTemplate().query(getSql(), rch);
         else
-            getJdbcTemplate().query(getSql(), rch, getParamArray());
+            getJdbcTemplate().query(getSql(), new ArgumentSetter(params), rch);
     }
 
-    @Override
-    protected <T> T queryForValue(String sql, Class<T> requiredType) throws DataAccessException {
-        if (noParams())
-            return getJdbcTemplate().queryForObject(sql, requiredType);
-        else
-            return getJdbcTemplate().queryForObject(sql, requiredType, getParamArray());
+    protected <T> T query(String sql, ResultSetExtractor<T> rse) throws DataAccessException {
+        return noParams() ? getJdbcTemplate().query(sql, rse) :
+                getJdbcTemplate().query(sql, new ArgumentSetter(params), rse);
     }
 
     @Override
     public <T> T queryForObject(RowMapper<T> mapper) throws DataAccessException {
+        ResultSetExtractor<List<T>> extractor = new RowMapperResultSetExtractor<>(mapper, 1);
         try {
-            if (noParams())
-                return getJdbcTemplate().queryForObject(getSql(), mapper);
-            else
-                return getJdbcTemplate().queryForObject(getSql(), mapper, getParamArray());
+            List<T> results = query(getSql(), extractor);
+            return DataAccessUtils.nullableSingleResult(results);
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
@@ -176,18 +166,7 @@ public abstract class GeneralSql<S extends GeneralSql<S>> extends SqlWrapper<S> 
 
     @Override
     public <T> List<T> queryForList(String sql, RowMapper<T> rowMapper) throws DataAccessException {
-        if (noParams())
-            return getJdbcTemplate().query(sql, rowMapper);
-        else
-            return getJdbcTemplate().query(sql, rowMapper, getParamArray());
-    }
-
-    @Override
-    protected <T> List<T> queryForValueList(String sql, Class<T> elementType) throws DataAccessException {
-        if (noParams())
-            return getJdbcTemplate().queryForList(sql, elementType);
-        else
-            return getJdbcTemplate().queryForList(sql, elementType, getParamArray());
+        return query(sql, new RowMapperResultSetExtractor<>(rowMapper));
     }
 
 }

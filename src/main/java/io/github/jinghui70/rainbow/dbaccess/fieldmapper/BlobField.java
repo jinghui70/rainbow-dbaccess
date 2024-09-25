@@ -25,8 +25,8 @@ public abstract class BlobField<T> extends FieldMapper<T> {
 
     @Override
     public T formDB(ResultSet rs, int index) throws SQLException {
-        if (rs.wasNull()) return null;
         Blob blob = rs.getBlob(index);
+        if (rs.wasNull()) return null;
         byte[] bytes = compress ? ZipUtil.unGzip(blob.getBinaryStream()) : blob.getBytes(1, (int) blob.length());
         return parse(bytes);
     }

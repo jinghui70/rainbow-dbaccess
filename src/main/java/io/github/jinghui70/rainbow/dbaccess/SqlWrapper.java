@@ -398,7 +398,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
      */
     protected abstract <T> List<T> queryForList(String sql, RowMapper<T> rowMapper);
 
-    protected <T> List<T> queryForList(RowMapper<T> rowMapper) {
+    public <T> List<T> queryForList(RowMapper<T> rowMapper) {
         return queryForList(getSql(), rowMapper);
     }
 

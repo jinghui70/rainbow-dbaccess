@@ -1,10 +1,12 @@
 package io.github.jinghui70.rainbow.dbaccess.tree;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.IdUtil;
 import io.github.jinghui70.rainbow.dbaccess.BaseTest;
 import io.github.jinghui70.rainbow.dbaccess.DbaConfig;
-import io.github.jinghui70.rainbow.utils.TreeUtils;
-import io.github.jinghui70.rainbow.utils.WrapTreeNode;
+import io.github.jinghui70.rainbow.utils.tree.FilterType;
+import io.github.jinghui70.rainbow.utils.tree.TreeUtils;
+import io.github.jinghui70.rainbow.utils.tree.WrapTreeNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -13,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TreeTest extends BaseTest {
 
@@ -170,5 +173,113 @@ public class TreeTest extends BaseTest {
         assertEquals("XXX", result.get(3).getName());
         assertEquals("DDD", result.get(4).getName());
         assertEquals("CCC", result.get(5).getName());
+    }
+
+    @Test
+    public void testFilter() {
+        String pid = dba.select("ID").from(TreeObject.class).where("CODE", "22")
+                .queryForString();
+
+        TreeObject treeObject = new TreeObject();
+        treeObject.setId(IdUtil.fastSimpleUUID());
+        treeObject.setPid(pid);
+        treeObject.setCode("221");
+        treeObject.setName("221");
+        dba.insert(treeObject);
+        treeObject = new TreeObject();
+        treeObject.setId(IdUtil.fastSimpleUUID());
+        treeObject.setPid(pid);
+        treeObject.setCode("222");
+        treeObject.setName("222");
+        dba.insert(treeObject);
+
+        List<TreeObjectClonable> tree = dba.selectAll().from("TREE_OBJECT").orderBy("CODE")
+                .queryForTree(TreeObjectClonable.class);
+        List<TreeObjectClonable> filteredTree = TreeUtils.filter(tree, o -> "22".equals(o.getCode()), FilterType.MATCH_FIRST);
+        assertEquals(1, filteredTree.size()); // 2
+        TreeObjectClonable node = filteredTree.get(0);
+        assertEquals("2", node.getCode());
+        assertEquals(1, node.getChildren().size()); // 22
+        node = node.getChildren().get(0);
+        assertEquals("22", node.getCode());
+        assertTrue(CollUtil.isEmpty(node.getChildren()));
+
+        // 因为是 clone 版，不应该改变原树的数据
+        node = tree.get(1).getChildren().get(1);
+        assertEquals("22", node.getCode());
+        assertEquals(2, node.getChildren().size());
+
+        filteredTree = TreeUtils.filter(tree, o -> "22".equals(o.getCode()), FilterType.MATCH_FIRST_FULL);
+        node = filteredTree.get(0).getChildren().get(0);
+        assertEquals("22", node.getCode());
+        assertEquals(2, node.getChildren().size());
+
+        filteredTree = TreeUtils.filter(tree, o -> o.getCode().startsWith("2") && o.getCode().length() == 2, FilterType.MATCH_ALL);
+        node = filteredTree.get(0);
+        assertEquals(3, node.getChildren().size());
+        node = node.getChildren().get(1);
+        assertEquals("22", node.getCode());
+        assertTrue(CollUtil.isEmpty(node.getChildren()));
+
+        filteredTree = TreeUtils.filter(tree, o -> o.getCode().startsWith("2") && o.getCode().length() == 2, FilterType.MATCH_ALL_FULL);
+        node = filteredTree.get(0);
+        assertEquals(3, node.getChildren().size());
+        node = node.getChildren().get(1);
+        assertEquals("22", node.getCode());
+        assertEquals(2, node.getChildren().size());
+    }
+
+    @Test
+    public void testWrapFilter() {
+        String pid = dba.select("ID").from(TreeObject.class).where("CODE", "22")
+                .queryForString();
+
+        TreeObject treeObject = new TreeObject();
+        treeObject.setId(IdUtil.fastSimpleUUID());
+        treeObject.setPid(pid);
+        treeObject.setCode("221");
+        treeObject.setName("221");
+        dba.insert(treeObject);
+        treeObject = new TreeObject();
+        treeObject.setId(IdUtil.fastSimpleUUID());
+        treeObject.setPid(pid);
+        treeObject.setCode("222");
+        treeObject.setName("222");
+        dba.insert(treeObject);
+
+        List<WrapTreeNode<TreeObject>> tree = dba.selectAll().from("TREE_OBJECT").orderBy("CODE")
+                .queryForWrapTree(TreeObject.class);
+        List<WrapTreeNode<TreeObject>> filteredTree = TreeUtils.filterWrapTree(tree, o -> "22".equals(o.getCode()), FilterType.MATCH_FIRST);
+        assertEquals(1, filteredTree.size()); // 2
+        WrapTreeNode<TreeObject> node = filteredTree.get(0);
+        assertEquals("2", node.getData().getCode());
+        assertEquals(1, node.getChildren().size()); // 22
+        node = node.getChildren().get(0);
+        assertEquals("22", node.getData().getCode());
+        assertTrue(CollUtil.isEmpty(node.getChildren()));
+
+        // 因为是 wrap 版，不会改变原树的数据
+        node = tree.get(1).getChildren().get(1);
+        assertEquals("22", node.getData().getCode());
+        assertEquals(2, node.getChildren().size());
+
+        filteredTree = TreeUtils.filterWrapTree(tree, o -> "22".equals(o.getCode()), FilterType.MATCH_FIRST_FULL);
+        node = filteredTree.get(0).getChildren().get(0);
+        assertEquals("22", node.getData().getCode());
+        assertEquals(2, node.getChildren().size());
+
+        filteredTree = TreeUtils.filterWrapTree(tree, o -> o.getCode().startsWith("2") && o.getCode().length() == 2, FilterType.MATCH_ALL);
+        node = filteredTree.get(0);
+        assertEquals(3, node.getChildren().size());
+        node = node.getChildren().get(1);
+        assertEquals("22", node.getData().getCode());
+        assertTrue(CollUtil.isEmpty(node.getChildren()));
+
+        filteredTree = TreeUtils.filterWrapTree(tree, o -> o.getCode().startsWith("2") && o.getCode().length() == 2, FilterType.MATCH_ALL_FULL);
+        node = filteredTree.get(0);
+        assertEquals(3, node.getChildren().size());
+        node = node.getChildren().get(1);
+        assertEquals("22", node.getData().getCode());
+        assertEquals(2, node.getChildren().size());
     }
 }

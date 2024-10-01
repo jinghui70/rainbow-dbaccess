@@ -10,8 +10,8 @@ import io.github.jinghui70.rainbow.dbaccess.mapper.MapRowMapper;
 import io.github.jinghui70.rainbow.dbaccess.mapper.SingleColumnFieldRowMapper;
 import io.github.jinghui70.rainbow.dbaccess.object.BeanMapper;
 import io.github.jinghui70.rainbow.utils.StringBuilderWrapper;
-import io.github.jinghui70.rainbow.utils.TreeNode;
-import io.github.jinghui70.rainbow.utils.WrapTreeNode;
+import io.github.jinghui70.rainbow.utils.tree.ITreeNode;
+import io.github.jinghui70.rainbow.utils.tree.WrapTreeNode;
 import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -515,7 +515,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return pageQuery(BeanMapper.of(objectType), pageNo, pageSize);
     }
 
-    public <T extends TreeNode<T>> List<T> queryForTree(Class<T> objectType) {
+    public <T extends ITreeNode<T>> List<T> queryForTree(Class<T> objectType) {
         return queryForTree(BeanMapper.of(objectType));
     }
 
@@ -527,7 +527,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return queryForTree((rs, rowNum) -> new WrapTreeNode<>(mapper.mapRow(rs, rowNum)));
     }
 
-    public <T extends TreeNode<T>> List<T> queryForTree(RowMapper<T> mapper) {
+    public <T extends ITreeNode<T>> List<T> queryForTree(RowMapper<T> mapper) {
         List<T> result = new ArrayList<>();
         Map<String, String> parentIdMap = new LinkedHashMap<>();
         Map<String, T> itemMap = new HashMap<>();

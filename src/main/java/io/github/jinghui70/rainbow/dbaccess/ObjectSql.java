@@ -2,8 +2,9 @@ package io.github.jinghui70.rainbow.dbaccess;
 
 import cn.hutool.core.lang.Assert;
 import io.github.jinghui70.rainbow.dbaccess.object.BeanMapper;
-import io.github.jinghui70.rainbow.utils.TreeNode;
-import io.github.jinghui70.rainbow.utils.WrapTreeNode;
+import io.github.jinghui70.rainbow.utils.tree.ITreeNode;
+import io.github.jinghui70.rainbow.utils.tree.TreeNode;
+import io.github.jinghui70.rainbow.utils.tree.WrapTreeNode;
 
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,7 @@ public class ObjectSql<T> extends GeneralSql<ObjectSql<T>> {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public List<T> queryForTree() {
         Assert.isAssignable(TreeNode.class, queryClass);
-        return queryForTree((Class<? extends TreeNode>) queryClass);
+        return queryForTree((Class<? extends ITreeNode>) queryClass);
     }
 
     public List<WrapTreeNode<T>> queryForWrapTree() {

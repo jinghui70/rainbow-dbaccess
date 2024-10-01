@@ -2,7 +2,7 @@ package io.github.jinghui70.rainbow.dbaccess.tree;
 
 import io.github.jinghui70.rainbow.utils.tree.TreeNode;
 
-public class TreeObject extends TreeNode<TreeObject> {
+public class TreeObjectClonable extends TreeNode<TreeObjectClonable> implements Cloneable {
 
     private String id;
 
@@ -42,5 +42,14 @@ public class TreeObject extends TreeNode<TreeObject> {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public TreeObjectClonable clone() {
+        try {
+            return (TreeObjectClonable) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 }

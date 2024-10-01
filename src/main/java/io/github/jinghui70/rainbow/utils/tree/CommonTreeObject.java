@@ -1,4 +1,4 @@
-package io.github.jinghui70.rainbow.utils;
+package io.github.jinghui70.rainbow.utils.tree;
 
 public class CommonTreeObject extends TreeNode<CommonTreeObject> {
 
@@ -25,7 +25,7 @@ public class CommonTreeObject extends TreeNode<CommonTreeObject> {
     public CommonTreeObject() {
     }
 
-    public CommonTreeObject (String id, String name) {
+    public CommonTreeObject(String id, String name) {
         this.id = id;
         this.name = name;
     }

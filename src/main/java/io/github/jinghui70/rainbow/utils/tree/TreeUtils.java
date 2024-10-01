@@ -113,37 +113,4 @@ public class TreeUtils {
         return filter(list, predicate, filterType, cloneMethod);
     }
 
-    public static <T> List<WrapTreeNode<T>> filterWrapTree(List<WrapTreeNode<T>> list, Predicate<T> predicate, FilterType filterType) {
-        List<WrapTreeNode<T>> result = new LinkedList<>();
-        for (WrapTreeNode<T> wrapNode : list) {
-            if (predicate.test(wrapNode.getData())) {
-                WrapTreeNode<T> newNode = new WrapTreeNode<>(wrapNode.getData());
-                result.add(newNode);
-                switch (filterType) {
-                    case MATCH_FIRST:
-                        return result;
-                    case MATCH_FIRST_FULL:
-                        newNode.setChildren(wrapNode.getChildren());
-                        return result;
-                    case MATCH_ALL_FULL:
-                        newNode.setChildren(wrapNode.getChildren());
-                        break;
-                    case MATCH_ALL:
-                        if (wrapNode.hasChild()) {
-                            List<WrapTreeNode<T>> children = filterWrapTree(wrapNode.getChildren(), predicate, filterType);
-                            if (CollUtil.isNotEmpty(children)) newNode.setChildren(children);
-                        }
-                }
-            } else if (wrapNode.hasChild()) {
-                List<WrapTreeNode<T>> children = filterWrapTree(wrapNode.getChildren(), predicate, filterType);
-                if (CollUtil.isNotEmpty(children)) {
-                    WrapTreeNode<T> newNode = new WrapTreeNode<>(wrapNode.getData());
-                    newNode.setChildren(children);
-                    result.add(newNode);
-                }
-            }
-        }
-        return result;
-    }
-
 }

@@ -11,7 +11,6 @@ import io.github.jinghui70.rainbow.dbaccess.mapper.SingleColumnFieldRowMapper;
 import io.github.jinghui70.rainbow.dbaccess.object.BeanMapper;
 import io.github.jinghui70.rainbow.utils.StringBuilderWrapper;
 import io.github.jinghui70.rainbow.utils.tree.ITreeNode;
-import io.github.jinghui70.rainbow.utils.tree.WrapTreeNode;
 import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -39,6 +38,8 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     private boolean where;
 
     private boolean set;
+
+    private boolean countOptimization = true;
 
     protected SqlWrapper() {
         super();
@@ -420,9 +421,14 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return queryForList(new SingleColumnFieldRowMapper<>(fieldMapper));
     }
 
+    public S disableCountOptimization() {
+        this.countOptimization = false;
+        return (S) this;
+    }
+
     public int count() {
         String sql = getSql().toLowerCase();
-        if (sql.contains("distinct") || sql.contains("group by") || sql.contains("union")) {
+        if (!countOptimization || sql.contains("distinct") || sql.contains("group by") || sql.contains("union")) {
             sql = String.format("SELECT COUNT(*) FROM (%s) C", sql);
         } else {
             int orderBy = sql.lastIndexOf(" order by");
@@ -517,14 +523,6 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
 
     public <T extends ITreeNode<T>> List<T> queryForTree(Class<T> objectType) {
         return queryForTree(BeanMapper.of(objectType));
-    }
-
-    public <T> List<WrapTreeNode<T>> queryForWrapTree(Class<T> objectType) {
-        return queryForWrapTree(BeanMapper.of(objectType));
-    }
-
-    public <T> List<WrapTreeNode<T>> queryForWrapTree(RowMapper<T> mapper) {
-        return queryForTree((rs, rowNum) -> new WrapTreeNode<>(mapper.mapRow(rs, rowNum)));
     }
 
     public <T extends ITreeNode<T>> List<T> queryForTree(RowMapper<T> mapper) {

@@ -6,7 +6,6 @@ import io.github.jinghui70.rainbow.dbaccess.BaseTest;
 import io.github.jinghui70.rainbow.dbaccess.DbaConfig;
 import io.github.jinghui70.rainbow.utils.tree.FilterType;
 import io.github.jinghui70.rainbow.utils.tree.TreeUtils;
-import io.github.jinghui70.rainbow.utils.tree.WrapTreeNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -29,38 +28,36 @@ public class TreeTest extends BaseTest {
         root1.setName("ZZZ");
         dba.insert(root1);
 
-        TreeObject treeObject = new TreeObject();
         root1.setId(IdUtil.fastSimpleUUID());
         root1.setPid("root1");
         root1.setCode("11");
         root1.setName("AAA");
         dba.insert(root1);
 
-        String root2Id = "root2";
-        treeObject = new TreeObject();
-        treeObject.setId(root2Id);
-        treeObject.setPid("0");
-        treeObject.setCode("2");
-        treeObject.setName("HHH");
-        dba.insert(treeObject);
+        TreeObject root2 = new TreeObject();
+        root2.setId("root2");
+        root2.setPid("0");
+        root2.setCode("2");
+        root2.setName("HHH");
+        dba.insert(root2);
 
-        treeObject = new TreeObject();
+        TreeObject treeObject = new TreeObject();
         treeObject.setId(IdUtil.fastSimpleUUID());
-        treeObject.setPid(root2Id);
+        treeObject.setPid(root2.getId());
         treeObject.setCode("21");
         treeObject.setName("XXX");
         dba.insert(treeObject);
 
         treeObject = new TreeObject();
         treeObject.setId(IdUtil.fastSimpleUUID());
-        treeObject.setPid(root2Id);
+        treeObject.setPid(root2.getId());
         treeObject.setCode("22");
         treeObject.setName("DDD");
         dba.insert(treeObject);
 
         treeObject = new TreeObject();
         treeObject.setId(IdUtil.fastSimpleUUID());
-        treeObject.setPid(root2Id);
+        treeObject.setPid(root2.getId());
         treeObject.setCode("23");
         treeObject.setName("CCC");
         dba.insert(treeObject);
@@ -137,30 +134,6 @@ public class TreeTest extends BaseTest {
     }
 
     @Test
-    void testWrapOrder() {
-        List<WrapTreeNode<TreeObject>> tree = dba.select(TreeObject.class).orderBy("NAME").queryForWrapTree();
-        assertEquals(2, tree.size());
-        assertEquals("HHH", tree.get(0).getData().getName());
-        assertEquals("ZZZ", tree.get(1).getData().getName());
-
-        WrapTreeNode<TreeObject> treeNode = tree.get(0);
-        assertEquals(3, treeNode.getChildren().size());
-        assertEquals("CCC", treeNode.getChildren().get(0).getData().getName());
-        assertEquals("DDD", treeNode.getChildren().get(1).getData().getName());
-        assertEquals("XXX", treeNode.getChildren().get(2).getData().getName());
-
-        tree = dba.select(TreeObject.class).orderBy("CODE").queryForWrapTree();
-        assertEquals("ZZZ", tree.get(0).getData().getName());
-        assertEquals("HHH", tree.get(1).getData().getName());
-
-        treeNode = tree.get(1);
-        assertEquals(3, treeNode.getChildren().size());
-        assertEquals("XXX", treeNode.getChildren().get(0).getData().getName());
-        assertEquals("DDD", treeNode.getChildren().get(1).getData().getName());
-        assertEquals("CCC", treeNode.getChildren().get(2).getData().getName());
-    }
-
-    @Test
     public void testTraverse() {
         List<TreeObject> result = new ArrayList<>();
         List<TreeObject> tree = dba.select(TreeObject.class).orderBy("CODE").queryForTree();
@@ -229,57 +202,4 @@ public class TreeTest extends BaseTest {
         assertEquals(2, node.getChildren().size());
     }
 
-    @Test
-    public void testWrapFilter() {
-        String pid = dba.select("ID").from(TreeObject.class).where("CODE", "22")
-                .queryForString();
-
-        TreeObject treeObject = new TreeObject();
-        treeObject.setId(IdUtil.fastSimpleUUID());
-        treeObject.setPid(pid);
-        treeObject.setCode("221");
-        treeObject.setName("221");
-        dba.insert(treeObject);
-        treeObject = new TreeObject();
-        treeObject.setId(IdUtil.fastSimpleUUID());
-        treeObject.setPid(pid);
-        treeObject.setCode("222");
-        treeObject.setName("222");
-        dba.insert(treeObject);
-
-        List<WrapTreeNode<TreeObject>> tree = dba.selectAll().from("TREE_OBJECT").orderBy("CODE")
-                .queryForWrapTree(TreeObject.class);
-        List<WrapTreeNode<TreeObject>> filteredTree = TreeUtils.filterWrapTree(tree, o -> "22".equals(o.getCode()), FilterType.MATCH_FIRST);
-        assertEquals(1, filteredTree.size()); // 2
-        WrapTreeNode<TreeObject> node = filteredTree.get(0);
-        assertEquals("2", node.getData().getCode());
-        assertEquals(1, node.getChildren().size()); // 22
-        node = node.getChildren().get(0);
-        assertEquals("22", node.getData().getCode());
-        assertTrue(CollUtil.isEmpty(node.getChildren()));
-
-        // 因为是 wrap 版，不会改变原树的数据
-        node = tree.get(1).getChildren().get(1);
-        assertEquals("22", node.getData().getCode());
-        assertEquals(2, node.getChildren().size());
-
-        filteredTree = TreeUtils.filterWrapTree(tree, o -> "22".equals(o.getCode()), FilterType.MATCH_FIRST_FULL);
-        node = filteredTree.get(0).getChildren().get(0);
-        assertEquals("22", node.getData().getCode());
-        assertEquals(2, node.getChildren().size());
-
-        filteredTree = TreeUtils.filterWrapTree(tree, o -> o.getCode().startsWith("2") && o.getCode().length() == 2, FilterType.MATCH_ALL);
-        node = filteredTree.get(0);
-        assertEquals(3, node.getChildren().size());
-        node = node.getChildren().get(1);
-        assertEquals("22", node.getData().getCode());
-        assertTrue(CollUtil.isEmpty(node.getChildren()));
-
-        filteredTree = TreeUtils.filterWrapTree(tree, o -> o.getCode().startsWith("2") && o.getCode().length() == 2, FilterType.MATCH_ALL_FULL);
-        node = filteredTree.get(0);
-        assertEquals(3, node.getChildren().size());
-        node = node.getChildren().get(1);
-        assertEquals("22", node.getData().getCode());
-        assertEquals(2, node.getChildren().size());
-    }
 }

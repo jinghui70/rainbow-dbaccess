@@ -7,6 +7,7 @@ import io.github.jinghui70.rainbow.dbaccess.dialect.Dialect;
 import io.github.jinghui70.rainbow.dbaccess.dialect.DialectDefault;
 import io.github.jinghui70.rainbow.dbaccess.dialect.DialectOracle;
 import io.github.jinghui70.rainbow.dbaccess.object.ObjectDao;
+import io.github.jinghui70.rainbow.dbaccess.object.ObjectSql;
 import io.github.jinghui70.rainbow.utils.StringBuilderX;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -26,6 +27,7 @@ import java.util.Objects;
 import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.INSERT;
 import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.MERGE;
 
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 public class Dba {
 
     protected JdbcTemplate jdbcTemplate;
@@ -123,7 +125,11 @@ public class Dba {
     }
 
     public <T> ObjectSql<T> select(Class<T> selectClass) {
-        return new ObjectSql<T>(this, selectClass).append("SELECT * FROM ").append(DbaUtil.tableName(selectClass));
+        return new ObjectSql<>(this, selectClass).append("SELECT * FROM ").append(DbaUtil.tableName(selectClass));
+    }
+
+    public <T> ObjectSql<T> select(Class<T> selectClass, Map<String, Object> replaceMap) {
+        return new ObjectSql<>(this, selectClass).selectFields(replaceMap);
     }
 
     public Sql update(String table) {
@@ -131,20 +137,20 @@ public class Dba {
     }
 
     public <T> ObjectSql<T> update(Class<T> updateClass) {
-        return new ObjectSql<T>(this, updateClass).append("UPDATE ").append(DbaUtil.tableName(updateClass));
+        return new ObjectSql<>(this, updateClass).append("UPDATE ").append(DbaUtil.tableName(updateClass));
+    }
+
+    public <T> ObjectSql<T> insertInto(Class<T> insertClass) {
+        return new ObjectSql<>(this, insertClass).append("INSERT INTO ")
+                .append(DbaUtil.tableName(insertClass)).append("(").appendFields().append(")");
     }
 
     public Sql deleteFrom(String table) {
         return sql("DELETE FROM ").append(table);
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> int delete(T object) {
-        return new ObjectDao<T>(this, (Class<T>) object.getClass()).delete(object);
-    }
-
     public <T> ObjectSql<T> deleteFrom(Class<T> deleteClass) {
-        return new ObjectSql<T>(this, deleteClass).append("DELETE FROM ").append(DbaUtil.tableName(deleteClass));
+        return new ObjectSql<>(this, deleteClass).append("DELETE FROM ").append(DbaUtil.tableName(deleteClass));
     }
 
     public NamedSql namedSql() {
@@ -301,12 +307,17 @@ public class Dba {
         return new ObjectDao<>(this, (Class<T>) bean.getClass()).update(tableName, bean);
     }
 
+    @SuppressWarnings("unchecked")
+    public <T> int delete(T object) {
+        return new ObjectDao<>(this, (Class<T>) object.getClass()).delete(object);
+    }
+
     public <T> int deleteById(Class<T> deleteClass, Object id) {
         return deleteFrom(DbaUtil.tableName(deleteClass)).where("id", id).execute();
     }
 
     public <T> int deleteByKey(Class<T> deleteClass, Object... keys) {
-        return new ObjectDao<T>(this, deleteClass).deleteByKey(keys);
+        return new ObjectDao<>(this, deleteClass).deleteByKey(keys);
     }
 
     public <T> T selectById(Class<T> selectClass, Object id) {
@@ -314,7 +325,7 @@ public class Dba {
     }
 
     public <T> T selectByKey(Class<T> selectClass, Object... keys) {
-        return new ObjectDao<T>(this, selectClass).selectByKey(keys);
+        return new ObjectDao<>(this, selectClass).selectByKey(keys);
     }
     
     /**

@@ -1,6 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
 import io.github.jinghui70.rainbow.dbaccess.mapper.MapRowMapper;
+import io.github.jinghui70.rainbow.dbaccess.object.ObjectSql;
 import org.springframework.dao.DataAccessException;
 
 import java.util.List;

@@ -1,5 +1,6 @@
 package io.github.jinghui70.rainbow.dbaccess.object;
 
+import cn.hutool.core.map.MapUtil;
 import io.github.jinghui70.rainbow.dbaccess.BaseTest;
 import io.github.jinghui70.rainbow.dbaccess.DbaConfig;
 import io.github.jinghui70.rainbow.dbaccess.PageData;
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -111,5 +113,29 @@ public class ObjectTest extends BaseTest {
 
         int count = dba.select().from("SIMPLE_OBJECT").count();
         assertEquals(7, count);
+    }
+
+    @Test
+    public void testCopyInsert() {
+        dba.insert(list());
+        Map<String, Object> map = MapUtil.<String, Object>builder()
+                .put("id", 88)
+                .put("score_1", 88)
+                .put("SCORE_3", 88)
+                .build();
+        dba.insertInto(SimpleObject.class).selectFields(map).where("id", 1).execute();
+        SimpleObject obj = dba.selectById(SimpleObject.class, 88);
+        assertEquals(88, obj.getId());
+        assertEquals("name1", obj.getName());
+        assertEquals(88, obj.getScore()[0]);
+        assertEquals(11, obj.getScore()[1]);
+        assertEquals(88, obj.getScore()[2]);
+
+        obj = dba.select(SimpleObject.class, map).where("id", 1).queryForObject();
+        assertEquals(88, obj.getId());
+        assertEquals("name1", obj.getName());
+        assertEquals(88, obj.getScore()[0]);
+        assertEquals(11, obj.getScore()[1]);
+        assertEquals(88, obj.getScore()[2]);
     }
 }

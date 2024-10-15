@@ -1,4 +1,4 @@
-## [5.2.7](https://github.com/jinghui70/rainbow/compare/v5.2.6...v5.2.7) (2024-10-15)
+## [5.2.7](https://github.com/jinghui70/rainbow-dbaccess/compare/v5.2.6...v5.2.7) (2024-10-15)
 
 ### Bug Fixes
 

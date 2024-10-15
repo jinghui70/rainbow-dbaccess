@@ -1,8 +1,8 @@
 package io.github.jinghui70.rainbow.dbaccess.fieldmapper;
 
-public class BlobByteArrayField extends BlobField<byte[]> {
+public class BlobByteArrayFieldMapper extends BlobFieldMapper<byte[]> {
 
-    public BlobByteArrayField() {
+    public BlobByteArrayFieldMapper() {
         super(false);
     }
 

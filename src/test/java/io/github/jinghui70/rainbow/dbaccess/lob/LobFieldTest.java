@@ -1,12 +1,16 @@
 package io.github.jinghui70.rainbow.dbaccess.lob;
 
+import cn.hutool.core.collection.CollUtil;
 import io.github.jinghui70.rainbow.dbaccess.BaseTest;
 import io.github.jinghui70.rainbow.dbaccess.DbaConfig;
+import io.github.jinghui70.rainbow.dbaccess.fieldmapper.BlobObjectFieldMapper;
 import io.github.jinghui70.rainbow.dbaccess.object.SimpleObject;
+import io.github.jinghui70.rainbow.utils.CommonObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -21,9 +25,7 @@ public class LobFieldTest extends BaseTest {
 
     @Test
     public void testInsertObj() {
-        String contentStr = "当然可以。以下是一段较长的文字，讲述了一个关于时间旅行的虚构故事：\n" +
-                "\n" +
-                "在不远的未来，人类终于解锁了时间旅行的秘密。这一发现立即引起了全球的轰动，科学家们、历史学家们、甚至普通大众都对能够亲眼目睹历史或探索未来的可能性感到兴奋不已。然而，随着技术的发展，政府和国际组织很快意识到，时间旅行如果不受控制，可能会对现实造成不可逆转的影响。\n" +
+        String contentStr = "在不远的未来，人类终于解锁了时间旅行的秘密。这一发现立即引起了全球的轰动，科学家们、历史学家们、甚至普通大众都对能够亲眼目睹历史或探索未来的可能性感到兴奋不已。然而，随着技术的发展，政府和国际组织很快意识到，时间旅行如果不受控制，可能会对现实造成不可逆转的影响。\n" +
                 "\n" +
                 "因此，成立了一个名为“时空监护组织”（ChronoGuard）的全球性机构，负责监管时间旅行的所有活动。他们制定了严格的规则，比如禁止任何形式的“时间悖论”行为，即任何可能改变历史进程的行为。此外，时空监护组织还设立了“历史观察者”项目，允许经过严格训练的旅行者回到过去，但只能作为观察者，不能与历史人物互动或改变任何事件。\n" +
                 "\n" +
@@ -59,5 +61,45 @@ public class LobFieldTest extends BaseTest {
         assertEquals(100, so.getScore()[0]);
         assertEquals(99, so.getScore()[1]);
         assertEquals(89, so.getScore()[2]);
+
+        // 测试单个字段提取
+        so = dba.select("BIN_OBJECT").from(LobObject.class).where("id", 1)
+                .queryForValue(BlobObjectFieldMapper.of(SimpleObject.class));
+        assertEquals(10, so.getId());
+        assertEquals("Tom", so.getName());
+        assertEquals(100, so.getScore()[0]);
+        assertEquals(99, so.getScore()[1]);
+        assertEquals(89, so.getScore()[2]);
+    }
+
+    @Test
+    public void testObjectField() {
+        List<CommonObject> list = CollUtil.toList(
+                new CommonObject("1", "甲"),
+                new CommonObject("2", "乙")
+        );
+        LobObject2 obj = new LobObject2();
+        obj.setId(1);
+        obj.setBinObject(list);
+        dba.insert(obj);
+
+        obj = dba.select(LobObject2.class).queryForObject();
+        list = obj.getBinObject();
+        assertEquals(2, list.size());
+        assertEquals("甲", list.get(0).getName());
+        assertEquals("乙", list.get(1).getName());
+
+        // 直接获取结果
+        list = dba.select("BIN_OBJECT").from("LOB_OBJECT").where("id", 1)
+                .queryForValue(BlobObjectFieldMapper.ofList(CommonObject.class));
+        assertEquals(2, list.size());
+        assertEquals("甲", list.get(0).getName());
+        assertEquals("乙", list.get(1).getName());
+
+        CommonObject[] array = dba.select("BIN_OBJECT").from("LOB_OBJECT").where("id", 1)
+                .queryForValue(BlobObjectFieldMapper.ofArray(CommonObject.class));
+        assertEquals(2, array.length);
+        assertEquals("甲", array[0].getName());
+        assertEquals("乙", array[1].getName());
     }
 }

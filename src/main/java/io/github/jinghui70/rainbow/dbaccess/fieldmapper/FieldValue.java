@@ -3,6 +3,9 @@ package io.github.jinghui70.rainbow.dbaccess.fieldmapper;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+/**
+ * 用于使用指定的 FieldMapper 设置 sql 参数的对象
+ */
 public class FieldValue {
 
     private final Object value;

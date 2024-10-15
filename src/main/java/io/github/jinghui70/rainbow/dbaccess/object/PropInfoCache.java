@@ -7,9 +7,9 @@ import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.dbaccess.annotation.*;
 import io.github.jinghui70.rainbow.dbaccess.enumSupport.EnumMapper;
-import io.github.jinghui70.rainbow.dbaccess.fieldmapper.BlobByteArrayField;
-import io.github.jinghui70.rainbow.dbaccess.fieldmapper.BlobObjectField;
-import io.github.jinghui70.rainbow.dbaccess.fieldmapper.BlobStringField;
+import io.github.jinghui70.rainbow.dbaccess.fieldmapper.BlobByteArrayFieldMapper;
+import io.github.jinghui70.rainbow.dbaccess.fieldmapper.BlobObjectFieldMapper;
+import io.github.jinghui70.rainbow.dbaccess.fieldmapper.BlobStringFieldMapper;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldMapper;
 
 import java.util.LinkedHashMap;
@@ -60,18 +60,20 @@ public class PropInfoCache {
     private static FieldMapper<?> getMapper(Column column, PropDesc propDesc) {
         Class<?> fieldClass = propDesc.getFieldClass();
         if (column == null) return checkEnumMapper(fieldClass);
+        // 自定义的映射器
         Class<? extends FieldMapper> mapperClass = column.mapper();
         if (mapperClass != FieldMapper.class) {
             return ReflectUtil.newInstance(mapperClass);
         }
+        // Lob 类型的映射器
         LobType lobType = column.lobType();
         switch (lobType) {
             case BLOB:
                 if (fieldClass == String.class)
-                    return new BlobStringField();
+                    return new BlobStringFieldMapper();
                 if (fieldClass == byte[].class)
-                    return new BlobByteArrayField();
-                return new BlobObjectField(fieldClass);
+                    return new BlobByteArrayFieldMapper();
+                return new BlobObjectFieldMapper(fieldClass, propDesc.getField());
             case CLOB: // 暂时没有必要做特殊处理，因为对象中的字符串要读到内存中，当做普通的字符串处理了
                 return null;
             default:

@@ -13,7 +13,7 @@ import java.util.*;
 import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.enumCheck;
 
 /**
- * 封装了一个Sql的内容对象
+ * 封装了一个Sql的内容对象基类
  *
  * @author lijinghui
  */

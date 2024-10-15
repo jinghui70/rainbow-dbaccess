@@ -2,9 +2,9 @@ package io.github.jinghui70.rainbow.dbaccess.fieldmapper;
 
 import java.nio.charset.StandardCharsets;
 
-public class BlobStringField extends BlobField<String> {
+public class BlobStringFieldMapper extends BlobFieldMapper<String> {
 
-    public BlobStringField() {
+    public BlobStringFieldMapper() {
         super(true);
     }
 

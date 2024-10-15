@@ -7,15 +7,15 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public abstract class BlobField<T> extends FieldMapper<T> {
+public abstract class BlobFieldMapper<T> extends FieldMapper<T> {
 
     protected boolean compress;
 
-    protected BlobField() {
+    protected BlobFieldMapper() {
         this(true);
     }
 
-    protected BlobField(boolean compress) {
+    protected BlobFieldMapper(boolean compress) {
         this.compress = compress;
     }
 

@@ -24,8 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.INSERT;
-import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.MERGE;
+import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.INSERT_INTO;
+import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.MERGE_INTO;
 
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public class Dba {
@@ -141,7 +141,7 @@ public class Dba {
     }
 
     public <T> ObjectSql<T> insertInto(Class<T> insertClass) {
-        return new ObjectSql<>(this, insertClass).append("INSERT INTO ")
+        return new ObjectSql<>(this, insertClass).append(INSERT_INTO)
                 .append(DbaUtil.tableName(insertClass)).append("(").appendFields().append(")");
     }
 
@@ -223,7 +223,7 @@ public class Dba {
      * @return 插入改变的行数，正常应该是1
      */
     public int insert(String tableName, Map<String, Object> map) {
-        return doInsert(tableName, map, INSERT);
+        return doInsert(tableName, map, INSERT_INTO);
     }
 
     /**
@@ -234,11 +234,11 @@ public class Dba {
      * @return 插入改变的行数，正常应该是1
      */
     public int merge(String tableName, Map<String, Object> map) {
-        return doInsert(tableName, map, MERGE);
+        return doInsert(tableName, map, MERGE_INTO);
     }
 
     public int doInsert(String tableName, Map<String, Object> map, String action) {
-        Sql sql = sql(action).append(" into ").append(tableName).append("(");
+        Sql sql = sql(action).append(tableName).append("(");
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             sql.append(entry.getKey()).appendTempComma().addParam(entry.getValue());
         }
@@ -253,7 +253,7 @@ public class Dba {
      * @param data      数据列表
      */
     public void insert(String tableName, List<Map<String, Object>> data) {
-        doInsert(tableName, data, INSERT);
+        doInsert(tableName, data, INSERT_INTO);
     }
 
     /**
@@ -263,14 +263,14 @@ public class Dba {
      * @param data      数据
      */
     public void merge(String tableName, List<Map<String, Object>> data) {
-        doInsert(tableName, data, MERGE);
+        doInsert(tableName, data, MERGE_INTO);
     }
 
     private void doInsert(String tableName, List<Map<String, Object>> data, String action) {
         if (CollUtil.isEmpty(data))
             return;
         List<String> keys = new ArrayList<>(data.get(0).keySet());
-        StringBuilderX sql = new StringBuilderX(action).append(" into ").append(tableName) //
+        StringBuilderX sql = new StringBuilderX(action).append(tableName) //
                 .append("(").join(keys).append(") values("); //
         for (String key : keys) {
             sql.append(":").append(key).appendTempComma();

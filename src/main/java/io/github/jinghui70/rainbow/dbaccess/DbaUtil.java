@@ -23,9 +23,16 @@ import java.util.stream.Collectors;
 
 public abstract class DbaUtil {
 
-    public static final String MERGE = "merge";
+    public static final String WHERE = " WHERE ";
+    public static final String AND = " AND ";
+    public static final String OR = " OR ";
 
-    public static final String INSERT = "insert";
+    public static final String MERGE_INTO = "MERGE INTO ";
+    public static final String INSERT_INTO = "INSERT INTO ";
+
+    public static final String ORDER_BY = " ORDER BY ";
+    public static final String GROUP_BY = " GROUP BY ";
+
 
     /**
      * 根据一个对象的类，得到它对应的数据表名
@@ -37,25 +44,6 @@ public abstract class DbaUtil {
         Table entityAnnotation = clazz.getAnnotation(Table.class);
         return entityAnnotation == null ? StrUtil.toUnderlineCase(clazz.getSimpleName()) :
                 entityAnnotation.name();
-    }
-
-    /**
-     * 根据一个对象的类定义，找到所有的主键对应的字段名
-     *
-     * @param clazz 对象类
-     * @return 主键字段名列表
-     */
-    public static List<String> keyProps(Class<?> clazz) {
-        List<String> keys = BeanUtil.getBeanDesc(clazz).getProps().stream()
-                .map(PropDesc::getField)
-                .filter(field -> field.getAnnotation(Id.class) != null)
-                .map(field -> {
-                    Column fieldAnnotation = field.getAnnotation(Column.class);
-                    return fieldAnnotation == null ? StrUtil.toUnderlineCase(field.getName()) :
-                            fieldAnnotation.name();
-                }).collect(Collectors.toList());
-        Assert.isTrue(keys.size() > 0, "no key field set of {}", clazz);
-        return keys;
     }
 
     /**

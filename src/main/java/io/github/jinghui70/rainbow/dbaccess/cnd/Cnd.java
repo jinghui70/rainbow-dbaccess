@@ -19,15 +19,6 @@ import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.enumCheck;
  */
 public class Cnd {
 
-    public static final String IN = " in ";
-    public static final String NOT_IN = " not in ";
-    public static final String LIKE = " like ";
-    public static final String NOT_LIKE = " not like ";
-
-    public static final String WHERE = " WHERE ";
-    public static final String AND = " AND ";
-    public static final String OR = " OR ";
-
     protected String field;
 
     private Op op;
@@ -35,10 +26,6 @@ public class Cnd {
     private Object value;
 
     protected Cnd() {
-    }
-
-    public Cnd(String field, Object value) {
-        this(field, Op.EQ, value);
     }
 
     @Deprecated
@@ -89,8 +76,7 @@ public class Cnd {
     public void toSql(GeneralSql<?> sql) {
         sql.append(field);
         if (value instanceof Sql) {
-            sql.append(op == Op.EQ ? Op.IN.str() : op.str())
-                    .append("(").append((Sql) value).append(")");
+            sql.append(op.str()).append("(").append((Sql) value).append(")");
             return;
         }
         switch (op) {
@@ -184,7 +170,7 @@ public class Cnd {
         if (arr.length == 1) {
             sql.append("=?").addParam(enumCheck(arr[0]));
         } else
-            sql.append(Cnd.IN).append("(").repeat("?", arr.length).append(")")
+            sql.append(Op.IN.str()).append("(").repeat("?", arr.length).append(")")
                     .addParam(enumCheck(arr));
     }
 
@@ -193,7 +179,7 @@ public class Cnd {
         if (arr.length == 1) {
             sql.append("!=?").addParam(enumCheck(arr[0]));
         } else
-            sql.append(Cnd.NOT_IN).append("(").repeat("?", arr.length).append(")")
+            sql.append(Op.NOT_IN.str()).append("(").repeat("?", arr.length).append(")")
                     .addParam(enumCheck(arr));
     }
 
@@ -209,6 +195,14 @@ public class Cnd {
     @Override
     public String toString() {
         return "{" + field + " " + op + " " + value + "}";
+    }
+
+    public static Cnd of(String field, Op op, Object value) {
+        return new Cnd(field, op, value);
+    }
+
+    public static Cnd of(String field, Object value) {
+        return new Cnd(field, Op.EQ, value);
     }
 }
 

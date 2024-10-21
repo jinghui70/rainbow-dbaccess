@@ -19,14 +19,6 @@ public class Range<T extends Comparable<T>> {
     public Range() {
     }
 
-    public static <T extends Comparable<T>> Range<T> of(T from, T to) {
-        Range<T> result = new Range<>();
-        result.setFrom(from);
-        result.setTo(to);
-        result.regular();
-        return result;
-    }
-
     public T getFrom() {
         return from;
     }
@@ -55,12 +47,36 @@ public class Range<T extends Comparable<T>> {
         }
     }
 
+    /**
+     * check if the range is full range,means the from and to both is not null
+     *
+     * @return true if the range is full range,false otherwise
+     */
     public boolean fullRange() {
         return from != null && to != null;
     }
 
+    /**
+     * check if the range is a single value
+     *
+     * @return true if the range is single value,false otherwise
+     */
     public boolean singleValue() {
         return Objects.equals(to, from);
     }
 
+    /**
+     * create a new range
+     * @param from from value
+     * @param to to value
+     * @return range object
+     * @param <T>
+     */
+    public static <T extends Comparable<T>> Range<T> of(T from, T to) {
+        Range<T> result = new Range<>();
+        result.setFrom(from);
+        result.setTo(to);
+        result.regular();
+        return result;
+    }
 }

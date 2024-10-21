@@ -28,7 +28,7 @@ import java.util.function.Supplier;
  *
  * @author lijinghui
  */
-@SuppressWarnings({"unchecked"})
+@SuppressWarnings({"unchecked", "UnusedReturnValue", "unused"})
 public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderWrapper<S> {
 
     protected Dba dba;
@@ -128,24 +128,23 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     /**
      * 判断是不是第一个where
      */
-    protected void where() {
+    public S where() {
         if (where) {
-            append(Cnd.AND);
+            return append(DbaUtil.AND);
         } else {
-            append(Cnd.WHERE);
             where = true;
+            return append(DbaUtil.WHERE);
         }
     }
 
     /**
      * 添加一个条件，需要自己处理条件内容，比如 where("a=1")或者where("a=?").addParam(1)
      *
-     * @param cnd 条件字符串
+     * @param str 条件字符串
      * @return 返回自己
      */
-    public S where(String cnd) {
-        where();
-        return append(cnd);
+    public S where(String str) {
+        return where().append(str);
     }
 
     /**
@@ -164,9 +163,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     }
 
     public S where(Cnd cnd) {
-        where();
-        append(cnd);
-        return (S) this;
+        return where().append(cnd);
     }
 
     public S where(String field, Object value) {
@@ -187,7 +184,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     }
 
     public S where(boolean condition, String field, Op op, Object value) {
-        if (condition) where(new Cnd(field, op, value));
+        if (condition) where(Cnd.of(field, op, value));
         return (S) this;
     }
 
@@ -201,14 +198,18 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return where(cnds);
     }
 
+    public S and() {
+        return where();
+    }
+
     /**
      * 添加一个And条件
      *
-     * @param cnd 条件字符串
+     * @param str 字符串
      * @return 返回自己
      */
-    public S and(String cnd) {
-        return where(cnd);
+    public S and(String str) {
+        return where(str);
     }
 
     public S and(Cnd cnd) {
@@ -236,14 +237,16 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return where(condition, field, op, value);
     }
 
-    public S or(String cnd) {
-        append(Cnd.OR);
-        return append(cnd);
+    public S or() {
+        return append(DbaUtil.OR);
+    }
+
+    public S or(String str) {
+        return or().append(str);
     }
 
     public S or(Cnd cnd) {
-        append(Cnd.OR);
-        return append(cnd);
+        return or().append(cnd);
     }
 
     public S or(String field, Object value) {
@@ -272,12 +275,12 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
 
     public S orderBy(String fields) {
         if (StrUtil.isNotBlank(fields))
-            return append(" ORDER BY ").append(fields);
+            return append(DbaUtil.ORDER_BY).append(fields);
         return (S) this;
     }
 
     public S groupBy(String fields) {
-        return append(" GROUP BY ").append(fields);
+        return append(DbaUtil.GROUP_BY).append(fields);
     }
 
     /**
@@ -315,7 +318,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     }
 
     public <T> T queryForValue(FieldMapper<T> mapper) throws DataAccessException {
-        return queryForObject(new SingleColumnFieldRowMapper<T>(mapper));
+        return queryForObject(new SingleColumnFieldRowMapper<>(mapper));
     }
 
     public <T> Optional<T> queryForValueOptional(FieldMapper<T> mapper) throws DataAccessException {
@@ -427,12 +430,12 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     }
 
     public int count() {
-        String sql = getSql().toLowerCase();
-        if (!countOptimization || sql.contains("distinct") || sql.contains("group by") || sql.contains("union")) {
+        String sql = getSql().toUpperCase();
+        if (!countOptimization || sql.contains("DISTINCT") || sql.contains(DbaUtil.GROUP_BY) || sql.contains(" UNION ")) {
             sql = String.format("SELECT COUNT(*) FROM (%s) C", sql);
         } else {
-            int orderBy = sql.lastIndexOf(" order by");
-            sql = "select count(1) " + sql.substring(sql.indexOf("from"), orderBy > 0 ? orderBy : sql.length());
+            int orderBy = sql.lastIndexOf(DbaUtil.ORDER_BY);
+            sql = "select count(1) " + sql.substring(sql.indexOf("FROM"), orderBy > 0 ? orderBy : sql.length());
         }
         return queryForObject(sql, new SingleColumnRowMapper<>(Integer.class));
     }

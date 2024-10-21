@@ -5,6 +5,7 @@ import io.github.jinghui70.rainbow.dbaccess.BaseTest;
 import io.github.jinghui70.rainbow.dbaccess.DbaConfig;
 import io.github.jinghui70.rainbow.dbaccess.PageData;
 import io.github.jinghui70.rainbow.dbaccess.Sql;
+import io.github.jinghui70.rainbow.dbaccess.cnd.Op;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -91,7 +92,7 @@ public class ObjectTest extends BaseTest {
         assertEquals(2, data.getRows().size());
 
         data = dba.select(SimpleObject.class)
-                .where("id", new Sql("select id from SIMPLE_OBJECT order by id"))
+                .where("id", Op.IN, new Sql("select id from SIMPLE_OBJECT order by id"))
                 .orderBy("ID")
                 .pageQuery(2, 2);
         assertEquals(10, data.getTotal());

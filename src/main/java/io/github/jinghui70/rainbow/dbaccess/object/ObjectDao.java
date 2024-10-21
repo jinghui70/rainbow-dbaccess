@@ -13,8 +13,8 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.INSERT;
-import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.MERGE;
+import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.INSERT_INTO;
+import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.MERGE_INTO;
 
 public class ObjectDao<T> {
 
@@ -31,7 +31,7 @@ public class ObjectDao<T> {
     }
 
     protected String insertSql(String action, String table) {
-        StringBuilderX sb = new StringBuilderX(action).append(" into ").append(table).append("(");
+        StringBuilderX sb = new StringBuilderX(action).append(table).append("(");
         int count = propMap.size();
         for (PropInfo propInfo : propMap.values()) {
             if (propInfo.isAutoIncrement()) {
@@ -45,19 +45,19 @@ public class ObjectDao<T> {
     }
 
     public int insert(T object) {
-        return doInsert(DbaUtil.tableName(clazz), object, INSERT);
+        return doInsert(DbaUtil.tableName(clazz), object, INSERT_INTO);
     }
 
     public int merge(T object) {
-        return doInsert(DbaUtil.tableName(clazz), object, MERGE);
+        return doInsert(DbaUtil.tableName(clazz), object, MERGE_INTO);
     }
 
     public int insert(String table, T object) {
-        return doInsert(table, object, INSERT);
+        return doInsert(table, object, INSERT_INTO);
     }
 
     public int merge(String table, T object) {
-        return doInsert(table, object, MERGE);
+        return doInsert(table, object, MERGE_INTO);
     }
 
     private int doInsert(String table, T object, String action) {
@@ -69,35 +69,35 @@ public class ObjectDao<T> {
     }
 
     public void insert(Collection<T> objects) {
-        doInsert(DbaUtil.tableName(clazz), objects, INSERT, 0);
+        doInsert(DbaUtil.tableName(clazz), objects, INSERT_INTO, 0);
     }
 
     public void insert(String table, Collection<T> objects) {
-        doInsert(table, objects, INSERT, 0);
+        doInsert(table, objects, INSERT_INTO, 0);
     }
 
     public void insert(Collection<T> objects, int batchSize) {
-        doInsert(DbaUtil.tableName(clazz), objects, INSERT, batchSize);
+        doInsert(DbaUtil.tableName(clazz), objects, INSERT_INTO, batchSize);
     }
 
     public void insert(String table, Collection<T> objects, int batchSize) {
-        doInsert(table, objects, INSERT, batchSize);
+        doInsert(table, objects, INSERT_INTO, batchSize);
     }
 
     public void merge(Collection<T> objects) {
-        doInsert(DbaUtil.tableName(clazz), objects, MERGE, 0);
+        doInsert(DbaUtil.tableName(clazz), objects, MERGE_INTO, 0);
     }
 
     public void merge(String table, Collection<T> objects) {
-        doInsert(table, objects, MERGE, 0);
+        doInsert(table, objects, MERGE_INTO, 0);
     }
 
     public void merge(Collection<T> objects, int batchSize) {
-        doInsert(DbaUtil.tableName(clazz), objects, MERGE, batchSize);
+        doInsert(DbaUtil.tableName(clazz), objects, MERGE_INTO, batchSize);
     }
 
     public void merge(String table, Collection<T> objects, int batchSize) {
-        doInsert(table, objects, MERGE, batchSize);
+        doInsert(table, objects, MERGE_INTO, batchSize);
     }
 
     public void doInsert(String table, Collection<T> objects, String action, int batchSize) {

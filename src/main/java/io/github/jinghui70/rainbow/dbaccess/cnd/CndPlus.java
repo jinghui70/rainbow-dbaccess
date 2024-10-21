@@ -1,6 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess.cnd;
 
 import cn.hutool.core.lang.Assert;
+import io.github.jinghui70.rainbow.dbaccess.DbaUtil;
 import io.github.jinghui70.rainbow.dbaccess.NamedSql;
 import io.github.jinghui70.rainbow.dbaccess.Sql;
 import io.github.jinghui70.rainbow.utils.StringBuilderX;
@@ -21,8 +22,8 @@ public class CndPlus extends Cnd {
 
     private String tag() {
         switch (field) {
-            case AND:
-            case OR:
+            case DbaUtil.AND:
+            case DbaUtil.OR:
                 Assert.notEmpty(children, "{} CndPlus must have children", field);
                 return field;
             default:
@@ -56,7 +57,7 @@ public class CndPlus extends Cnd {
     @Override
     public String toString() {
         String tag = tag();
-        if (tag == null) super.toString();
+        if (tag == null) return super.toString();
         return new StringBuilderX("(").join(children, tag).append(")").toString();
     }
 }

@@ -38,17 +38,67 @@ public abstract class GeneralSql<S extends GeneralSql<S>> extends SqlWrapper<S> 
         return dba.getJdbcTemplate();
     }
 
+    public List<Object> getParams() {
+        return params;
+    }
+
+    /**
+     * 添加参数
+     *
+     * @param params 参数
+     * @return this
+     */
+    public S addParam(Object... params) {
+        Collections.addAll(this.params, params);
+        return (S) this;
+    }
+
+    /**
+     * 添加参数
+     *
+     * @param params 参数列表
+     * @return this
+     */
+    public S addParams(List<Object> params) {
+        this.params.addAll(params);
+        return (S) this;
+    }
+
+    /**
+     * 重置参数
+     * @param params 参数
+     * @return this
+     */
+    public S setParam(Object... params) {
+        this.params.clear();
+        return addParam(params);
+    }
+
+    /**
+     * 重置参数
+     * @param params 参数列表
+     * @return this
+     */
+    public S setParams(List<Object> params) {
+        this.params.clear();
+        return addParams(params);
+    }
+
+    public boolean noParams() {
+        return params.isEmpty();
+    }
+
+    /**
+     * from a subQuery，多用于 insert into ... from (select ...)
+     *
+     * @param sql
+     * @return
+     */
     public S from(GeneralSql<?> sql) {
         append(" FROM (");
         append(sql.getSql());
         this.params.addAll(sql.getParams());
         append(")");
-        return (S) this;
-    }
-
-    public S append(GeneralSql<?> sql) {
-        append(sql.getSql());
-        this.params.addAll(sql.getParams());
         return (S) this;
     }
 
@@ -65,33 +115,10 @@ public abstract class GeneralSql<S extends GeneralSql<S>> extends SqlWrapper<S> 
         return (S) this;
     }
 
-    public List<Object> getParams() {
-        return params;
-    }
-
-
-    public S addParam(Object... params) {
-        Collections.addAll(this.params, params);
+    public S append(GeneralSql<?> sql) {
+        append(sql.getSql());
+        this.params.addAll(sql.getParams());
         return (S) this;
-    }
-
-    public S addParams(Collection<Object> params) {
-        this.params.addAll(params);
-        return (S) this;
-    }
-
-    public S setParam(Object... params) {
-        this.params.clear();
-        return addParam(params);
-    }
-
-    public S setParams(Collection<Object> params) {
-        this.params.clear();
-        return addParams(params);
-    }
-
-    public boolean noParams() {
-        return params.isEmpty();
     }
 
     /**

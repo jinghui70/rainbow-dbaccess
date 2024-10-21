@@ -11,6 +11,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -31,6 +32,8 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     private boolean where;
 
     private boolean set;
+
+    private boolean countOptimization = true;
 
     protected SqlWrapper() {
         super();
@@ -369,8 +372,19 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return queryForList(MapRowMapper.INSTANCE);
     }
 
+    public S disableCountOptimization() {
+        this.countOptimization = false;
+        return (S) this;
+    }
+
     public int count() {
-        String sql = String.format("SELECT COUNT(*) FROM (%s) C", getSql());
+        String sql = getSql().toUpperCase();
+        if (!countOptimization || sql.contains(" DISTINCT ") || sql.contains(" GROUP BY ") || sql.contains(" UNION ")) {
+            sql = String.format("SELECT COUNT(*) FROM (%s) C", sql);
+        } else {
+            int orderBy = sql.lastIndexOf(" ORDER BY ");
+            sql = "SELECT COUNT(1) " + sql.substring(sql.indexOf("FROM"), orderBy > 0 ? orderBy : sql.length());
+        }
         return queryForValue(sql, Integer.class);
     }
 

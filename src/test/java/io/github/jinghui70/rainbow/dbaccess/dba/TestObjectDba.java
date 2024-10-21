@@ -89,5 +89,11 @@ public class TestObjectDba {
         assertEquals(100, o.getScore()[0]);
         assertEquals(110, o.getScore()[1]);
         assertEquals(0, o.getScore()[2]);
+
+        int count = mDba.select("*").from(Table.DEFAULT).orderBy("ID").count();
+        assertEquals(1, count);
+
+        count = mDba.select("*").from(Table.DEFAULT).orderBy("ID").disableCountOptimization().count();
+        assertEquals(1, count);
     }
 }

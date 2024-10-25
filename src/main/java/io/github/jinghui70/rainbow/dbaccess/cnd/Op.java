@@ -1,5 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess.cnd;
 
+import io.github.jinghui70.rainbow.dbaccess.DbaUtil;
+
 public enum Op {
 
     EQ("="),
@@ -8,14 +10,14 @@ public enum Op {
     GE(">="),
     LT("<"),
     LE("<="),
-    LIKE(" like "),
-    LIKE_LEFT(" like "),
-    LIKE_RIGHT(" like "),
-    NOT_LIKE(" not like "),
-    NOT_LIKE_LEFT(" not like "),
-    NOT_LIKE_RIGHT(" not like "),
-    IN(" in "),
-    NOT_IN(" not in ");
+    LIKE(DbaUtil.LIKE),
+    LIKE_LEFT(DbaUtil.LIKE),
+    LIKE_RIGHT(DbaUtil.LIKE),
+    NOT_LIKE(DbaUtil.NOT_LIKE),
+    NOT_LIKE_LEFT(DbaUtil.NOT_LIKE),
+    NOT_LIKE_RIGHT(DbaUtil.NOT_LIKE),
+    IN(" IN "),
+    NOT_IN(" NOT IN ");
 
     private final String op;
 

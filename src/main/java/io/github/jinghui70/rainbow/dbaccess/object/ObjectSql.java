@@ -4,10 +4,11 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.map.CaseInsensitiveMap;
 import io.github.jinghui70.rainbow.dbaccess.*;
 import io.github.jinghui70.rainbow.utils.tree.ITreeNode;
-import io.github.jinghui70.rainbow.utils.tree.TreeNode;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.util.*;
+
+import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.INSERT_INTO;
 
 @SuppressWarnings("unused")
 public class ObjectSql<T> extends GeneralSql<ObjectSql<T>> {
@@ -41,8 +42,8 @@ public class ObjectSql<T> extends GeneralSql<ObjectSql<T>> {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public List<T> queryForTree() {
-        Assert.isAssignable(TreeNode.class, queryClass);
-        return queryForTree((RowMapper<? extends ITreeNode>) mapper);
+        Assert.isAssignable(ITreeNode.class, queryClass);
+        return (List<T>) queryForTree((RowMapper<? extends ITreeNode>) mapper);
     }
 
     public <K> Map<K, T> queryToMap(ResultSetFunction<K> keyFunc) {
@@ -53,10 +54,23 @@ public class ObjectSql<T> extends GeneralSql<ObjectSql<T>> {
         return queryToGroup(keyFunc, mapper);
     }
 
-    public ObjectSql<T> appendFields() {
-        return join(propMap.keySet());
+    /**
+     * 拼接 SQL 插入语句的插入字段部分
+     *
+     * @return this
+     */
+    public ObjectSql<T> insertInto() {
+        return append(INSERT_INTO)
+                .append(DbaUtil.tableName(queryClass))
+                .append("(").join(propMap.keySet()).append(")");
     }
 
+    /**
+     * 拼接 SQL 选择字段部分
+     *
+     * @param replaceMap 字段替换为具体值的 Map，key 是字段名，Value 是要替换的值
+     * @return this
+     */
     public ObjectSql<T> selectFields(Map<String, Object> replaceMap) {
         replaceMap = new CaseInsensitiveMap<>(replaceMap);
         append("SELECT ");

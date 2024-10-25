@@ -31,17 +31,13 @@ public class ObjectDao<T> {
     }
 
     protected String insertSql(String action, String table) {
-        StringBuilderX sb = new StringBuilderX(action).append(table).append("(");
-        int count = propMap.size();
-        for (PropInfo propInfo : propMap.values()) {
-            if (propInfo.isAutoIncrement()) {
-                count--;
-                continue;
-            }
-            sb.append(propInfo.getFieldName()).appendTempComma();
-        }
-        sb.clearTemp().append(") values(").repeat("?", count).append(")");
-        return sb.toString();
+        List<String> fieldNames = propMap.values().stream().filter(p->!p.isAutoIncrement())
+                .map(PropInfo::getFieldName)
+                .collect(Collectors.toList());
+        return new StringBuilderX(action).append(table).append("(")
+                .join(fieldNames).append(") values(")
+                .repeat("?", fieldNames.size()).append(")")
+                .toString();
     }
 
     public int insert(T object) {

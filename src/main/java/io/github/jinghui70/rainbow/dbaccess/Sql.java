@@ -14,7 +14,7 @@ import java.util.Map;
  */
 public class Sql extends GeneralSql<Sql> {
 
-    protected Sql() {
+    public Sql() {
         super();
     }
 
@@ -48,14 +48,6 @@ public class Sql extends GeneralSql<Sql> {
 
     public <K> Map<K, List<Map<String, Object>>> queryToGroup(ResultSetFunction<K> keyFunc) {
         return queryToGroup(keyFunc, MapRowMapper.INSTANCE);
-    }
-
-    public static Sql create() {
-        return new Sql();
-    }
-
-    public static Sql create(String str) {
-        return new Sql(str);
     }
 
 }

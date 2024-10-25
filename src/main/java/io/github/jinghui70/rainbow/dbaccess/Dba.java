@@ -141,8 +141,7 @@ public class Dba {
     }
 
     public <T> ObjectSql<T> insertInto(Class<T> insertClass) {
-        return new ObjectSql<>(this, insertClass).append(INSERT_INTO)
-                .append(DbaUtil.tableName(insertClass)).append("(").appendFields().append(")");
+        return new ObjectSql<>(this, insertClass).insertInto();
     }
 
     public Sql deleteFrom(String table) {

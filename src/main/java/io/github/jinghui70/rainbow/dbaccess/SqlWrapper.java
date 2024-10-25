@@ -3,6 +3,7 @@ package io.github.jinghui70.rainbow.dbaccess;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Cnd;
+import io.github.jinghui70.rainbow.dbaccess.cnd.Cnds;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Op;
 import io.github.jinghui70.rainbow.dbaccess.enumSupport.EnumMapper;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldMapper;
@@ -82,6 +83,11 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
      * @return 返回自己
      */
     public abstract S append(Cnd cnd);
+
+    public S append(Cnds cnds) {
+        cnds.toSql(this);
+        return (S) this;
+    }
 
     /**
      * 拼 from table
@@ -184,8 +190,13 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     }
 
     public S where(boolean condition, String field, Op op, Object value) {
-        if (condition) where(Cnd.of(field, op, value));
+        if (condition) where(new Cnd(field, op, value));
         return (S) this;
+    }
+
+    public S where(Cnds cnds) {
+        if (cnds.isEmpty()) return (S) this;
+        return where().append(cnds);
     }
 
     /**
@@ -237,6 +248,10 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return where(condition, field, op, value);
     }
 
+    public S and(Cnds cnds) {
+        return where(cnds);
+    }
+
     public S or() {
         return append(DbaUtil.OR);
     }
@@ -271,6 +286,11 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
             or(new Cnd(field, op, value));
         }
         return (S) this;
+    }
+
+    public S or(Cnds cnds) {
+        if (cnds.isEmpty()) return (S) this;
+        return or().append(cnds);
     }
 
     public S orderBy(String fields) {

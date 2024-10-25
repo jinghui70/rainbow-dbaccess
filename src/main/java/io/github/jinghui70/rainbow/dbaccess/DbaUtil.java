@@ -1,13 +1,8 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.bean.PropDesc;
-import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.db.StatementUtil;
 import cn.hutool.db.sql.SqlUtil;
-import io.github.jinghui70.rainbow.dbaccess.annotation.Column;
-import io.github.jinghui70.rainbow.dbaccess.annotation.Id;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Table;
 import io.github.jinghui70.rainbow.dbaccess.enumSupport.CodeEnum;
 import io.github.jinghui70.rainbow.dbaccess.enumSupport.OrdinalEnum;
@@ -17,9 +12,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public abstract class DbaUtil {
 
@@ -33,6 +26,8 @@ public abstract class DbaUtil {
     public static final String ORDER_BY = " ORDER BY ";
     public static final String GROUP_BY = " GROUP BY ";
 
+    public static final String LIKE = " LIKE ";
+    public static final String NOT_LIKE = " NOT LIKE ";
 
     /**
      * 根据一个对象的类，得到它对应的数据表名
@@ -64,17 +59,33 @@ public abstract class DbaUtil {
     /**
      * 检查一个数组参数是否是枚举
      *
-     * @param arr 原数组
+     * @param array 原数组Ø
      * @return 处理后数组
      */
-    public static Object[] enumCheck(Object[] arr) {
-        if (arr == null || arr.length == 0) return arr;
-        Class<?> c = arr[0].getClass();
-        if (!c.isEnum()) return arr;
-        boolean hasCode = CodeEnum.class.isAssignableFrom(c);
-        Object[] result = new Object[arr.length];
-        for (int i = 0; i < arr.length; i++) {
-            result[i] = hasCode ? ((CodeEnum) arr[i]).code() : ((Enum<?>) arr[i]).ordinal();
+    public static Object[] enumCheckArray(Object[] array) {
+        if (array == null || array.length == 0) return array;
+        int i = 0;
+        Class<?> c = null;
+        while (i < array.length && c == null) {
+            if (array[i] != null) {
+                c = array[i].getClass();
+                if (!c.isEnum()) return array;
+            } else
+                i++;
+        }
+
+        Object[] result = new Object[array.length];
+        while (i < array.length) {
+            Object value = array[i];
+            if (value != null) {
+                if (value instanceof CodeEnum)
+                    result[i] = ((CodeEnum) value).code();
+                else if (value instanceof OrdinalEnum)
+                    result[i] = ((Enum<?>) value).ordinal();
+                else
+                    result[i] = ((Enum<?>) value).name();
+            }
+            i++;
         }
         return result;
     }

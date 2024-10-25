@@ -3,16 +3,15 @@ package io.github.jinghui70.rainbow.dbaccess.cnd;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.CharUtil;
 import cn.hutool.core.util.StrUtil;
-import io.github.jinghui70.rainbow.dbaccess.GeneralSql;
-import io.github.jinghui70.rainbow.dbaccess.NamedSql;
-import io.github.jinghui70.rainbow.dbaccess.Range;
-import io.github.jinghui70.rainbow.dbaccess.Sql;
+import io.github.jinghui70.rainbow.dbaccess.*;
 
 import java.util.Collection;
 import java.util.Map;
 
 import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.enumCheck;
+import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.enumCheckArray;
 
 /**
  * 描述一个查询条件的对象，条件的三要素：字段名、比较符、条件值
@@ -31,7 +30,7 @@ public class Cnd {
     @Deprecated
     public Cnd(String field, String opStr, Object value) {
         this.field = field;
-        this.op = Enum.valueOf(Op.class, opStr.toLowerCase());
+        this.op = Enum.valueOf(Op.class, opStr.toUpperCase());
         this.value = value;
     }
 
@@ -41,15 +40,19 @@ public class Cnd {
         switch (op) {
             case LIKE:
             case NOT_LIKE:
-                this.value = StrUtil.format("%{}%", value);
+                String str = value.toString();
+                if (str.startsWith("%") || str.endsWith("%")) {
+                    this.value = value;
+                } else
+                    this.value = StrUtil.format("%{}%", value);
                 break;
             case LIKE_LEFT:
             case NOT_LIKE_LEFT:
-                this.value = "%" + value;
+                this.value = value + "%";
                 break;
             case LIKE_RIGHT:
             case NOT_LIKE_RIGHT:
-                this.value = value + "%";
+                this.value = "%" + value;
                 break;
             default:
                 this.value = value;
@@ -96,7 +99,7 @@ public class Cnd {
                 break;
             case LIKE:
             case NOT_LIKE:
-                sql.append(op).append("?").addParam(value.toString());
+                sql.append(op.str()).append("?").addParam(value.toString());
                 break;
             case IN:
                 inSql(sql);
@@ -141,7 +144,7 @@ public class Cnd {
             case NOT_IN:
                 throw new RuntimeException("Named Sql does not support in operator");
             default:
-                sql.append(field).append(op).append(":").append(field).setParam(field, value);
+                sql.append(field).append(op.str()).append(":").append(field).setParam(field, value);
                 break;
         }
     }
@@ -171,7 +174,7 @@ public class Cnd {
             sql.append("=?").addParam(enumCheck(arr[0]));
         } else
             sql.append(Op.IN.str()).append("(").repeat("?", arr.length).append(")")
-                    .addParam(enumCheck(arr));
+                    .addParam(enumCheckArray(arr));
     }
 
     private void notInSql(GeneralSql<?> sql) {
@@ -180,7 +183,7 @@ public class Cnd {
             sql.append("!=?").addParam(enumCheck(arr[0]));
         } else
             sql.append(Op.NOT_IN.str()).append("(").repeat("?", arr.length).append(")")
-                    .addParam(enumCheck(arr));
+                    .addParam(enumCheckArray(arr));
     }
 
     public Object[] valueToArray() {
@@ -197,13 +200,6 @@ public class Cnd {
         return "{" + field + " " + op + " " + value + "}";
     }
 
-    public static Cnd of(String field, Op op, Object value) {
-        return new Cnd(field, op, value);
-    }
-
-    public static Cnd of(String field, Object value) {
-        return new Cnd(field, Op.EQ, value);
-    }
 }
 
 

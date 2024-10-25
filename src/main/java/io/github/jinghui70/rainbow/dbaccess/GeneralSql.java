@@ -88,20 +88,6 @@ public abstract class GeneralSql<S extends GeneralSql<S>> extends SqlWrapper<S> 
         return params.isEmpty();
     }
 
-    /**
-     * from a subQuery，多用于 insert into ... from (select ...)
-     *
-     * @param sql
-     * @return
-     */
-    public S from(GeneralSql<?> sql) {
-        append(" FROM (");
-        append(sql.getSql());
-        this.params.addAll(sql.getParams());
-        append(")");
-        return (S) this;
-    }
-
     @Override
     public S set(String field, Object value) {
         set();

@@ -2,6 +2,7 @@ package io.github.jinghui70.rainbow.dbaccess.enumtest;
 
 import io.github.jinghui70.rainbow.dbaccess.BaseTest;
 import io.github.jinghui70.rainbow.dbaccess.DbaConfig;
+import io.github.jinghui70.rainbow.dbaccess.cnd.Op;
 import io.github.jinghui70.rainbow.dbaccess.enumSupport.EnumMapper;
 import io.github.jinghui70.rainbow.dbaccess.mapper.MapRowMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -104,5 +105,18 @@ public class EnumTest extends BaseTest {
         assertEquals(MyCode.A, map.get("CODE_ENUM"));
         assertEquals(MyNumber.TWO, map.get("NUMBER_ENUM"));
         assertEquals(MyEnum.LOCKED, map.get("NORMAL_ENUM"));
+
+        // 测试在 IN 条件中的设值
+        t = dba.select(TEnum.class).where("NORMAL_ENUM", MyEnum.values())
+                .queryForObject();
+        assertEquals(2, t.getId());
+
+        t = dba.select(TEnum.class).where("NUMBER_ENUM", MyNumber.values())
+                .queryForObject();
+        assertEquals(2, t.getId());
+
+        t = dba.select(TEnum.class).where("CODE_ENUM", Op.IN, MyCode.values())
+                .where("id", 2).queryForObject();
+        assertEquals(MyCode.A, t.getCodeEnum());
     }
 }

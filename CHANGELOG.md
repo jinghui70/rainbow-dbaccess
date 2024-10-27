@@ -1,3 +1,16 @@
+
+## [5.2.9](https://github.com/jinghui70/rainbow-dbaccess/compare/v5.2.8...v5.2.9) (2024-10-21)
+
+### Bug Fixes
+
+- **Op.LIKE**: 使用 LIKE 相关操作符条件，输出错误的 SQL
+- 转换 Op.IN 的参数（数组或 Collection）时，空元素和枚举元素转换有错
+
+### Features
+
+- 增加 Cnds 对象，用来组合一组条件
+- LIKE 操作符判断首尾都没有 `%` 时，才在首尾自动加上
+
 ## [5.2.8](https://github.com/jinghui70/rainbow-dbaccess/compare/v5.2.7...v5.2.8) (2024-10-21)
 
 ### Other

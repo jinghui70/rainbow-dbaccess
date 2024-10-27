@@ -13,12 +13,12 @@ public class AutoIncrementObject {
 
     @Column(name = "SCORE")
     @ArrayField(length = 3, start = 1, underline = true)
-    private double[] scores;
+    private Double[] scores;
 
     public AutoIncrementObject() {
     }
 
-    public AutoIncrementObject(String name, double[] scores) {
+    public AutoIncrementObject(String name, Double[] scores) {
         this.name = name;
         this.scores = scores;
     }
@@ -39,11 +39,11 @@ public class AutoIncrementObject {
         this.name = name;
     }
 
-    public double[] getScores() {
+    public Double[] getScores() {
         return scores;
     }
 
-    public void setScores(double[] scores) {
+    public void setScores(Double[] scores) {
         this.scores = scores;
     }
 }

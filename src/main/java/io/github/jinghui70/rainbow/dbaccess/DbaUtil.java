@@ -37,7 +37,7 @@ public abstract class DbaUtil {
      */
     public static String tableName(Class<?> clazz) {
         Table entityAnnotation = clazz.getAnnotation(Table.class);
-        return entityAnnotation == null ? StrUtil.toUnderlineCase(clazz.getSimpleName()) :
+        return entityAnnotation == null ? StrUtil.toUnderlineCase(clazz.getSimpleName()).toUpperCase() :
                 entityAnnotation.name();
     }
 
@@ -54,40 +54,6 @@ public abstract class DbaUtil {
         if (value instanceof OrdinalEnum)
             return ((Enum<?>) value).ordinal();
         return ((Enum<?>) value).name();
-    }
-
-    /**
-     * 检查一个数组参数是否是枚举
-     *
-     * @param array 原数组Ø
-     * @return 处理后数组
-     */
-    public static Object[] enumCheckArray(Object[] array) {
-        if (array == null || array.length == 0) return array;
-        int i = 0;
-        Class<?> c = null;
-        while (i < array.length && c == null) {
-            if (array[i] != null) {
-                c = array[i].getClass();
-                if (!c.isEnum()) return array;
-            } else
-                i++;
-        }
-
-        Object[] result = new Object[array.length];
-        while (i < array.length) {
-            Object value = array[i];
-            if (value != null) {
-                if (value instanceof CodeEnum)
-                    result[i] = ((CodeEnum) value).code();
-                else if (value instanceof OrdinalEnum)
-                    result[i] = ((Enum<?>) value).ordinal();
-                else
-                    result[i] = ((Enum<?>) value).name();
-            }
-            i++;
-        }
-        return result;
     }
 
     public static void setParameterValue(PreparedStatement ps, int paramIndex,

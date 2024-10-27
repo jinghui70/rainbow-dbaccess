@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class AutoIncrementTest extends BaseTest {
 
@@ -20,10 +21,10 @@ public class AutoIncrementTest extends BaseTest {
     private List<AutoIncrementObject> list() {
         List<AutoIncrementObject> list = new ArrayList<>();
         for (int i = 1; i <= 10; i++) {
-            double[] score = new double[3];
-            score[0] = i * 10;
-            score[1] = i * 10 + 1;
-            score[2] = i * 10 + 2;
+            Double[] score = new Double[3];
+            score[0] = i * 10.0;
+            score[1] = i * 10.0 + 1;
+            score[2] = i * 10. + 2;
             list.add(new AutoIncrementObject("name" + i, score));
         }
         return list;
@@ -59,12 +60,12 @@ public class AutoIncrementTest extends BaseTest {
         dba.insert(o);
         o = dba.select(AutoIncrementObject.class).where("NAME", "tom").queryForObject();
         o.setName("oldTom");
-        o.setScores(new double[]{100, 110});
+        o.setScores(new Double[]{100.0, 110.0});
         dba.update(o);
         o = dba.select(AutoIncrementObject.class).where("ID", o.getId()).queryForObject();
         assertEquals("oldTom", o.getName());
         assertEquals(100, o.getScores()[0]);
         assertEquals(110, o.getScores()[1]);
-        assertEquals(0, o.getScores()[2]);
+        assertNull(o.getScores()[2]);
     }
 }

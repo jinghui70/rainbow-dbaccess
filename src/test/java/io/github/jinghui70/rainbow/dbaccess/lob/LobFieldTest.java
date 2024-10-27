@@ -47,7 +47,7 @@ public class LobFieldTest extends BaseTest {
         obj.setContent(contentStr);
         obj.setBinString(contentStr);
         obj.setBinByteArray(contentByte);
-        SimpleObject so = new SimpleObject(10, "Tom", new double[]{100, 99, 89});
+        SimpleObject so = new SimpleObject(10, "Tom", new Double[]{100.0, 99.0, 89.0});
         obj.setBinObject(so);
         dba.insert(obj);
 

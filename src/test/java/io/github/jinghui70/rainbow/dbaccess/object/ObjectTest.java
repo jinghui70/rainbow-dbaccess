@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class ObjectTest extends BaseTest {
 
@@ -25,10 +26,10 @@ public class ObjectTest extends BaseTest {
     private List<SimpleObject> list() {
         List<SimpleObject> list = new ArrayList<>();
         for (int i = 1; i <= 10; i++) {
-            double[] score = new double[3];
-            score[0] = i * 10;
-            score[1] = i * 10 + 1;
-            score[2] = i * 10 + 2;
+            Double[] score = new Double[3];
+            score[0] = i * 10.0;
+            score[1] = i * 10.0 + 1;
+            score[2] = i * 10.0 + 2;
             list.add(new SimpleObject(i, "name" + i, score));
         }
         return list;
@@ -64,13 +65,13 @@ public class ObjectTest extends BaseTest {
         SimpleObject o = new SimpleObject(27, "tom", null);
         dba.insert(o);
         o.setName("oldTom");
-        o.setScore(new double[]{100, 110});
+        o.setScore(new Double[]{100.0, 110.0});
         dba.update(o);
         o = dba.select(SimpleObject.class).where("ID", 27).queryForObject();
         assertEquals("oldTom", o.getName());
         assertEquals(100, o.getScore()[0]);
         assertEquals(110, o.getScore()[1]);
-        assertEquals(0, o.getScore()[2]);
+        assertNull(o.getScore()[2]);
     }
 
     @Test

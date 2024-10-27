@@ -11,12 +11,12 @@ public class SimpleObject {
     private String name;
 
     @ArrayField(length = 3, underline = true, start = 1)
-    private double[] score;
+    private Double[] score;
 
     public SimpleObject() {
     }
 
-    public SimpleObject(int id, String name, double[] score) {
+    public SimpleObject(int id, String name, Double[] score) {
         this.id = id;
         this.name = name;
         this.score = score;
@@ -38,11 +38,11 @@ public class SimpleObject {
         this.name = name;
     }
 
-    public double[] getScore() {
+    public Double[] getScore() {
         return score;
     }
 
-    public void setScore(double[] score) {
+    public void setScore(Double[] score) {
         this.score = score;
     }
 }

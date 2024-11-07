@@ -4,7 +4,7 @@
   "avatar": "",
   "version": "4.9.4",
   "createdTime": "2024-9-14 22:14:06",
-  "updatedTime": "2024-9-23 22:17:55",
+  "updatedTime": "2024-11-7 17:14:19",
   "dbConns": [],
   "profile": {
     "default": {
@@ -1415,7 +1415,7 @@
           "codeRoot": ""
         }
       },
-      "defKey": "LOB_OBJECT",
+      "defKey": "BLOB_OBJECT",
       "defName": "",
       "comment": "",
       "properties": {
@@ -1576,26 +1576,8 @@
           "baseType": "1D764C4A-6F9F-421E-B11A-6F3E23B51811"
         },
         {
-          "defKey": "CONTENT",
-          "defName": "大文本",
-          "comment": "",
-          "domain": "",
-          "type": "TEXT",
-          "len": "",
-          "scale": "",
-          "primaryKey": false,
-          "notNull": false,
-          "autoIncrement": false,
-          "defaultValue": "",
-          "hideInGraph": true,
-          "refDict": "",
-          "uiHint": "",
-          "id": "E2CACF31-FA92-4C79-8726-1BA8D6F2276F",
-          "baseType": "B17BDED3-085F-40E1-9019-3B79CF2BF075"
-        },
-        {
-          "defKey": "BIN_STRING",
-          "defName": "二进制字符串",
+          "defKey": "LOB_STRING",
+          "defName": "字符串",
           "comment": "",
           "domain": "",
           "type": "BLOB",
@@ -1612,8 +1594,8 @@
           "baseType": "D516E75B-90F5-4741-B9B3-A186A263F04C"
         },
         {
-          "defKey": "BIN_BYTE_ARRAY",
-          "defName": "二进制字节数组",
+          "defKey": "LOB_BYTE_ARRAY",
+          "defName": "字节数组",
           "comment": "",
           "domain": "",
           "type": "BLOB",
@@ -1630,8 +1612,8 @@
           "baseType": "D516E75B-90F5-4741-B9B3-A186A263F04C"
         },
         {
-          "defKey": "BIN_OBJECT",
-          "defName": "二进制对象",
+          "defKey": "LOB_OBJECT",
+          "defName": "对象",
           "comment": "",
           "domain": "",
           "type": "BLOB",
@@ -1646,6 +1628,251 @@
           "uiHint": "",
           "id": "E15CCF2B-0037-4B5D-8AD4-47A136E5976C",
           "baseType": "D516E75B-90F5-4741-B9B3-A186A263F04C"
+        },
+        {
+          "defKey": "LOB_ARRAY",
+          "defName": "列表",
+          "comment": "",
+          "type": "BLOB",
+          "len": "",
+          "scale": "",
+          "primaryKey": false,
+          "notNull": false,
+          "autoIncrement": false,
+          "defaultValue": "",
+          "hideInGraph": false,
+          "refDict": "",
+          "baseType": "D516E75B-90F5-4741-B9B3-A186A263F04C",
+          "extProps": {},
+          "domain": "",
+          "id": "2F2D771D-13F7-4C07-9A26-BEBCED27B1D3"
+        }
+      ],
+      "correlations": [],
+      "indexes": [],
+      "type": "P"
+    },
+    {
+      "id": "242EB12F-0CCD-452D-B255-A6453F18DD16",
+      "env": {
+        "base": {
+          "nameSpace": "",
+          "codeRoot": ""
+        }
+      },
+      "defKey": "CLOB_OBJECT",
+      "defName": "",
+      "comment": "",
+      "properties": {
+        "partitioned by": "(date string)",
+        "row format delimited": "",
+        "fields terminated by ','": "",
+        "collection items terminated by '-'": "",
+        "map keys terminated by ':'": "",
+        "store as textfile;": ""
+      },
+      "sysProps": {
+        "nameTemplate": "{defKey}[{defName}]"
+      },
+      "notes": {},
+      "headers": [
+        {
+          "refKey": "hideInGraph",
+          "hideInGraph": true
+        },
+        {
+          "refKey": "defKey",
+          "freeze": false,
+          "hideInGraph": false
+        },
+        {
+          "refKey": "defName",
+          "freeze": false,
+          "hideInGraph": false
+        },
+        {
+          "refKey": "primaryKey",
+          "freeze": false,
+          "hideInGraph": false
+        },
+        {
+          "refKey": "notNull",
+          "freeze": false,
+          "hideInGraph": true
+        },
+        {
+          "refKey": "autoIncrement",
+          "freeze": false,
+          "hideInGraph": true
+        },
+        {
+          "refKey": "domain",
+          "freeze": false,
+          "hideInGraph": true
+        },
+        {
+          "refKey": "type",
+          "freeze": false,
+          "hideInGraph": false
+        },
+        {
+          "refKey": "len",
+          "freeze": false,
+          "hideInGraph": false
+        },
+        {
+          "refKey": "scale",
+          "freeze": false,
+          "hideInGraph": false
+        },
+        {
+          "refKey": "comment",
+          "freeze": false,
+          "hideInGraph": true
+        },
+        {
+          "refKey": "refDict",
+          "freeze": false,
+          "hideInGraph": true
+        },
+        {
+          "refKey": "defaultValue",
+          "freeze": false,
+          "hideInGraph": true
+        },
+        {
+          "refKey": "isStandard",
+          "freeze": false,
+          "hideInGraph": false
+        },
+        {
+          "refKey": "uiHint",
+          "freeze": false,
+          "hideInGraph": true
+        },
+        {
+          "refKey": "extProps",
+          "freeze": false,
+          "hideInGraph": true
+        },
+        {
+          "refKey": "attr1",
+          "freeze": false,
+          "hideInGraph": true
+        },
+        {
+          "refKey": "attr2",
+          "freeze": false,
+          "hideInGraph": true
+        },
+        {
+          "refKey": "attr3",
+          "freeze": false,
+          "hideInGraph": true
+        },
+        {
+          "refKey": "attr4",
+          "freeze": false,
+          "hideInGraph": true
+        },
+        {
+          "refKey": "attr5",
+          "freeze": false,
+          "hideInGraph": true
+        },
+        {
+          "refKey": "attr6",
+          "freeze": false,
+          "hideInGraph": true
+        },
+        {
+          "refKey": "attr7",
+          "freeze": false,
+          "hideInGraph": true
+        },
+        {
+          "refKey": "attr8",
+          "freeze": false,
+          "hideInGraph": true
+        },
+        {
+          "refKey": "attr9",
+          "freeze": false,
+          "hideInGraph": true
+        }
+      ],
+      "fields": [
+        {
+          "defKey": "ID",
+          "defName": "ID",
+          "comment": "",
+          "type": "",
+          "len": "",
+          "scale": "",
+          "primaryKey": true,
+          "notNull": true,
+          "autoIncrement": false,
+          "defaultValue": "",
+          "hideInGraph": true,
+          "domain": "6BC8F04B-6CFA-4995-98D3-318F5CDD774E",
+          "refDict": null,
+          "uiHint": null,
+          "id": "4B7348C0-D1AE-4960-B9FB-1F7051BC7A3C",
+          "baseType": "1D764C4A-6F9F-421E-B11A-6F3E23B51811"
+        },
+        {
+          "defKey": "LOB_STRING",
+          "defName": "字符串",
+          "comment": "",
+          "domain": null,
+          "type": "TEXT",
+          "len": "",
+          "scale": "",
+          "primaryKey": false,
+          "notNull": false,
+          "autoIncrement": false,
+          "defaultValue": "",
+          "hideInGraph": true,
+          "refDict": null,
+          "uiHint": null,
+          "id": "6A186755-1C89-475E-BF41-63AA004FB7C4",
+          "baseType": "B17BDED3-085F-40E1-9019-3B79CF2BF075"
+        },
+        {
+          "defKey": "LOB_ARRAY",
+          "defName": "列表",
+          "comment": "",
+          "type": "TEXT",
+          "len": "",
+          "scale": "",
+          "primaryKey": false,
+          "notNull": false,
+          "autoIncrement": false,
+          "defaultValue": "",
+          "hideInGraph": false,
+          "refDict": "",
+          "baseType": "B17BDED3-085F-40E1-9019-3B79CF2BF075",
+          "extProps": {},
+          "domain": "",
+          "id": "0F76AE4E-28D9-418A-ADAB-4DEAA5D1C32D"
+        },
+        {
+          "defKey": "LOB_OBJECT",
+          "defName": "对象",
+          "comment": "",
+          "domain": null,
+          "type": "TEXT",
+          "len": "",
+          "scale": "",
+          "primaryKey": false,
+          "notNull": false,
+          "autoIncrement": false,
+          "defaultValue": "",
+          "hideInGraph": true,
+          "refDict": null,
+          "uiHint": null,
+          "id": "362FE28E-4C99-45E2-9164-EDE5B8B74BF7",
+          "baseType": "B17BDED3-085F-40E1-9019-3B79CF2BF075"
         }
       ],
       "correlations": [],

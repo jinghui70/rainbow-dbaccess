@@ -7,10 +7,7 @@ import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.dbaccess.annotation.*;
 import io.github.jinghui70.rainbow.dbaccess.enumSupport.EnumMapper;
-import io.github.jinghui70.rainbow.dbaccess.fieldmapper.BlobByteArrayFieldMapper;
-import io.github.jinghui70.rainbow.dbaccess.fieldmapper.BlobObjectFieldMapper;
-import io.github.jinghui70.rainbow.dbaccess.fieldmapper.BlobStringFieldMapper;
-import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldMapper;
+import io.github.jinghui70.rainbow.dbaccess.fieldmapper.*;
 
 import java.util.LinkedHashMap;
 
@@ -74,8 +71,11 @@ public class PropInfoCache {
                 if (fieldClass == byte[].class)
                     return new BlobByteArrayFieldMapper();
                 return new BlobObjectFieldMapper(fieldClass, propDesc.getField());
-            case CLOB: // 暂时没有必要做特殊处理，因为对象中的字符串要读到内存中，当做普通的字符串处理了
-                return null;
+            case CLOB:
+                // 如果是字符串，暂时没有必要做特殊处理，因为对象中的字符串要读到内存中，当做普通的字符串处理了
+                if (fieldClass == String.class)
+                    return null;
+                return new ClobObjectFieldMapper(fieldClass, propDesc.getField());
             default:
                 return checkEnumMapper(fieldClass);
         }

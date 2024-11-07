@@ -27,13 +27,6 @@ public class Cnd {
     protected Cnd() {
     }
 
-    @Deprecated
-    public Cnd(String field, String opStr, Object value) {
-        this.field = field;
-        this.op = Enum.valueOf(Op.class, opStr.toUpperCase());
-        this.value = value;
-    }
-
     public Cnd(String field, Op op, Object value) {
         this.field = field;
         this.op = op;

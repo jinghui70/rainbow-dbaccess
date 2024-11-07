@@ -21,8 +21,8 @@ public class TreeUtils {
      */
     public static <T extends TreeNode<T>> void traverse(T treeNode, Consumer<T> consumer) {
         if (treeNode == null) return;
-        consumer.accept(treeNode);
         traverse(treeNode.getChildren(), consumer);
+        consumer.accept(treeNode);
     }
 
     /**

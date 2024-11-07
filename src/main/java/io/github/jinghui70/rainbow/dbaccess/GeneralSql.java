@@ -96,7 +96,7 @@ public abstract class GeneralSql<S extends GeneralSql<S>> extends SqlWrapper<S> 
     }
 
     @Override
-    public S append(Cnd cnd) {
+    protected S append(Cnd cnd) {
         cnd.toSql(this);
         return (S) this;
     }

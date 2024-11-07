@@ -1,6 +1,5 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Cnd;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Cnds;
@@ -67,24 +66,20 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     }
 
     /**
-     * 复用当前对象，重新设置sql内容
-     *
-     * @param sql 新的sql
-     */
-    public void setSql(String sql) {
-        sb.setLength(0);
-        sb.append(sql);
-    }
-
-    /**
      * 添加一个条件
      *
      * @param cnd 条件对象
-     * @return 返回自己
+     * @return this
      */
-    public abstract S append(Cnd cnd);
+    protected abstract S append(Cnd cnd);
 
-    public S append(Cnds cnds) {
+    /**
+     * 添加一组条件
+     *
+     * @param cnds 条件组
+     * @return this
+     */
+    protected final S append(Cnds cnds) {
         cnds.toSql(this);
         return (S) this;
     }
@@ -131,10 +126,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return append(set);
     }
 
-    /**
-     * 判断是不是第一个where
-     */
-    public S where() {
+    protected final S where() {
         if (where) {
             return append(DbaUtil.AND);
         } else {
@@ -143,50 +135,33 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         }
     }
 
-    /**
-     * 添加一个条件，需要自己处理条件内容，比如 where("a=1")或者where("a=?").addParam(1)
-     *
-     * @param str 条件字符串
-     * @return 返回自己
-     */
+    protected final S where(Cnd cnd) {
+        return where().append(cnd);
+    }
+
     public S where(String str) {
         return where().append(str);
-    }
-
-    /**
-     * 添加条件列表
-     *
-     * @param cnds 条件列表
-     * @return 返回自己
-     */
-    public S where(Collection<Cnd> cnds) {
-        if (CollUtil.isNotEmpty(cnds))
-            for (Cnd cnd : cnds) {
-                where();
-                append(cnd);
-            }
-        return (S) this;
-    }
-
-    public S where(Cnd cnd) {
-        return where().append(cnd);
     }
 
     public S where(String field, Object value) {
         return where(true, field, Op.EQ, value);
     }
 
-    public S where(boolean condition, String field, Object value) {
-        return where(condition, field, Op.EQ, value);
-    }
-
-    @Deprecated
-    public S where(String field, String op, Object value) {
-        return where(new Cnd(field, op, value));
-    }
-
     public S where(String field, Op op, Object value) {
         return where(true, field, op, value);
+    }
+
+    public S where(Cnds cnds) {
+        return where(true, cnds);
+    }
+
+    public S where(boolean condition, String str) {
+        if (condition) return where().append(str);
+        return (S) this;
+    }
+
+    public S where(boolean condition, String field, Object value) {
+        return where(condition, field, Op.EQ, value);
     }
 
     public S where(boolean condition, String field, Op op, Object value) {
@@ -194,65 +169,46 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return (S) this;
     }
 
-    public S where(Cnds cnds) {
-        if (cnds.isEmpty()) return (S) this;
-        return where().append(cnds);
+    public S where(boolean condition, Cnds cnds) {
+        if (condition && !cnds.isEmpty()) {
+            return where().append(cnds);
+        }
+        return (S) this;
     }
 
-    /**
-     * AND + 添加条件列表
-     *
-     * @param cnds 条件列表
-     * @return 返回自己
-     */
-    public S and(Collection<Cnd> cnds) {
-        return where(cnds);
-    }
-
-    public S and() {
-        return where();
-    }
-
-    /**
-     * 添加一个And条件
-     *
-     * @param str 字符串
-     * @return 返回自己
-     */
     public S and(String str) {
         return where(str);
-    }
-
-    public S and(Cnd cnd) {
-        return where(cnd);
     }
 
     public S and(String field, Object value) {
         return where(true, field, Op.EQ, value);
     }
 
-    public S and(boolean condition, String field, Object value) {
-        return where(condition, field, Op.EQ, value);
-    }
-
-    @Deprecated
-    public S and(String field, String op, Object value) {
-        return where(field, op, value);
-    }
-
     public S and(String field, Op op, Object value) {
         return where(true, field, op, value);
-    }
-
-    public S and(boolean condition, String field, Op op, Object value) {
-        return where(condition, field, op, value);
     }
 
     public S and(Cnds cnds) {
         return where(cnds);
     }
 
-    public S or() {
+    public S and(boolean condition, String str) {
+        return where(condition, str);
+    }
+
+    public S and(boolean condition, String field, Object value) {
+        return where(condition, field, Op.EQ, value);
+    }
+
+    public S and(boolean condition, String field, Op op, Object value) {
+        return where(condition, field, op, value);
+    }
+
+    public S and(boolean condition, Cnds cnds) {
+        return where(condition, cnds);
+    }
+
+    protected final S or() {
         return append(DbaUtil.OR);
     }
 
@@ -260,37 +216,33 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return or().append(str);
     }
 
-    public S or(Cnd cnd) {
-        return or().append(cnd);
-    }
-
     public S or(String field, Object value) {
         return or(true, field, Op.EQ, value);
-    }
-
-    public S or(boolean condition, String field, Object value) {
-        return or(condition, field, Op.EQ, value);
-    }
-
-    @Deprecated
-    public S or(String field, String op, Object value) {
-        return or(new Cnd(field, op, value));
     }
 
     public S or(String field, Op op, Object value) {
         return or(true, field, op, value);
     }
 
+    public S or(Cnds cnds) {
+        return or(true, cnds);
+    }
+
+    public S or(boolean condition, String field, Object value) {
+        return or(condition, field, Op.EQ, value);
+    }
+
     public S or(boolean condition, String field, Op op, Object value) {
         if (condition) {
-            or(new Cnd(field, op, value));
+            or().append(new Cnd(field, op, value));
         }
         return (S) this;
     }
 
-    public S or(Cnds cnds) {
-        if (cnds.isEmpty()) return (S) this;
-        return or().append(cnds);
+    public S or(boolean condition, Cnds cnds) {
+        if (condition && !cnds.isEmpty())
+            return or().append(cnds);
+        return (S) this;
     }
 
     public S orderBy(String fields) {

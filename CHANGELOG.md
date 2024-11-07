@@ -1,4 +1,12 @@
 
+## [5.2.10](https://github.com/jinghui70/rainbow-dbaccess/compare/v5.2.9...v5.2.10) (2024-10-21)
+
+### Features
+
+- 增加 where(boolean condition, Cnds cnds) 这类函数
+- 增加 ClobObjectFieldMapper
+- TreeUtil 遍历时先遍历 children
+
 ## [5.2.9](https://github.com/jinghui70/rainbow-dbaccess/compare/v5.2.8...v5.2.9) (2024-10-21)
 
 ### Bug Fixes

@@ -43,7 +43,7 @@ public class NamedSql extends SqlWrapper<NamedSql> {
     }
 
     @Override
-    protected NamedSql append(Cnd cnd) {
+    public NamedSql append(Cnd cnd) {
         cnd.toNamedSql(this);
         return this;
     }

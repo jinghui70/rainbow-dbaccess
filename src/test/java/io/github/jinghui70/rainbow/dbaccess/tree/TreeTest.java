@@ -140,12 +140,12 @@ public class TreeTest extends BaseTest {
         TreeUtils.traverse(tree, result::add);
 
         assertEquals(6, result.size());
-        assertEquals("ZZZ", result.get(0).getName());
-        assertEquals("AAA", result.get(1).getName());
-        assertEquals("HHH", result.get(2).getName());
-        assertEquals("XXX", result.get(3).getName());
-        assertEquals("DDD", result.get(4).getName());
-        assertEquals("CCC", result.get(5).getName());
+        assertEquals("AAA", result.get(0).getName());
+        assertEquals("ZZZ", result.get(1).getName());
+        assertEquals("XXX", result.get(2).getName());
+        assertEquals("DDD", result.get(3).getName());
+        assertEquals("CCC", result.get(4).getName());
+        assertEquals("HHH", result.get(5).getName());
     }
 
     @Test

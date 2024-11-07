@@ -71,7 +71,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
      * @param cnd 条件对象
      * @return this
      */
-    protected abstract S append(Cnd cnd);
+    public abstract S append(Cnd cnd);
 
     /**
      * 添加一组条件
@@ -79,7 +79,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
      * @param cnds 条件组
      * @return this
      */
-    protected final S append(Cnds cnds) {
+    public final S append(Cnds cnds) {
         cnds.toSql(this);
         return (S) this;
     }

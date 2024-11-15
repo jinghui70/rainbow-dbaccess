@@ -97,6 +97,7 @@ public class TreeUtils {
      * @param predicate  the condition to filter
      * @param filterType the filter type
      * @return the filtered list
+     * @param <T> tree node data type
      */
     public static <T extends ITreeNode<T>> List<T> filter(List<T> list, Predicate<T> predicate, FilterType filterType) {
         if (CollUtil.isEmpty(list)) return list;

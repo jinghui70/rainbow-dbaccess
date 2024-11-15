@@ -135,10 +135,6 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         }
     }
 
-    protected final S where(Cnd cnd) {
-        return where().append(cnd);
-    }
-
     public S where(String str) {
         return where().append(str);
     }
@@ -151,13 +147,17 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return where(true, field, op, value);
     }
 
+    public final S where(Cnd cnd) {
+        return where().append(cnd);
+    }
+
     public S where(Cnds cnds) {
-        return where(true, cnds);
+        if (!cnds.isEmpty()) return where().append(cnds);
+        return (S) this;
     }
 
     public S where(boolean condition, String str) {
-        if (condition) return where().append(str);
-        return (S) this;
+        return condition ? where().append(str) : (S) this;
     }
 
     public S where(boolean condition, String field, Object value) {
@@ -165,13 +165,14 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     }
 
     public S where(boolean condition, String field, Op op, Object value) {
-        if (condition) where(new Cnd(field, op, value));
-        return (S) this;
+        return condition ? where(new Cnd(field, op, value)) : (S) this;
     }
 
-    public S where(boolean condition, Cnds cnds) {
-        if (condition && !cnds.isEmpty()) {
-            return where().append(cnds);
+    public S where(boolean condition, Supplier<Cnds> supplier) {
+        if (condition) {
+            Cnds cnds = supplier.get();
+            if (!cnds.isEmpty())
+                return where().append(cnds);
         }
         return (S) this;
     }
@@ -186,6 +187,10 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
 
     public S and(String field, Op op, Object value) {
         return where(true, field, op, value);
+    }
+
+    public S and(Cnd cnd) {
+        return where(cnd);
     }
 
     public S and(Cnds cnds) {
@@ -204,8 +209,8 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return where(condition, field, op, value);
     }
 
-    public S and(boolean condition, Cnds cnds) {
-        return where(condition, cnds);
+    public S and(boolean condition, Supplier<Cnds> supplier) {
+        return where(condition, supplier);
     }
 
     protected final S or() {
@@ -224,8 +229,12 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return or(true, field, op, value);
     }
 
+    public S or(Cnd cnd) {
+        return or().append(cnd);
+    }
+
     public S or(Cnds cnds) {
-        return or(true, cnds);
+        return cnds.isEmpty() ? (S) this : or().append(cnds);
     }
 
     public S or(boolean condition, String field, Object value) {
@@ -233,15 +242,15 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     }
 
     public S or(boolean condition, String field, Op op, Object value) {
-        if (condition) {
-            or().append(new Cnd(field, op, value));
-        }
-        return (S) this;
+        return condition ? or().append(new Cnd(field, op, value)) : (S) this;
     }
 
-    public S or(boolean condition, Cnds cnds) {
-        if (condition && !cnds.isEmpty())
-            return or().append(cnds);
+    public S or(boolean condition, Supplier<Cnds> supplier) {
+        if (condition) {
+            Cnds cnds = supplier.get();
+            if (!cnds.isEmpty())
+                return or().append(cnds);
+        }
         return (S) this;
     }
 

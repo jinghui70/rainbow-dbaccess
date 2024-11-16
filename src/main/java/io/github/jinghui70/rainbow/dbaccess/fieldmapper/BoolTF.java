@@ -1,6 +1,6 @@
 package io.github.jinghui70.rainbow.dbaccess.fieldmapper;
 
-public class BoolTF extends BoolStringFieldMapper {
+public class BoolTF extends BoolFieldMapper {
 
     @Override
     protected String getTrue() {

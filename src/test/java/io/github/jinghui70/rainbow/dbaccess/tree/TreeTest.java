@@ -137,7 +137,7 @@ public class TreeTest extends BaseTest {
     public void testTraverse() {
         List<TreeObject> result = new ArrayList<>();
         List<TreeObject> tree = dba.select(TreeObject.class).orderBy("CODE").queryForTree();
-        TreeUtils.traverse(tree, result::add);
+        TreeUtils.traverse(tree, result::add, false);
 
         assertEquals(6, result.size());
         assertEquals("AAA", result.get(0).getName());

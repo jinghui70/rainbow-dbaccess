@@ -3,6 +3,8 @@ package io.github.jinghui70.rainbow.dbaccess;
 import cn.hutool.core.io.resource.Resource;
 import cn.hutool.core.io.resource.ResourceUtil;
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.EnumUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
@@ -95,7 +97,16 @@ public class DbaConfig {
                 field.setLength(dd.length);
                 field.setPrecision(dd.scale);
             } else {
-                field.setType(typeMap.get(json.getStr("baseType")));
+                DataType type = typeMap.get(json.getStr("baseType"));
+                if (type == null) {
+                    String typeStr = json.getStr("type");
+                    try {
+                        type = DataType.valueOf(typeStr.toUpperCase());
+                    } catch(IllegalArgumentException e) {
+                        throw new IllegalArgumentException(StrUtil.format("字段[{}]的数据类型[{}]不支持", field.getName(), typeStr));
+                    }
+                }
+                field.setType(type);
                 field.setLength(json.getInt("len", 0));
                 field.setPrecision(json.getInt("scale", 0));
             }

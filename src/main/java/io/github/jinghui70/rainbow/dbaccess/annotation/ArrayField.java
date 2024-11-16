@@ -22,16 +22,16 @@ public @interface ArrayField {
     int length();
 
     /**
-     * 数据库中对应该属性下标从0还是1开始
+     * 数据库中对应该字段名下标从0还是1开始
      *
      * @return 下标起始值
      */
-    int start() default 0;
+    int start() default 1;
 
     /**
      * 拼名字的时候数字前是否带下划线
      *
      * @return true 带下划线，false 不带
      */
-    boolean underline() default false;
+    boolean underline() default true;
 }

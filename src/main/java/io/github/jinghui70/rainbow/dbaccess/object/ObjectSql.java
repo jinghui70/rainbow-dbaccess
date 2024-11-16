@@ -3,6 +3,7 @@ package io.github.jinghui70.rainbow.dbaccess.object;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.map.CaseInsensitiveMap;
 import io.github.jinghui70.rainbow.dbaccess.*;
+import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldValue;
 import io.github.jinghui70.rainbow.utils.tree.ITreeNode;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -84,4 +85,14 @@ public class ObjectSql<T> extends GeneralSql<ObjectSql<T>> {
         return clearTemp().from(DbaUtil.tableName(queryClass));
     }
 
+    @Override
+    public ObjectSql<T> set(String field, Object value) {
+        if (value != null) {
+            PropInfo propInfo = this.propMap.get(field);
+            if (propInfo != null && propInfo.getMapper() != null) {
+                value = new FieldValue(value, propInfo.getMapper());
+            }
+        }
+        return super.set(field, value);
+    }
 }

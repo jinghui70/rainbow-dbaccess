@@ -1,6 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess.object;
 
 import cn.hutool.core.bean.PropDesc;
+import com.sun.org.apache.bcel.internal.generic.RETURN;
 import io.github.jinghui70.rainbow.dbaccess.annotation.ArrayField;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Id;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldMapper;
@@ -35,12 +36,16 @@ public class PropInfo {
         return id;
     }
 
-    public PropInfo(String fieldName, PropDesc propDesc, FieldMapper mapper, Id id) {
+    public FieldMapper<?> getMapper() {
+        return mapper;
+    }
+
+    public PropInfo(String fieldName, PropDesc propDesc, FieldMapper<?> mapper, Id id) {
         this(fieldName, propDesc, mapper, -1);
         this.id = id;
     }
 
-    public PropInfo(String fieldName, PropDesc propDesc, FieldMapper mapper, int index) {
+    public PropInfo(String fieldName, PropDesc propDesc, FieldMapper<?> mapper, int index) {
         this.fieldName = fieldName;
         this.propDesc = propDesc;
         this.mapper = mapper;
@@ -61,8 +66,8 @@ public class PropInfo {
     /**
      * 从对象中取值，准备用来保存到数据库中
      *
-     * @param object
-     * @return
+     * @param object 取值的对象
+     * @return 对应属性值
      */
     public Object getValue(Object object) {
         Object value = propDesc.getValue(object);

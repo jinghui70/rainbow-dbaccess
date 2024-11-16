@@ -42,6 +42,10 @@ public class Field {
         return new Field().setName(name).setType(DataType.DATE);
     }
 
+    public static Field createTimestamp(String name) {
+        return new Field().setName(name).setType(DataType.TIMESTAMP);
+    }
+
     public static Field createKeyInt(String name) {
         return new Field().setName(name).setType(DataType.INT).setKey(true);
     }

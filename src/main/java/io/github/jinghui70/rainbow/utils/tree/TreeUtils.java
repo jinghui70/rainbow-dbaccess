@@ -16,13 +16,30 @@ public class TreeUtils {
      * Recursively traverse a tree structure and apply a consumer to each node.
      *
      * @param treeNode the root node to traverse
-     * @param consumer the consumer to apply to each node
+     * @param action the consumer to apply to each node
+     * @param isPreOrder true: traverse in pre-order; false: traverse in post-order
      * @param <T>      the type of the node
      */
-    public static <T extends TreeNode<T>> void traverse(T treeNode, Consumer<T> consumer) {
+    public static <T extends TreeNode<T>> void traverse(T treeNode, Consumer<T> action, boolean isPreOrder) {
         if (treeNode == null) return;
-        traverse(treeNode.getChildren(), consumer);
-        consumer.accept(treeNode);
+        if (isPreOrder) action.accept(treeNode);
+        traverse(treeNode.getChildren(), action, isPreOrder);
+        if (!isPreOrder) action.accept(treeNode);
+    }
+
+    /**
+     * Recursively traverse a tree structure and apply a consumer to each node.
+     *
+     * @param tree     the root nodes to traverse
+     * @param consumer the consumer to apply to each node
+     * @param isPreOrder true: traverse in pre-order; false: traverse in post-order
+     * @param <T>      the type of the node
+     */
+    public static <T extends TreeNode<T>> void traverse(List<T> tree, Consumer<T> consumer, boolean isPreOrder) {
+        if (CollUtil.isEmpty(tree)) return;
+        for (T node : tree) {
+            traverse(node, consumer, isPreOrder);
+        }
     }
 
     /**
@@ -33,10 +50,7 @@ public class TreeUtils {
      * @param <T>      the type of the node
      */
     public static <T extends TreeNode<T>> void traverse(List<T> tree, Consumer<T> consumer) {
-        if (CollUtil.isEmpty(tree)) return;
-        for (T node : tree) {
-            traverse(node, consumer);
-        }
+        traverse(tree, consumer, true);
     }
 
     @SuppressWarnings("unchecked")

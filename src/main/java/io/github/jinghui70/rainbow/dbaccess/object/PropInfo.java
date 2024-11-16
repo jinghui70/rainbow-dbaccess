@@ -1,7 +1,6 @@
 package io.github.jinghui70.rainbow.dbaccess.object;
 
 import cn.hutool.core.bean.PropDesc;
-import com.sun.org.apache.bcel.internal.generic.RETURN;
 import io.github.jinghui70.rainbow.dbaccess.annotation.ArrayField;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Id;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldMapper;
@@ -22,10 +21,6 @@ public class PropInfo {
 
     public String getFieldName() {
         return fieldName;
-    }
-
-    public PropDesc getPropDesc() {
-        return propDesc;
     }
 
     public int getIndex() {
@@ -55,9 +50,9 @@ public class PropInfo {
     /**
      * 如果是数组属性，创建一个新数组
      *
-     * @return
+     * @return 新建的数组
      */
-    public Object newArray() {
+    private Object newArray() {
         Class<?> componentType = propDesc.getFieldClass().getComponentType();
         ArrayField annotation = propDesc.getField().getAnnotation(ArrayField.class);
         return Array.newInstance(componentType, annotation.length());
@@ -85,10 +80,10 @@ public class PropInfo {
     /**
      * 从数据库中取值
      *
-     * @param rs
-     * @param index
-     * @return
-     * @throws SQLException
+     * @param rs is the ResultSet holding the data
+     * @param index is the column index
+     * @return the value object
+     * @throws SQLException if thrown by the JDBC API
      */
     public Object getValue(ResultSet rs, int index) throws SQLException {
         if (mapper != null)
@@ -99,10 +94,10 @@ public class PropInfo {
     }
 
     /**
-     * 保存一个值到对象中
+     * 保存一个值到对象对应的属性中
      *
-     * @param object
-     * @param value
+     * @param object 对象
+     * @param value 需要保存的值
      */
     public void setValue(Object object, Object value) {
         if (index >= 0) {

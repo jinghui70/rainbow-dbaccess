@@ -376,10 +376,10 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     /**
      * 获取对象列表
      *
+     * @param sql       查询语句
      * @param rowMapper 对象Mapper
      * @param <T>       对象泛型
      * @return 结果列表
-     * @throws DataAccessException 数据底层异常
      */
     protected abstract <T> List<T> queryForList(String sql, RowMapper<T> rowMapper);
 

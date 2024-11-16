@@ -70,7 +70,7 @@ public class Range<T extends Comparable<T>> {
      * @param from from value
      * @param to to value
      * @return range object
-     * @param <T>
+     * @param <T> value type
      */
     public static <T extends Comparable<T>> Range<T> of(T from, T to) {
         Range<T> result = new Range<>();

@@ -3,7 +3,7 @@ package io.github.jinghui70.rainbow.dbaccess.tree;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.IdUtil;
 import io.github.jinghui70.rainbow.dbaccess.BaseTest;
-import io.github.jinghui70.rainbow.dbaccess.DbaConfig;
+import io.github.jinghui70.rainbow.dbaccess.DbaTestUtil;
 import io.github.jinghui70.rainbow.utils.tree.FilterType;
 import io.github.jinghui70.rainbow.utils.tree.TreeUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +20,7 @@ public class TreeTest extends BaseTest {
 
     @BeforeEach
     void init() {
-        DbaConfig.initTable(dba, "TREE_OBJECT");
+        DbaTestUtil.initTable(dba, "TREE_OBJECT");
 
         TreeObject root1 = new TreeObject();
         root1.setId("root1");

@@ -1,7 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess.object;
 
 import io.github.jinghui70.rainbow.dbaccess.BaseTest;
-import io.github.jinghui70.rainbow.dbaccess.DbaConfig;
+import io.github.jinghui70.rainbow.dbaccess.DbaTestUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -15,7 +15,7 @@ public class AutoIncrementTest extends BaseTest {
 
     @BeforeEach
     void init() {
-        DbaConfig.initTable(dba, "AUTO_INCREMENT_OBJECT");
+        DbaTestUtil.initTable(dba, "AUTO_INCREMENT_OBJECT");
     }
 
     private List<AutoIncrementObject> list() {

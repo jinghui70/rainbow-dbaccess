@@ -2,7 +2,7 @@ package io.github.jinghui70.rainbow.dbaccess.object;
 
 import cn.hutool.core.map.MapUtil;
 import io.github.jinghui70.rainbow.dbaccess.BaseTest;
-import io.github.jinghui70.rainbow.dbaccess.DbaConfig;
+import io.github.jinghui70.rainbow.dbaccess.DbaTestUtil;
 import io.github.jinghui70.rainbow.dbaccess.PageData;
 import io.github.jinghui70.rainbow.dbaccess.Sql;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Op;
@@ -20,7 +20,7 @@ public class ObjectTest extends BaseTest {
 
     @BeforeEach
     void init() {
-        DbaConfig.initTable(dba, "SIMPLE_OBJECT");
+        DbaTestUtil.initTable(dba, "SIMPLE_OBJECT");
     }
 
     private List<SimpleObject> list() {
@@ -104,7 +104,7 @@ public class ObjectTest extends BaseTest {
     @Test
     public void testSelect() {
         dba.insert(list());
-        SimpleObject obj = dba.selectById(SimpleObject.class, 1);
+        SimpleObject obj = dba.selectByKey(SimpleObject.class, 1);
         assertEquals("name1", obj.getName());
         obj = dba.selectByKey(SimpleObject.class, 1);
         assertEquals("name1", obj.getName());
@@ -126,7 +126,7 @@ public class ObjectTest extends BaseTest {
                 .put("SCORE_3", 88)
                 .build();
         dba.insertInto(SimpleObject.class).selectFields(map).where("id", 1).execute();
-        SimpleObject obj = dba.selectById(SimpleObject.class, 88);
+        SimpleObject obj = dba.selectByKey(SimpleObject.class, 88);
         assertEquals(88, obj.getId());
         assertEquals("name1", obj.getName());
         assertEquals(88, obj.getScore()[0]);

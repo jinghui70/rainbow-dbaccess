@@ -319,10 +319,6 @@ public class Dba {
         return new ObjectDao<>(this, deleteClass).deleteByKey(keys);
     }
 
-    public <T> T selectById(Class<T> selectClass, Object id) {
-        return select(selectClass).where("id", id).queryForObject();
-    }
-
     public <T> T selectByKey(Class<T> selectClass, Object... keys) {
         return new ObjectDao<>(this, selectClass).selectByKey(keys);
     }

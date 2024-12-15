@@ -2,7 +2,7 @@ package io.github.jinghui70.rainbow.dbaccess.lob;
 
 import cn.hutool.core.collection.ListUtil;
 import io.github.jinghui70.rainbow.dbaccess.BaseTest;
-import io.github.jinghui70.rainbow.dbaccess.DbaConfig;
+import io.github.jinghui70.rainbow.dbaccess.DbaTestUtil;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.BlobObjectFieldMapper;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.ClobObjectFieldMapper;
 import io.github.jinghui70.rainbow.dbaccess.object.SimpleObject;
@@ -19,7 +19,7 @@ public class LobFieldTest extends BaseTest {
 
     @BeforeEach
     void init() {
-        DbaConfig.initTable(dba, "BLOB_OBJECT", "CLOB_OBJECT");
+        DbaTestUtil.initTable(dba, "BLOB_OBJECT", "CLOB_OBJECT");
     }
 
     private final String contentStr = "在不远的未来，人类终于解锁了时间旅行的秘密。这一发现立即引起了全球的轰动，科学家们、历史学家们、甚至普通大众都对能够亲眼目睹历史或探索未来的可能性感到兴奋不已。然而，随着技术的发展，政府和国际组织很快意识到，时间旅行如果不受控制，可能会对现实造成不可逆转的影响。" +

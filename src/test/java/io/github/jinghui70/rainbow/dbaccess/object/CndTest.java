@@ -2,7 +2,7 @@ package io.github.jinghui70.rainbow.dbaccess.object;
 
 import cn.hutool.core.collection.CollUtil;
 import io.github.jinghui70.rainbow.dbaccess.BaseTest;
-import io.github.jinghui70.rainbow.dbaccess.DbaConfig;
+import io.github.jinghui70.rainbow.dbaccess.DbaTestUtil;
 import io.github.jinghui70.rainbow.dbaccess.Range;
 import io.github.jinghui70.rainbow.dbaccess.Sql;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Cnds;
@@ -19,7 +19,7 @@ public class CndTest extends BaseTest {
 
     @BeforeEach
     void init() {
-        DbaConfig.initTable(dba, "SIMPLE_OBJECT");
+        DbaTestUtil.initTable(dba, "SIMPLE_OBJECT");
     }
 
     @Test

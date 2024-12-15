@@ -134,7 +134,7 @@ public class ObjectDao<T> {
     }
 
     public int update(String table, T object) {
-        Assert.isTrue(keyArray.size() > 0, "no key field defined");
+        Assert.isTrue(!keyArray.isEmpty(), "no key field defined");
         Sql sql = dba.update(table);
         for (PropInfo propInfo : propMap.values()) {
             if (propInfo.getId() == null) {
@@ -148,13 +148,8 @@ public class ObjectDao<T> {
         return sql.execute();
     }
 
-    public T selectById(Object id) {
-        return dba.selectAll().from(DbaUtil.tableName(clazz)).where("id", id)
-                .queryForObject(getMapper());
-    }
-
     public T selectByKey(Object... keys) {
-        Assert.isTrue(keyArray.size() > 0, "no key field defined");
+        Assert.isTrue(!keyArray.isEmpty(), "no key field defined");
         Assert.equals(keyArray.size(), keys.length, "argument size not match");
         Sql sql = dba.selectAll().from(DbaUtil.tableName(clazz));
         for (int i = 0; i < keyArray.size(); i++) {
@@ -169,7 +164,7 @@ public class ObjectDao<T> {
     }
 
     public int delete(T object) {
-        Assert.isTrue(keyArray.size() > 0, "no key field defined");
+        Assert.isTrue(!keyArray.isEmpty(), "no key field defined");
         Sql sql = dba.deleteFrom(DbaUtil.tableName(clazz));
         for (PropInfo propInfo : keyArray) {
             sql.where(propInfo.getFieldName(), propInfo.getValue(object));
@@ -182,7 +177,7 @@ public class ObjectDao<T> {
     }
 
     public int deleteByKey(Object... keys) {
-        Assert.isTrue(keyArray.size() > 0, "no key field defined");
+        Assert.isTrue(!keyArray.isEmpty(), "no key field defined");
         Assert.equals(keyArray.size(), keys.length, "argument size not match");
         Sql sql = dba.deleteFrom(DbaUtil.tableName(clazz));
         for (int i = 0; i < keyArray.size(); i++) {

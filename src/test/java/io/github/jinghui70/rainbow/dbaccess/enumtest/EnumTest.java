@@ -1,7 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess.enumtest;
 
 import io.github.jinghui70.rainbow.dbaccess.BaseTest;
-import io.github.jinghui70.rainbow.dbaccess.DbaConfig;
+import io.github.jinghui70.rainbow.dbaccess.DbaTestUtil;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Op;
 import io.github.jinghui70.rainbow.dbaccess.enumSupport.EnumMapper;
 import io.github.jinghui70.rainbow.dbaccess.mapper.MapRowMapper;
@@ -18,7 +18,7 @@ public class EnumTest extends BaseTest {
 
     @BeforeEach
     void init() {
-        DbaConfig.initTable(dba, "T_ENUM");
+        DbaTestUtil.initTable(dba, "T_ENUM");
     }
 
     @Test
@@ -60,14 +60,14 @@ public class EnumTest extends BaseTest {
         TEnum t = new TEnum();
         t.setId(1);
         dba.insert(t);
-        t = dba.selectById(TEnum.class, 1);
+        t = dba.selectByKey(TEnum.class, 1);
         assertNull(t.getNumberEnum());
         assertNull(t.getCodeEnum());
         assertNull(t.getNormalEnum());
 
         t.setNumberEnum(MyNumber.ONE);
         dba.update(t);
-        t = dba.selectById(TEnum.class, 1);
+        t = dba.selectByKey(TEnum.class, 1);
         assertEquals(MyNumber.ONE, t.getNumberEnum());
     }
 

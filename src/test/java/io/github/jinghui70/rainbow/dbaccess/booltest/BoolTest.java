@@ -1,7 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess.booltest;
 
 import io.github.jinghui70.rainbow.dbaccess.BaseTest;
-import io.github.jinghui70.rainbow.dbaccess.DbaConfig;
+import io.github.jinghui70.rainbow.dbaccess.DbaTestUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -14,7 +14,7 @@ public class BoolTest extends BaseTest {
 
     @BeforeEach
     void init() {
-        DbaConfig.initTable(dba, "T_BOOL");
+        DbaTestUtil.initTable(dba, "T_BOOL");
     }
 
     @Test
@@ -39,7 +39,7 @@ public class BoolTest extends BaseTest {
         assertEquals("Y", map.get("ARRAY_2"));
         assertEquals("Y", map.get("ARRAY_3"));
 
-        t = dba.selectById(TBool.class, "1");
+        t = dba.selectByKey(TBool.class, "1");
         assertEquals(Boolean.TRUE, t.getIntBool());
         assertEquals(Boolean.TRUE, t.getStringBool());
         assertEquals(Boolean.TRUE, t.getTfBool());
@@ -65,7 +65,7 @@ public class BoolTest extends BaseTest {
         assertEquals("N", map.get("ARRAY_2"));
         assertEquals("N", map.get("ARRAY_3"));
 
-        t = dba.selectById(TBool.class, "1");
+        t = dba.selectByKey(TBool.class, "1");
         assertEquals(Boolean.FALSE, t.getIntBool());
         assertEquals(Boolean.FALSE, t.getStringBool());
         assertEquals(Boolean.FALSE, t.getTfBool());

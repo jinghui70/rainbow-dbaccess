@@ -151,7 +151,7 @@ public class ObjectDao<T> {
     public T selectByKey(Object... keys) {
         Assert.isTrue(!keyArray.isEmpty(), "no key field defined");
         Assert.equals(keyArray.size(), keys.length, "argument size not match");
-        Sql sql = dba.selectAll().from(DbaUtil.tableName(clazz));
+        Sql sql = dba.select().from(DbaUtil.tableName(clazz));
         for (int i = 0; i < keyArray.size(); i++) {
             PropInfo propInfo = keyArray.get(i);
             sql.where(propInfo.getFieldName(), keys[i]);

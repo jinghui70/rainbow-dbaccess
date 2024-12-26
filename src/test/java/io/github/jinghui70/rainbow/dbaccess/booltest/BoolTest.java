@@ -30,7 +30,7 @@ public class BoolTest extends BaseTest {
         t.setArray(array);
         dba.insert(t);
 
-        Map<String, Object> map = dba.selectAll().from("T_BOOL").where("ID", "1").queryForMap();
+        Map<String, Object> map = dba.select().from("T_BOOL").where("ID", "1").queryForMap();
         assertEquals(1, map.get("int_bool"));
         assertEquals("TRUE", map.get("string_bool"));
         assertEquals("T", map.get("tf_bool"));
@@ -56,7 +56,7 @@ public class BoolTest extends BaseTest {
                 .set("array_3", false)
                 .where("id", "1")
                 .execute();
-        map = dba.selectAll().from("T_BOOL").where("ID", "1").queryForMap();
+        map = dba.select().from("T_BOOL").where("ID", "1").queryForMap();
         assertEquals(0, map.get("int_bool"));
         assertEquals("FALSE", map.get("string_bool"));
         assertEquals("F", map.get("tf_bool"));

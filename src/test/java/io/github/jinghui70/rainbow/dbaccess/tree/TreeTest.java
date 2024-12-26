@@ -99,7 +99,7 @@ public class TreeTest extends BaseTest {
     @SuppressWarnings("unchecked")
     @Test
     void testMapOrder() {
-        List<Map<String, Object>> list = dba.selectAll().from("TREE_OBJECT").orderBy("NAME").queryForList();
+        List<Map<String, Object>> list = dba.select().from("TREE_OBJECT").orderBy("NAME").queryForList();
         assertEquals(6, list.size());
         assertEquals("AAA", list.get(0).get("Name"));
         assertEquals("CCC", list.get(1).get("Name"));
@@ -108,7 +108,7 @@ public class TreeTest extends BaseTest {
         assertEquals("XXX", list.get(4).get("Name"));
         assertEquals("ZZZ", list.get(5).get("Name"));
 
-        List<Map<String, Object>> tree = dba.selectAll().from("TREE_OBJECT").orderBy("NAME").queryForTree();
+        List<Map<String, Object>> tree = dba.select().from("TREE_OBJECT").orderBy("NAME").queryForTree();
         assertEquals(2, tree.size());
         assertEquals("HHH", tree.get(0).get("Name"));
         assertEquals("ZZZ", tree.get(1).get("Name"));
@@ -120,7 +120,7 @@ public class TreeTest extends BaseTest {
         assertEquals("DDD", children.get(1).get("Name"));
         assertEquals("XXX", children.get(2).get("Name"));
 
-        tree = dba.selectAll().from("TREE_OBJECT").orderBy("CODE").queryForTree();
+        tree = dba.select().from("TREE_OBJECT").orderBy("CODE").queryForTree();
         assertEquals("ZZZ", tree.get(0).get("Name"));
         assertEquals("HHH", tree.get(1).get("Name"));
 
@@ -166,7 +166,7 @@ public class TreeTest extends BaseTest {
         treeObject.setName("222");
         dba.insert(treeObject);
 
-        List<TreeObjectClonable> tree = dba.selectAll().from("TREE_OBJECT").orderBy("CODE")
+        List<TreeObjectClonable> tree = dba.select().from("TREE_OBJECT").orderBy("CODE")
                 .queryForTree(TreeObjectClonable.class);
         List<TreeObjectClonable> filteredTree = TreeUtils.filter(tree, o -> "22".equals(o.getCode()), FilterType.MATCH_FIRST);
         assertEquals(1, filteredTree.size()); // 2

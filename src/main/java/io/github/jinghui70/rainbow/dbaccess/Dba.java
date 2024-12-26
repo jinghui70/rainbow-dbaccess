@@ -113,11 +113,7 @@ public class Dba {
     }
 
     public Sql select() {
-        return sql("SELECT ");
-    }
-
-    public Sql selectAll() {
-        return select("*");
+        return sql("SELECT *");
     }
 
     public Sql select(String select) {

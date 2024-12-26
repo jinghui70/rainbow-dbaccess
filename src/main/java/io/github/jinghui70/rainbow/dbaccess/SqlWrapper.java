@@ -11,6 +11,7 @@ import io.github.jinghui70.rainbow.dbaccess.mapper.SingleColumnFieldRowMapper;
 import io.github.jinghui70.rainbow.dbaccess.object.BeanMapper;
 import io.github.jinghui70.rainbow.utils.StringBuilderWrapper;
 import io.github.jinghui70.rainbow.utils.tree.ITreeNode;
+import io.github.jinghui70.rainbow.utils.tree.Tree;
 import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -505,11 +506,11 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
         return pageQuery(BeanMapper.of(objectType), pageNo, pageSize);
     }
 
-    public <T extends ITreeNode<T>> List<T> queryForTree(Class<T> objectType) {
+    public <T extends ITreeNode<T>> Tree<T> queryForTree(Class<T> objectType) {
         return queryForTree(BeanMapper.of(objectType));
     }
 
-    public <T extends ITreeNode<T>> List<T> queryForTree(RowMapper<T> mapper) {
+    public <T extends ITreeNode<T>> Tree<T> queryForTree(RowMapper<T> mapper) {
         List<T> result = new ArrayList<>();
         Map<String, String> parentIdMap = new LinkedHashMap<>();
         Map<String, T> itemMap = new HashMap<>();
@@ -531,35 +532,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
             } else
                 parent.addChild(item);
         }
-        return result;
-    }
-
-    public List<Map<String, Object>> queryForTree(MapRowMapper mapper) {
-        List<Map<String, Object>> result = new ArrayList<>();
-        Map<String, String> parentIdMap = new LinkedHashMap<>();
-        Map<String, Map<String, Object>> itemMap = new HashMap<>();
-        AtomicInteger row = new AtomicInteger(1);
-        query(rs -> {
-            String pid = rs.getString("PID");
-            String id = rs.getString("ID");
-            parentIdMap.put(id, pid);
-            Map<String, Object> item = mapper.mapRow(rs, row.getAndIncrement());
-            itemMap.put(id, item);
-        });
-        for (Map.Entry<String, String> entry : parentIdMap.entrySet()) {
-            String id = entry.getKey();
-            String pid = entry.getValue();
-            Map<String, Object> item = itemMap.get(id);
-            Map<String, Object> parent = itemMap.get(pid);
-            if (parent == null) {
-                result.add(item);
-            } else {
-                List<Map<String, Object>> children = (List<Map<String, Object>>) parent.computeIfAbsent("children",
-                        k -> new ArrayList<Map<String, Object>>());
-                children.add(item);
-            }
-        }
-        return result;
+        return new Tree<T>(result, itemMap);
     }
 
     @Override

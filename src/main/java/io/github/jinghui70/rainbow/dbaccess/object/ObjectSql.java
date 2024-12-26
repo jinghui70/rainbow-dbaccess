@@ -5,6 +5,7 @@ import cn.hutool.core.map.CaseInsensitiveMap;
 import io.github.jinghui70.rainbow.dbaccess.*;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldValue;
 import io.github.jinghui70.rainbow.utils.tree.ITreeNode;
+import io.github.jinghui70.rainbow.utils.tree.Tree;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.util.*;
@@ -42,9 +43,9 @@ public class ObjectSql<T> extends GeneralSql<ObjectSql<T>> {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public List<T> queryForTree() {
+    public Tree<T> queryForTree() {
         Assert.isAssignable(ITreeNode.class, queryClass);
-        return (List<T>) queryForTree((RowMapper<? extends ITreeNode>) mapper);
+        return (Tree<T>) queryForTree((RowMapper<? extends ITreeNode>) mapper);
     }
 
     public <K> Map<K, T> queryToMap(ResultSetFunction<K> keyFunc) {

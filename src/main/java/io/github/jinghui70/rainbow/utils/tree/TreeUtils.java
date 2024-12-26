@@ -13,6 +13,17 @@ import java.util.function.Predicate;
 public class TreeUtils {
 
     /**
+     * Traverse a tree structure and apply a consumer to each node in pre-order.
+     *
+     * @param treeNode the root node to traverse
+     * @param action   the consumer to apply to each node
+     * @param <T>      the type of the node
+     */
+    public static <T extends TreeNode<T>> void traverse(T treeNode, Consumer<T> action) {
+        traverse(treeNode, action, true);
+    }
+
+    /**
      * Recursively traverse a tree structure and apply a consumer to each node.
      *
      * @param treeNode the root node to traverse

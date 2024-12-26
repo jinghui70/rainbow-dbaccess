@@ -38,10 +38,6 @@ public class Sql extends GeneralSql<Sql> {
         return pageQuery(MapRowMapper.INSTANCE, pageNo, pageSize);
     }
 
-    public List<Map<String, Object>> queryForTree() {
-        return queryForTree(MapRowMapper.INSTANCE);
-    }
-
     public <K> Map<K, Map<String, Object>> queryToMap(ResultSetFunction<K> keyFunc) {
         return queryToMap(keyFunc, MapRowMapper.INSTANCE);
     }

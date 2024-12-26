@@ -1,4 +1,13 @@
 
+## [5.2.11](https://github.com/jinghui70/rainbow-dbaccess/compare/v5.2.11...v5.2.12) (2024-12-26)
+
+### Features
+
+- 废除 selectAll()， 用 select()代替
+- queryForTree 返回 Tree 对象
+- bool 类型字段，默认保存 1,0
+- 废除 selectById()
+
 ## [5.2.11](https://github.com/jinghui70/rainbow-dbaccess/compare/v5.2.9...v5.2.11) (2024-11-16)
 
 ### Features

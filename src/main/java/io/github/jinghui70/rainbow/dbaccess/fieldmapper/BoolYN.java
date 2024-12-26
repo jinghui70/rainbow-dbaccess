@@ -1,15 +1,22 @@
 package io.github.jinghui70.rainbow.dbaccess.fieldmapper;
 
-public class BoolYN extends BoolFieldMapper {
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+public class BoolYN extends FieldMapper<Boolean> {
 
     @Override
-    protected String getTrue() {
-        return "Y";
+    public Boolean formDB(ResultSet rs, int index) throws SQLException {
+        String value = rs.getString(index);
+        if (rs.wasNull()) return null;
+        return "Y".equals(value);
     }
 
     @Override
-    protected String getFalse() {
-        return "N";
+    public void saveToDB(PreparedStatement ps, int paramIndex, Object value) throws SQLException {
+        value = Boolean.TRUE.equals(value) ? "Y" : "N";
+        super.saveToDB(ps, paramIndex, value);
     }
 
 }

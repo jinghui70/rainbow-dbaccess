@@ -4,7 +4,7 @@
   "avatar": "",
   "version": "4.9.4",
   "createdTime": "2024-9-14 22:14:06",
-  "updatedTime": "2024-11-16 13:23:40",
+  "updatedTime": "2024-12-26 13:39:40",
   "dbConns": [],
   "profile": {
     "default": {
@@ -2310,24 +2310,6 @@
           "uiHint": "",
           "id": "4B10B5F4-42B0-4773-AE63-9160C481ADEB",
           "baseType": "FC9790A7-36B8-4A48-8F9A-BC1042BCFE64"
-        },
-        {
-          "defKey": "TF_BOOL",
-          "defName": "TF",
-          "comment": "",
-          "type": "VARCHAR",
-          "len": 1,
-          "scale": "",
-          "primaryKey": false,
-          "notNull": false,
-          "autoIncrement": false,
-          "defaultValue": "",
-          "hideInGraph": false,
-          "refDict": "",
-          "baseType": "FC9790A7-36B8-4A48-8F9A-BC1042BCFE64",
-          "extProps": {},
-          "domain": "",
-          "id": "AFEC6D0D-0EA5-47DC-AEBF-4303D61DC3D9"
         },
         {
           "defKey": "YN_BOOL",

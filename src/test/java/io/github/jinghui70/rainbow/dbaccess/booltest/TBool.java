@@ -3,7 +3,6 @@ package io.github.jinghui70.rainbow.dbaccess.booltest;
 import io.github.jinghui70.rainbow.dbaccess.annotation.ArrayField;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Column;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Id;
-import io.github.jinghui70.rainbow.dbaccess.fieldmapper.BoolTF;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.BoolYN;
 
 public class TBool {
@@ -18,11 +17,7 @@ public class TBool {
     @Column(mapper= BoolYN.class)
     private Boolean ynBool;
 
-    @Column(mapper= BoolTF.class)
-    private Boolean tfBool;
-
     @ArrayField(length = 3, start = 1, underline = true)
-    @Column(mapper= BoolYN.class)
     private Boolean[] array;
 
     public String getId() {
@@ -55,14 +50,6 @@ public class TBool {
 
     public void setYnBool(Boolean ynBool) {
         this.ynBool = ynBool;
-    }
-
-    public Boolean getTfBool() {
-        return tfBool;
-    }
-
-    public void setTfBool(Boolean tfBool) {
-        this.tfBool = tfBool;
     }
 
     public Boolean[] getArray() {

@@ -25,24 +25,21 @@ public class BoolTest extends BaseTest {
         t.setId("1");
         t.setIntBool(true);
         t.setStringBool(true);
-        t.setTfBool(true);
         t.setYnBool(true);
         t.setArray(array);
         dba.insert(t);
 
         Map<String, Object> map = dba.select().from("T_BOOL").where("ID", "1").queryForMap();
         assertEquals(1, map.get("int_bool"));
-        assertEquals("TRUE", map.get("string_bool"));
-        assertEquals("T", map.get("tf_bool"));
+        assertEquals("1", map.get("string_bool"));
         assertEquals("Y", map.get("yn_bool"));
-        assertEquals("Y", map.get("ARRAY_1"));
-        assertEquals("Y", map.get("ARRAY_2"));
-        assertEquals("Y", map.get("ARRAY_3"));
+        assertEquals("1", map.get("ARRAY_1"));
+        assertEquals("1", map.get("ARRAY_2"));
+        assertEquals("1", map.get("ARRAY_3"));
 
         t = dba.selectByKey(TBool.class, "1");
         assertEquals(Boolean.TRUE, t.getIntBool());
         assertEquals(Boolean.TRUE, t.getStringBool());
-        assertEquals(Boolean.TRUE, t.getTfBool());
         assertEquals(Boolean.TRUE, t.getYnBool());
         assertArrayEquals(array, t.getArray());
 
@@ -50,7 +47,6 @@ public class BoolTest extends BaseTest {
                 .set("int_bool", false)
                 .set("string_bool", false)
                 .set("yn_bool", false)
-                .set("tf_bool", false)
                 .set("array_1", false)
                 .set("array_2", false)
                 .set("array_3", false)
@@ -58,17 +54,15 @@ public class BoolTest extends BaseTest {
                 .execute();
         map = dba.select().from("T_BOOL").where("ID", "1").queryForMap();
         assertEquals(0, map.get("int_bool"));
-        assertEquals("FALSE", map.get("string_bool"));
-        assertEquals("F", map.get("tf_bool"));
+        assertEquals("0", map.get("string_bool"));
         assertEquals("N", map.get("yn_bool"));
-        assertEquals("N", map.get("ARRAY_1"));
-        assertEquals("N", map.get("ARRAY_2"));
-        assertEquals("N", map.get("ARRAY_3"));
+        assertEquals("0", map.get("ARRAY_1"));
+        assertEquals("0", map.get("ARRAY_2"));
+        assertEquals("0", map.get("ARRAY_3"));
 
         t = dba.selectByKey(TBool.class, "1");
         assertEquals(Boolean.FALSE, t.getIntBool());
         assertEquals(Boolean.FALSE, t.getStringBool());
-        assertEquals(Boolean.FALSE, t.getTfBool());
         assertEquals(Boolean.FALSE, t.getYnBool());
 
     }

@@ -4,22 +4,20 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public abstract class BoolFieldMapper extends FieldMapper<Boolean> {
-
-    protected abstract String getTrue();
-
-    protected abstract String getFalse();
+public class BoolFieldMapper extends FieldMapper<Boolean> {
 
     @Override
     public Boolean formDB(ResultSet rs, int index) throws SQLException {
-        String value = rs.getString(index);
+        boolean value = rs.getBoolean(index);
         if (rs.wasNull()) return null;
-        return getTrue().equals(value.trim());
+        return value;
     }
 
     @Override
     public void saveToDB(PreparedStatement ps, int paramIndex, Object value) throws SQLException {
-        value = Boolean.TRUE.equals(value) ? getTrue() : getFalse();
+        value = Boolean.TRUE.equals(value) ? 1 : 0;
         super.saveToDB(ps, paramIndex, value);
     }
+
+    public static BoolFieldMapper INSTANCE = new BoolFieldMapper();
 }

@@ -35,7 +35,7 @@ public class PropInfoCache {
                 Id id = propDesc.getField().getAnnotation(Id.class);
                 result.put(fieldName, new PropInfo(fieldName, propDesc, mapper, id));
             } else {
-                if (mapper == null) mapper = checkEnumMapper(propDesc.getFieldClass().getComponentType());
+                if (mapper == null) mapper = isEnumOrBooleanMapper(propDesc.getFieldClass().getComponentType());
                 String join = arrayAnnotation.underline() ? "_" : "";
                 for (int i = 0; i < arrayAnnotation.length(); i++) {
                     String field = String.format("%s%s%d", fieldName, join, i + arrayAnnotation.start());
@@ -49,14 +49,14 @@ public class PropInfoCache {
     /**
      * 根据字段配置，获取 FieldMapper 对象
      *
-     * @param column
-     * @param propDesc
-     * @return
+     * @param column  字段配置
+     * @param propDesc 属性描述
+     * @return FieldMapper 对象
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static FieldMapper<?> getMapper(Column column, PropDesc propDesc) {
         Class<?> fieldClass = propDesc.getFieldClass();
-        if (column == null) return checkEnumMapper(fieldClass);
+        if (column == null) return isEnumOrBooleanMapper(fieldClass);
         // 自定义的映射器
         Class<? extends FieldMapper> mapperClass = column.mapper();
         if (mapperClass != FieldMapper.class) {
@@ -77,13 +77,18 @@ public class PropInfoCache {
                     return null;
                 return new ClobObjectFieldMapper(fieldClass, propDesc.getField());
             default:
-                return checkEnumMapper(fieldClass);
+                return isEnumOrBooleanMapper(fieldClass);
         }
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static FieldMapper<?> checkEnumMapper(Class<?> fieldClass) {
-        return fieldClass.isEnum() ? new EnumMapper(fieldClass) : null;
+    private static FieldMapper<?> isEnumOrBooleanMapper(Class<?> fieldClass) {
+        if (fieldClass.isEnum()) {
+            return new EnumMapper(fieldClass);
+        } else if (Boolean.class.equals(fieldClass) || boolean.class.equals(fieldClass)) {
+            return BoolFieldMapper.INSTANCE;
+        }
+        return null;
     }
 
     /**

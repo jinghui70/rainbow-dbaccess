@@ -117,7 +117,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     public abstract S set(String field, Object value);
 
     /**
-     * 拼update语句的一个set部分，用于上一个方法不方便的时候。比如 set a = a + ?, 或者 a=a+:deltaA
+     * 拼update语句的一个set部分，用于上一个方法不方便的时候。比如 set a = a + ?
      *
      * @param set 需要set的内容
      * @return 返回自己
@@ -125,6 +125,15 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     public S set(String set) {
         set();
         return append(set);
+    }
+    public S set(boolean condition, String field, Object value) {
+        if (condition) set(field, value);
+        return (S) this;
+    }
+
+    public S set(boolean condition, String set) {
+        if (condition) set(set);
+        return (S) this;
     }
 
     protected final S where() {

@@ -6,20 +6,16 @@ import cn.hutool.db.dialect.DriverUtil;
 import io.github.jinghui70.rainbow.dbaccess.dialect.Dialect;
 import io.github.jinghui70.rainbow.dbaccess.dialect.DialectDefault;
 import io.github.jinghui70.rainbow.dbaccess.dialect.DialectOracle;
+import io.github.jinghui70.rainbow.dbaccess.map.MapHandler;
 import io.github.jinghui70.rainbow.dbaccess.object.ObjectDao;
 import io.github.jinghui70.rainbow.dbaccess.object.ObjectSql;
-import io.github.jinghui70.rainbow.utils.StringBuilderX;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.sql.DataSource;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -32,8 +28,6 @@ public class Dba {
 
     protected JdbcTemplate jdbcTemplate;
 
-    protected NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-
     protected TransactionTemplate transactionTemplate;
 
     protected Dialect dialect = DialectDefault.INSTANCE;
@@ -43,7 +37,6 @@ public class Dba {
 
     protected void initDataSource(DataSource dataSource, Dialect dialect) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
-        this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
         DataSourceTransactionManager transactionManager = new DataSourceTransactionManager(dataSource);
         this.transactionTemplate = new TransactionTemplate(transactionManager);
         if (dialect != null)
@@ -60,18 +53,14 @@ public class Dba {
         initDataSource(dataSource, dialect);
     }
 
-    public Dba(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate,
-               TransactionTemplate transactionTemplate) {
+    public Dba(JdbcTemplate jdbcTemplate, TransactionTemplate transactionTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-        this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
         this.transactionTemplate = transactionTemplate;
         initDialect();
     }
 
-    public Dba(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate,
-               TransactionTemplate transactionTemplate, Dialect dialect) {
+    public Dba(JdbcTemplate jdbcTemplate, TransactionTemplate transactionTemplate, Dialect dialect) {
         this.jdbcTemplate = jdbcTemplate;
-        this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
         this.transactionTemplate = transactionTemplate;
         this.dialect = dialect;
     }
@@ -90,10 +79,6 @@ public class Dba {
 
     public JdbcTemplate getJdbcTemplate() {
         return jdbcTemplate;
-    }
-
-    public NamedParameterJdbcTemplate getNamedParameterJdbcTemplate() {
-        return namedParameterJdbcTemplate;
     }
 
     public TransactionTemplate getTransactionTemplate() {
@@ -146,14 +131,6 @@ public class Dba {
 
     public <T> ObjectSql<T> deleteFrom(Class<T> deleteClass) {
         return new ObjectSql<>(this, deleteClass).append("DELETE FROM ").append(DbaUtil.tableName(deleteClass));
-    }
-
-    public NamedSql namedSql() {
-        return new NamedSql(this);
-    }
-
-    public NamedSql namedSql(String sql) {
-        return new NamedSql(this).append(sql);
     }
 
     /**
@@ -218,7 +195,7 @@ public class Dba {
      * @return 插入改变的行数，正常应该是1
      */
     public int insert(String tableName, Map<String, Object> map) {
-        return doInsert(tableName, map, INSERT_INTO);
+        return new MapHandler(this).doInsert(tableName, map, INSERT_INTO);
     }
 
     /**
@@ -229,16 +206,7 @@ public class Dba {
      * @return 插入改变的行数，正常应该是1
      */
     public int merge(String tableName, Map<String, Object> map) {
-        return doInsert(tableName, map, MERGE_INTO);
-    }
-
-    public int doInsert(String tableName, Map<String, Object> map, String action) {
-        Sql sql = sql(action).append(tableName).append("(");
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            sql.append(entry.getKey()).appendTempComma().addParam(entry.getValue());
-        }
-        sql.clearTemp().append(") values (").repeat("?", map.size()).append(")");
-        return sql.execute();
+        return new MapHandler(this).doInsert(tableName, map, MERGE_INTO);
     }
 
     /**
@@ -248,7 +216,18 @@ public class Dba {
      * @param data      数据列表
      */
     public void insert(String tableName, List<Map<String, Object>> data) {
-        doInsert(tableName, data, INSERT_INTO);
+        new MapHandler(this).doInsert(tableName, data, INSERT_INTO, 0);
+    }
+
+    /**
+     * 批量插入数据到指定的表里
+     *
+     * @param tableName 数据表名
+     * @param data      数据的集合
+     * @param batchSize 批量大小，如果小于1则不开启批量模式
+     */
+    public void insert(String tableName, List<Map<String, Object>> data, int batchSize) {
+        new MapHandler(this).doInsert(tableName, data, INSERT_INTO, batchSize);
     }
 
     /**
@@ -258,22 +237,9 @@ public class Dba {
      * @param data      数据
      */
     public void merge(String tableName, List<Map<String, Object>> data) {
-        doInsert(tableName, data, MERGE_INTO);
+        new MapHandler(this).doInsert(tableName, data, MERGE_INTO, 0);
     }
 
-    private void doInsert(String tableName, List<Map<String, Object>> data, String action) {
-        if (CollUtil.isEmpty(data))
-            return;
-        List<String> keys = new ArrayList<>(data.get(0).keySet());
-        StringBuilderX sql = new StringBuilderX(action).append(tableName) //
-                .append("(").join(keys).append(") values("); //
-        for (String key : keys) {
-            sql.append(":").append(key).appendTempComma();
-        }
-        sql.clearTemp().append(")");
-        SqlParameterSource[] spss = data.stream().map(MapSqlParameterSource::new).toArray(SqlParameterSource[]::new);
-        namedParameterJdbcTemplate.batchUpdate(sql.toString(), spss);
-    }
 
     /**
      * 更新一个对象
@@ -314,7 +280,7 @@ public class Dba {
     public <T> T selectByKey(Class<T> selectClass, Object... keys) {
         return new ObjectDao<>(this, selectClass).selectByKey(keys);
     }
-    
+
     /**
      * 检查一个数据表是否存在
      *

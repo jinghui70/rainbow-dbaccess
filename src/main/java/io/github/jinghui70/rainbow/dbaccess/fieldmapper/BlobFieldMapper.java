@@ -1,6 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess.fieldmapper;
 
 import cn.hutool.core.util.ZipUtil;
+import org.springframework.lang.NonNull;
 
 import java.sql.Blob;
 import java.sql.PreparedStatement;
@@ -32,7 +33,7 @@ public abstract class BlobFieldMapper<T> extends FieldMapper<T> {
     }
 
     @Override
-    public void saveToDB(PreparedStatement ps, int paramIndex, Object value) throws SQLException {
+    public void saveToDB(PreparedStatement ps, int paramIndex, @NonNull Object value) throws SQLException {
         byte[] bytes = getBytes(value);
         if (compress)
             bytes = ZipUtil.gzip(bytes);

@@ -23,8 +23,8 @@ public class DbaAutoConfiguration {
 
     @Bean
     @Primary
-    Dba dba(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate, TransactionTemplate transactionTemplate) {
-        return new Dba(jdbcTemplate, namedParameterJdbcTemplate, transactionTemplate);
+    Dba dba(JdbcTemplate jdbcTemplate, TransactionTemplate transactionTemplate) {
+        return new Dba(jdbcTemplate, transactionTemplate);
     }
 
 }

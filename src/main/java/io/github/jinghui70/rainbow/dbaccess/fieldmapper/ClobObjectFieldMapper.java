@@ -2,6 +2,7 @@ package io.github.jinghui70.rainbow.dbaccess.fieldmapper;
 
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
+import org.springframework.lang.NonNull;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -45,7 +46,7 @@ public class ClobObjectFieldMapper<T> extends FieldMapper<T> {
     }
 
     @Override
-    public void saveToDB(PreparedStatement ps, int paramIndex, Object value) throws SQLException {
+    public void saveToDB(PreparedStatement ps, int paramIndex, @NonNull Object value) throws SQLException {
        String json = JSONUtil.toJsonStr(value);
         ps.setString(paramIndex, json);
     }

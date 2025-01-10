@@ -43,9 +43,7 @@ public class EnumMapper<T extends Enum<T>> extends FieldMapper<T> {
 
     @Override
     public void saveToDB(PreparedStatement ps, int paramIndex, Object value) throws SQLException {
-        if (value == null)
-            ps.setObject(paramIndex, value);
-        else if (isOrdinal)
+        if (isOrdinal)
             ps.setInt(paramIndex, ((Enum<?>) value).ordinal());
         else if (isCode)
             ps.setString(paramIndex, ((CodeEnum) value).code());

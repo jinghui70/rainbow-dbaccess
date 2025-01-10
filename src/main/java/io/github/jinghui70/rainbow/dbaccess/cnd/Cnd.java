@@ -145,23 +145,6 @@ public class Cnd {
         return true;
     }
 
-    public void toNamedSql(NamedSql sql) {
-        switch (op) {
-            case EQ:
-                Assert.notNull(value, "condition value should not be null");
-                if (!rangeNamedSql(sql)) {
-                    sql.append(field).append("=:").append(field).setParam(field, value);
-                }
-                break;
-            case IN:
-            case NOT_IN:
-                throw new RuntimeException("Named Sql does not support in operator");
-            default:
-                sql.append(field).append(op.str()).append(":").append(field).setParam(field, value);
-                break;
-        }
-    }
-
     private Range<?> paramToRange() {
         if (value instanceof Map) {
             return BeanUtil.toBeanIgnoreCase(value, Range.class, false);
@@ -169,16 +152,6 @@ public class Cnd {
             return (Range<?>) value;
         } else
             return null;
-    }
-
-    private boolean rangeNamedSql(NamedSql sql) {
-        Range<?> range = paramToRange();
-        if (range == null)
-            return false;
-        range.regular();
-        sql.append(field).append(" between :").append(field).append(" and :").append(field).append("_T")
-                .setParam(field, range.getFrom()).setParam(field + "_T", range.getTo());
-        return true;
     }
 
     private void inSql(GeneralSql<?> sql, Op singleOp) {

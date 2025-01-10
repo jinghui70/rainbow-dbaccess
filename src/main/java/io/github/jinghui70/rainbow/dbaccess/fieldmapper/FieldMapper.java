@@ -1,5 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess.fieldmapper;
 
+import org.springframework.lang.NonNull;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -28,7 +30,7 @@ public abstract class FieldMapper<T> {
      * @param value      The field value to save.
      * @throws SQLException If a database access error occurs.
      */
-    public void saveToDB(PreparedStatement ps, int paramIndex, Object value) throws SQLException {
+    public void saveToDB(PreparedStatement ps, int paramIndex, @NonNull Object value) throws SQLException {
         ps.setObject(paramIndex, value);
     }
 

@@ -6,7 +6,7 @@ import io.github.jinghui70.rainbow.dbaccess.cnd.Cnds;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Op;
 import io.github.jinghui70.rainbow.dbaccess.enumSupport.EnumMapper;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldMapper;
-import io.github.jinghui70.rainbow.dbaccess.mapper.MapRowMapper;
+import io.github.jinghui70.rainbow.dbaccess.map.MapRowMapper;
 import io.github.jinghui70.rainbow.dbaccess.mapper.SingleColumnFieldRowMapper;
 import io.github.jinghui70.rainbow.dbaccess.object.BeanMapper;
 import io.github.jinghui70.rainbow.utils.StringBuilderWrapper;
@@ -541,7 +541,7 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
             } else
                 parent.addChild(item);
         }
-        return new Tree<T>(result, itemMap);
+        return new Tree<>(result, itemMap);
     }
 
     @Override

@@ -2,7 +2,6 @@ package io.github.jinghui70.rainbow.dbaccess.cnd;
 
 import cn.hutool.core.lang.Assert;
 import io.github.jinghui70.rainbow.dbaccess.DbaUtil;
-import io.github.jinghui70.rainbow.dbaccess.NamedSql;
 import io.github.jinghui70.rainbow.dbaccess.Sql;
 import io.github.jinghui70.rainbow.utils.StringBuilderX;
 
@@ -30,25 +29,13 @@ public class CndPlus extends Cnd {
                 return null;
         }
     }
-    
+
     public void toSql(Sql sql) {
         String tag = tag();
         if (tag == null) super.toSql(sql);
         sql.append("(");
         for (CndPlus child : children) {
             child.toSql(sql);
-            sql.appendTemp(tag);
-        }
-        sql.clearTemp().append(")");
-    }
-
-    @Override
-    public void toNamedSql(NamedSql sql) {
-        String tag = tag();
-        if (tag == null) super.toNamedSql(sql);
-        sql.append("(");
-        for (CndPlus child : children) {
-            child.toNamedSql(sql);
             sql.appendTemp(tag);
         }
         sql.clearTemp().append(")");

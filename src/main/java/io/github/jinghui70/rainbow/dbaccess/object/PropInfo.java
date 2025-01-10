@@ -74,13 +74,14 @@ public class PropInfo {
                 return null;
             }
         }
+        if (value == null) return null;
         return mapper == null ? value : new FieldValue(value, mapper);
     }
 
     /**
      * 从数据库中取值
      *
-     * @param rs is the ResultSet holding the data
+     * @param rs    is the ResultSet holding the data
      * @param index is the column index
      * @return the value object
      * @throws SQLException if thrown by the JDBC API
@@ -97,7 +98,7 @@ public class PropInfo {
      * 保存一个值到对象对应的属性中
      *
      * @param object 对象
-     * @param value 需要保存的值
+     * @param value  需要保存的值
      */
     public void setValue(Object object, Object value) {
         if (index >= 0) {

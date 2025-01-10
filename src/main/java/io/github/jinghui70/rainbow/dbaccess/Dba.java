@@ -307,10 +307,6 @@ public class Dba {
         return new ObjectDao<>(this, (Class<T>) object.getClass()).delete(object);
     }
 
-    public <T> int deleteById(Class<T> deleteClass, Object id) {
-        return deleteFrom(DbaUtil.tableName(deleteClass)).where("id", id).execute();
-    }
-
     public <T> int deleteByKey(Class<T> deleteClass, Object... keys) {
         return new ObjectDao<>(this, deleteClass).deleteByKey(keys);
     }

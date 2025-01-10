@@ -110,7 +110,7 @@ public class ObjectTest extends BaseTest {
         assertEquals("name1", obj.getName());
 
         dba.delete(obj);
-        dba.deleteById(SimpleObject.class, 2);
+        dba.deleteByKey(SimpleObject.class, 2);
         dba.deleteByKey(SimpleObject.class, 3);
 
         int count = dba.select().from("SIMPLE_OBJECT").count();

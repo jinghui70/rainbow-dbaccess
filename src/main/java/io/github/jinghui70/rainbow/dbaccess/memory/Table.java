@@ -11,7 +11,7 @@ import java.util.Objects;
 
 public class Table {
 
-    public static final String DEFAULT = "X";
+    public static final String DEFAULT_NAME = "X";
     private final List<Field> fields;
     private String name;
 
@@ -20,8 +20,12 @@ public class Table {
         this.fields = fields;
     }
 
-    public static Table create(String name) {
-        return new Table(name, new ArrayList<>());
+    public Table(String name, Field... fields) {
+        this.name = name;
+        if (fields.length == 0)
+            this.fields = new ArrayList<>();
+        else
+            this.fields = CollUtil.newArrayList(fields);
     }
 
     public boolean hasKey() {
@@ -40,11 +44,6 @@ public class Table {
 
     public List<Field> getFields() {
         return fields;
-    }
-
-    public Table add(Field... fields) {
-        Collections.addAll(this.fields, fields);
-        return this;
     }
 
     public String ddl() {

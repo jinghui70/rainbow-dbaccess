@@ -2,7 +2,7 @@ package io.github.jinghui70.rainbow.dbaccess.tree;
 
 import io.github.jinghui70.rainbow.utils.tree.TreeNode;
 
-public class TreeObject extends TreeNode<TreeObject> {
+public class TreeOrg extends TreeNode<TreeOrg> {
 
     private String id;
 
@@ -42,5 +42,10 @@ public class TreeObject extends TreeNode<TreeObject> {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }

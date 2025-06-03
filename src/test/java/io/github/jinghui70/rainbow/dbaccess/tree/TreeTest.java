@@ -1,12 +1,9 @@
 package io.github.jinghui70.rainbow.dbaccess.tree;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.IdUtil;
 import io.github.jinghui70.rainbow.dbaccess.BaseTest;
 import io.github.jinghui70.rainbow.dbaccess.DbaTestUtil;
-import io.github.jinghui70.rainbow.utils.tree.FilterType;
-import io.github.jinghui70.rainbow.utils.tree.Tree;
-import io.github.jinghui70.rainbow.utils.tree.TreeUtils;
+import io.github.jinghui70.rainbow.utils.tree.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -14,15 +11,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TreeTest extends BaseTest {
 
     @BeforeEach
     void init() {
-        DbaTestUtil.initTable(dba, "TREE_OBJECT");
+        DbaTestUtil.initTable(dba, "TREE_ORG");
 
-        TreeObject root1 = new TreeObject();
+        TreeOrg root1 = new TreeOrg();
         root1.setId("root1");
         root1.setCode("1");
         root1.setName("ZZZ");
@@ -34,38 +30,38 @@ public class TreeTest extends BaseTest {
         root1.setName("AAA");
         dba.insert(root1);
 
-        TreeObject root2 = new TreeObject();
+        TreeOrg root2 = new TreeOrg();
         root2.setId("root2");
         root2.setPid("0");
         root2.setCode("2");
         root2.setName("HHH");
         dba.insert(root2);
 
-        TreeObject treeObject = new TreeObject();
-        treeObject.setId(IdUtil.fastSimpleUUID());
-        treeObject.setPid(root2.getId());
-        treeObject.setCode("21");
-        treeObject.setName("XXX");
-        dba.insert(treeObject);
+        TreeOrg treeOrg = new TreeOrg();
+        treeOrg.setId(IdUtil.fastSimpleUUID());
+        treeOrg.setPid(root2.getId());
+        treeOrg.setCode("21");
+        treeOrg.setName("XXX");
+        dba.insert(treeOrg);
 
-        treeObject = new TreeObject();
-        treeObject.setId(IdUtil.fastSimpleUUID());
-        treeObject.setPid(root2.getId());
-        treeObject.setCode("22");
-        treeObject.setName("DDD");
-        dba.insert(treeObject);
+        treeOrg = new TreeOrg();
+        treeOrg.setId(IdUtil.fastSimpleUUID());
+        treeOrg.setPid(root2.getId());
+        treeOrg.setCode("22");
+        treeOrg.setName("DDD");
+        dba.insert(treeOrg);
 
-        treeObject = new TreeObject();
-        treeObject.setId(IdUtil.fastSimpleUUID());
-        treeObject.setPid(root2.getId());
-        treeObject.setCode("23");
-        treeObject.setName("CCC");
-        dba.insert(treeObject);
+        treeOrg = new TreeOrg();
+        treeOrg.setId(IdUtil.fastSimpleUUID());
+        treeOrg.setPid(root2.getId());
+        treeOrg.setCode("23");
+        treeOrg.setName("CCC");
+        dba.insert(treeOrg);
     }
 
     @Test
     void testOrder() {
-        List<TreeObject> list = dba.select(TreeObject.class).orderBy("NAME").queryForList();
+        List<TreeOrg> list = dba.select(TreeOrg.class).orderBy("NAME").queryForList();
         assertEquals(6, list.size());
         assertEquals("AAA", list.get(0).getName());
         assertEquals("CCC", list.get(1).getName());
@@ -74,32 +70,34 @@ public class TreeTest extends BaseTest {
         assertEquals("XXX", list.get(4).getName());
         assertEquals("ZZZ", list.get(5).getName());
 
-        Tree<TreeObject> tree = dba.select(TreeObject.class).orderBy("NAME").queryForTree();
+        Tree<TreeOrg> tree = dba.select().from("TREE_ORG").orderBy("NAME").queryForTree(TreeOrg.class);
+        String treeInfo = TreeUtils.printTree(tree.getRoots(), TreeOrg::getName);
+        System.out.println(treeInfo);
         assertEquals(2, tree.getRoots().size());
         assertEquals("HHH", tree.getRoots().get(0).getName());
         assertEquals("ZZZ", tree.getRoots().get(1).getName());
 
-        TreeObject treeObject = tree.getRoot(0);
-        assertEquals(3, treeObject.getChildren().size());
-        assertEquals("CCC", treeObject.getChildren().get(0).getName());
-        assertEquals("DDD", treeObject.getChildren().get(1).getName());
-        assertEquals("XXX", treeObject.getChildren().get(2).getName());
+        TreeOrg org = tree.getRoots().get(0);
+        assertEquals(3, org.getChildren().size());
+        assertEquals("CCC", org.getChildren().get(0).getName());
+        assertEquals("DDD", org.getChildren().get(1).getName());
+        assertEquals("XXX", org.getChildren().get(2).getName());
 
-        tree = dba.select(TreeObject.class).orderBy("CODE").queryForTree();
+        tree = dba.select().from("TREE_ORG").orderBy("CODE").queryForTree(TreeOrg.class);
         assertEquals("ZZZ", tree.getRoots().get(0).getName());
         assertEquals("HHH", tree.getRoots().get(1).getName());
 
-        treeObject = tree.getRoot(1);
-        assertEquals(3, treeObject.getChildren().size());
-        assertEquals("XXX", treeObject.getChildren().get(0).getName());
-        assertEquals("DDD", treeObject.getChildren().get(1).getName());
-        assertEquals("CCC", treeObject.getChildren().get(2).getName());
+        org = tree.getRoots().get(1);
+        assertEquals(3, org.getChildren().size());
+        assertEquals("XXX", org.getChildren().get(0).getName());
+        assertEquals("DDD", org.getChildren().get(1).getName());
+        assertEquals("CCC", org.getChildren().get(2).getName());
     }
 
     @Test
     public void testTraverse() {
-        List<TreeObject> result = new ArrayList<>();
-        Tree<TreeObject> tree = dba.select(TreeObject.class).orderBy("CODE").queryForTree();
+        List<TreeOrg> result = new ArrayList<>();
+        Tree<TreeOrg> tree = dba.select().from("TREE_ORG").orderBy("CODE").queryForTree(TreeOrg.class);
         TreeUtils.traverse(tree.getRoots(), result::add, false);
 
         assertEquals(6, result.size());
@@ -113,56 +111,86 @@ public class TreeTest extends BaseTest {
 
     @Test
     public void testFilter() {
-        String pid = dba.select("ID").from(TreeObject.class).where("CODE", "22")
-                .queryForString();
+        Tree<TreeOrg> tree = dba.select().from("TREE_ORG").queryForTree(TreeOrg.class);
+        System.out.println(TreeUtils.printTree(tree.getRoots(), TreeOrg::getName));
+        // 测试基本过滤功能
+        List<TreeOrg> filtered = TreeUtils.filter(tree.getRoots(), node -> node.getName().equals("HHH"), false);
+        assertTreeStructure(tree.getRoots(),
+                "├── ZZZ\n" +
+                        "│   └── AAA\n" +
+                        "└── HHH\n" +
+                        "    ├── XXX\n" +
+                        "    ├── DDD\n" +
+                        "    └── CCC\n");
+        assertTreeStructure(filtered,
+                "└── HHH\n" +
+                        "    ├── XXX\n" +
+                        "    ├── DDD\n" +
+                        "    └── CCC\n");
+        // 测试递归过滤功能
+        filtered = TreeUtils.filter(tree.getRoots(), node -> node.getName().equals("HHH"), true);
+        assertTreeStructure(tree.getRoots(),
+                "├── ZZZ\n" +
+                        "│   └── AAA\n" +
+                        "└── HHH\n");
+        assertTreeStructure(filtered,
+                "└── HHH\n");
+        // 测试空树情况
+        List<TreeOrg> emptyList = new ArrayList<>();
+        filtered = TreeUtils.filter(emptyList, node -> true, false);
+        assertEquals(0, filtered.size());
 
-        TreeObject treeObject = new TreeObject();
-        treeObject.setId(IdUtil.fastSimpleUUID());
-        treeObject.setPid(pid);
-        treeObject.setCode("221");
-        treeObject.setName("221");
-        dba.insert(treeObject);
-        treeObject = new TreeObject();
-        treeObject.setId(IdUtil.fastSimpleUUID());
-        treeObject.setPid(pid);
-        treeObject.setCode("222");
-        treeObject.setName("222");
-        dba.insert(treeObject);
+        // 测试无匹配情况
+        filtered = TreeUtils.filter(tree.getRoots(), node -> false, false);
+        assertEquals(0, filtered.size());
+    }
 
-        Tree<TreeObjectClonable> tree = dba.select().from("TREE_OBJECT").orderBy("CODE")
-                .queryForTree(TreeObjectClonable.class);
-        List<TreeObjectClonable> filteredTree = TreeUtils.filter(tree.getRoots(), o -> "22".equals(o.getCode()), FilterType.MATCH_FIRST);
-        assertEquals(1, filteredTree.size()); // 2
-        TreeObjectClonable node = filteredTree.get(0);
-        assertEquals("2", node.getCode());
-        assertEquals(1, node.getChildren().size()); // 22
-        node = node.getChildren().get(0);
-        assertEquals("22", node.getCode());
-        assertTrue(CollUtil.isEmpty(node.getChildren()));
+    @Test
+    public void testFilterWrap() {
+        WrapTree<TreeOrg> tree = dba.select().from("TREE_ORG").queryForWrapTree(TreeOrg.class);
 
-        // 因为是 clone 版，不应该改变原树的数据
-        node = tree.getRoot(1).getChildren().get(1);
-        assertEquals("22", node.getCode());
-        assertEquals(2, node.getChildren().size());
+        // 测试基本过滤功能
+        List<TreeObject<TreeOrg>> filtered = TreeUtils.filter(tree.getRoots(), node -> node.getData().getName().equals("HHH"), false);
+        assertEquals(1, filtered.size());
+        assertEquals("HHH", filtered.get(0).getData().getName());
+        assertEquals(3, filtered.get(0).getChildren().size()); // 不递归过滤子节点
 
-        filteredTree = TreeUtils.filter(tree.getRoots(), o -> "22".equals(o.getCode()), FilterType.MATCH_FIRST_FULL);
-        node = filteredTree.get(0).getChildren().get(0);
-        assertEquals("22", node.getCode());
-        assertEquals(2, node.getChildren().size());
+        assertTreeStructure(tree.getRoots(),
+                "├── ZZZ\n" +
+                        "│   └── AAA\n" +
+                        "└── HHH\n" +
+                        "    ├── XXX\n" +
+                        "    ├── DDD\n" +
+                        "    └── CCC\n");
+        assertTreeStructure(filtered,
+                "└── HHH\n" +
+                        "    ├── XXX\n" +
+                        "    ├── DDD\n" +
+                        "    └── CCC\n");
+        // 测试递归过滤功能
+        filtered = TreeUtils.filter(tree.getRoots(), node -> node.getData().getName().equals("HHH"), true);
+        assertTreeStructure(tree.getRoots(),
+                "├── ZZZ\n" +
+                        "│   └── AAA\n" +
+                        "└── HHH\n" +
+                        "    ├── XXX\n" +
+                        "    ├── DDD\n" +
+                        "    └── CCC\n");
+        assertTreeStructure(filtered,
+                "└── HHH\n");
 
-        filteredTree = TreeUtils.filter(tree.getRoots(), o -> o.getCode().startsWith("2") && o.getCode().length() == 2, FilterType.MATCH_ALL);
-        node = filteredTree.get(0);
-        assertEquals(3, node.getChildren().size());
-        node = node.getChildren().get(1);
-        assertEquals("22", node.getCode());
-        assertTrue(CollUtil.isEmpty(node.getChildren()));
+        // 测试空树情况
+        List<TreeObject<TreeOrg>> emptyList = new ArrayList<>();
+        filtered = TreeUtils.filter(emptyList, node -> true, false);
+        assertEquals(0, filtered.size());
 
-        filteredTree = TreeUtils.filter(tree.getRoots(), o -> o.getCode().startsWith("2") && o.getCode().length() == 2, FilterType.MATCH_ALL_FULL);
-        node = filteredTree.get(0);
-        assertEquals(3, node.getChildren().size());
-        node = node.getChildren().get(1);
-        assertEquals("22", node.getCode());
-        assertEquals(2, node.getChildren().size());
+        // 测试无匹配情况
+        filtered = TreeUtils.filter(tree.getRoots(), node -> false, false);
+        assertEquals(0, filtered.size());
+    }
+
+    private <T extends ITreeNode<T>> void assertTreeStructure(List<T> nodes, String expect) {
+        assertEquals(expect, TreeUtils.printTree(nodes));
     }
 
 }

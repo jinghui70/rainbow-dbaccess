@@ -6,12 +6,15 @@ import io.github.jinghui70.rainbow.dbaccess.cnd.Cnds;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Op;
 import io.github.jinghui70.rainbow.dbaccess.enumSupport.EnumMapper;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldMapper;
+import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldValue;
 import io.github.jinghui70.rainbow.dbaccess.map.MapRowMapper;
 import io.github.jinghui70.rainbow.dbaccess.mapper.SingleColumnFieldRowMapper;
 import io.github.jinghui70.rainbow.dbaccess.object.BeanMapper;
 import io.github.jinghui70.rainbow.utils.StringBuilderWrapper;
 import io.github.jinghui70.rainbow.utils.tree.ITreeNode;
 import io.github.jinghui70.rainbow.utils.tree.Tree;
+import io.github.jinghui70.rainbow.utils.tree.TreeObject;
+import io.github.jinghui70.rainbow.utils.tree.WrapTree;
 import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -117,6 +120,18 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     public abstract S set(String field, Object value);
 
     /**
+     * 拼update语句的一个set部分，fieldMapper将value转换为与之对应的sql参数
+     *
+     * @param field  字段
+     * @param fieldMapper  将value转换为与之对应的sql参数
+     * @param value  新值
+     * @return  返回自己
+     */
+    public S set(String field, FieldMapper<?> fieldMapper, Object value) {
+        return set(field, new FieldValue(value, fieldMapper));
+    }
+
+    /**
      * 拼update语句的一个set部分，用于上一个方法不方便的时候。比如 set a = a + ?
      *
      * @param set 需要set的内容
@@ -133,6 +148,11 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
 
     public S set(boolean condition, String set) {
         if (condition) set(set);
+        return (S) this;
+    }
+
+    public S set(boolean condition, String field, FieldMapper<?> fieldMapper, Object value) {
+        if (condition) set(field, fieldMapper, value);
         return (S) this;
     }
 
@@ -542,6 +562,34 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
                 parent.addChild(item);
         }
         return new Tree<>(result, itemMap);
+    }
+
+    public <T> WrapTree<T> queryForWrapTree(Class<T> objectType) {
+        return queryForWrapTree(BeanMapper.of(objectType));
+    }
+    public <T>  WrapTree<T> queryForWrapTree(RowMapper<T> mapper) {
+        List<TreeObject<T>> result = new ArrayList<>();
+        Map<String, String> parentIdMap = new LinkedHashMap<>();
+        Map<String, TreeObject<T>> itemMap = new HashMap<>();
+        AtomicInteger row = new AtomicInteger(1);
+        query(rs -> {
+            String pid = rs.getString("PID");
+            String id = rs.getString("ID");
+            parentIdMap.put(id, pid);
+            T item = mapper.mapRow(rs, row.getAndIncrement());
+            itemMap.put(id, new TreeObject<T>(item));
+        });
+        for (Map.Entry<String, String> entry : parentIdMap.entrySet()) {
+            String id = entry.getKey();
+            String pid = entry.getValue();
+            TreeObject<T> item = itemMap.get(id);
+            TreeObject<T> parent = itemMap.get(pid);
+            if (parent == null) {
+                result.add(item);
+            } else
+                parent.addChild(item);
+        }
+        return new WrapTree<>(result, itemMap);
     }
 
     @Override

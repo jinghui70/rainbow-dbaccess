@@ -34,7 +34,4 @@ public class TreeNode<T extends TreeNode<T>> implements ITreeNode<T> {
         this.children.addAll(children);
     }
 
-    public boolean hasChild() {
-        return CollUtil.isNotEmpty(children);
-    }
 }

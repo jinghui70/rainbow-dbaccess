@@ -67,6 +67,12 @@ public abstract class StringBuilderWrapper<T extends StringBuilderWrapper<T>> im
         return (T) this;
     }
 
+    public T append(boolean condition, String str) {
+        checkTemp();
+        if (condition) sb.append(str);
+        return (T) this;
+    }
+
     /**
      * 把一个字符串复制多遍，用逗号分隔符，添加进来
      *
@@ -87,11 +93,13 @@ public abstract class StringBuilderWrapper<T extends StringBuilderWrapper<T>> im
      * @return 自己
      */
     public T repeat(String str, int times, String delimiter) {
-        append(str);
-        for (int i = 1; i < times; i++) {
-            if (StrUtil.isNotEmpty(delimiter))
-                sb.append(delimiter);
-            sb.append(str);
+        if (times > 0) {
+            append(str);
+            for (int i = 1; i < times; i++) {
+                if (StrUtil.isNotEmpty(delimiter))
+                    sb.append(delimiter);
+                sb.append(str);
+            }
         }
         return (T) this;
     }

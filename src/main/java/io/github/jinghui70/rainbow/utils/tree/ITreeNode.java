@@ -1,12 +1,19 @@
 package io.github.jinghui70.rainbow.utils.tree;
 
+import cn.hutool.core.collection.CollUtil;
+
+import java.util.Collection;
 import java.util.List;
 
 public interface ITreeNode<T extends ITreeNode<T>> {
 
-    public List<T> getChildren();
+    List<T> getChildren();
 
-    public void setChildren(List<T> children);
+    void setChildren(List<T> children);
 
-    public void addChild(T child);
+    void addChild(T child);
+
+    default boolean hasChild() {
+        return CollUtil.isNotEmpty(getChildren());
+    }
 }

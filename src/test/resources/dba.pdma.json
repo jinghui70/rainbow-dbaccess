@@ -4,7 +4,7 @@
   "avatar": "",
   "version": "4.9.4",
   "createdTime": "2024-9-14 22:14:06",
-  "updatedTime": "2024-12-26 13:39:40",
+  "updatedTime": "2025-5-1 10:05:56",
   "dbConns": [],
   "profile": {
     "default": {
@@ -1887,8 +1887,8 @@
           "codeRoot": ""
         }
       },
-      "defKey": "TREE_OBJECT",
-      "defName": "",
+      "defKey": "TREE_ORG",
+      "defName": "机构树",
       "comment": "",
       "properties": {
         "partitioned by": "(date string)",

@@ -2,6 +2,7 @@ package io.github.jinghui70.rainbow.dbaccess.enumSupport;
 
 import cn.hutool.core.util.EnumUtil;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldMapper;
+import org.springframework.lang.NonNull;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -42,7 +43,7 @@ public class EnumMapper<T extends Enum<T>> extends FieldMapper<T> {
     }
 
     @Override
-    public void saveToDB(PreparedStatement ps, int paramIndex, Object value) throws SQLException {
+    public void saveToDB(PreparedStatement ps, int paramIndex, @NonNull Object value) throws SQLException {
         if (isOrdinal)
             ps.setInt(paramIndex, ((Enum<?>) value).ordinal());
         else if (isCode)

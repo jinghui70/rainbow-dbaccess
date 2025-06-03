@@ -1,6 +1,8 @@
 package io.github.jinghui70.rainbow.dbaccess.lob;
 
 import cn.hutool.core.collection.ListUtil;
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
 import io.github.jinghui70.rainbow.dbaccess.BaseTest;
 import io.github.jinghui70.rainbow.dbaccess.DbaTestUtil;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.BlobObjectFieldMapper;
@@ -82,6 +84,17 @@ public class LobFieldTest extends BaseTest {
         assertEquals(2, array.length);
         assertTom(array[0]);
         assertJerry(array[1]);
+
+        // 测试提取 Json
+        JSONObject jsonObject = dba.select("LOB_OBJECT").from(BlobObject.class).where("id", 1)
+                .queryForValue(BlobObjectFieldMapper.of(JSONObject.class));
+        assertEquals("Tom", jsonObject.getStr("name"));
+
+        // 测试提取 JsonArray
+        JSONArray jsonArray = dba.select("LOB_ARRAY").from(BlobObject.class).where("id", 1)
+                .queryForValue(BlobObjectFieldMapper.of(JSONArray.class));
+        assertEquals("Tom", jsonArray.getJSONObject(0).getStr("name"));
+        assertEquals("Jerry", jsonArray.getJSONObject(1).getStr("name"));
     }
 
     @Test
@@ -112,6 +125,17 @@ public class LobFieldTest extends BaseTest {
         assertEquals(2, list.size());
         assertTom(list.get(0));
         assertJerry(list.get(1));
+
+        // 测试提取 Json
+        JSONObject jsonObject = dba.select("LOB_OBJECT").from(ClobObject.class).where("id", 1)
+                .queryForValue(ClobObjectFieldMapper.of(JSONObject.class));
+        assertEquals("Tom", jsonObject.getStr("name"));
+
+        // 测试提取 JsonArray
+        JSONArray jsonArray = dba.select("LOB_ARRAY").from(ClobObject.class).where("id", 1)
+                .queryForValue(ClobObjectFieldMapper.of(JSONArray.class));
+        assertEquals("Tom", jsonArray.getJSONObject(0).getStr("name"));
+        assertEquals("Jerry", jsonArray.getJSONObject(1).getStr("name"));
     }
 
 }

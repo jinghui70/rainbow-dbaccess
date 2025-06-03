@@ -12,6 +12,7 @@ import io.github.jinghui70.rainbow.dbaccess.object.ObjectSql;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.lang.NonNull;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -45,26 +46,69 @@ public class Dba {
             initDialect();
     }
 
+    /**
+     * Dba类的构造函数
+     *
+     * @param dataSource 数据源对象，提供数据库连接
+     *                   该构造函数用于初始化Dba对象。它接收一个参数：数据源（DataSource），该数据源对象负责提供数据库连接。
+     *                   在构造函数内部，调用initDataSource方法来初始化数据源，其中方言参数传递为null，表示使用默认方言设置。
+     */
     public Dba(DataSource dataSource) {
         initDataSource(dataSource, null);
     }
 
+    /**
+     * Dba类的构造函数
+     *
+     * @param dataSource 数据源对象，提供数据库连接
+     * @param dialect    方言对象，定义数据库操作的特定行为
+     *                   这个构造函数用于初始化Dba对象。它接收两个参数：数据源（DataSource）和方言（Dialect）。
+     *                   数据源对象负责提供数据库连接，而方言对象则定义了针对特定数据库的特定操作行为。
+     *                   在构造函数内部，调用initDataSource方法来使用提供的数据源和方言来初始化Dba对象。
+     */
     public Dba(DataSource dataSource, Dialect dialect) {
         initDataSource(dataSource, dialect);
     }
 
+    /**
+     * Dba类的构造函数
+     *
+     * @param jdbcTemplate        JdbcTemplate对象，用于执行数据库操作
+     * @param transactionTemplate TransactionTemplate对象，用于管理数据库事务
+     *                            这个构造函数用于初始化Dba对象。它接收两个参数：JdbcTemplate和TransactionTemplate。
+     *                            JdbcTemplate用于执行数据库操作，如查询、更新等。
+     *                            TransactionTemplate用于管理数据库事务，确保数据库操作的原子性、一致性、隔离性和持久性。
+     *                            在构造函数中，还调用了initDialect方法，该方法用于初始化方言配置，以确保数据库操作的正确性和效率。
+     */
     public Dba(JdbcTemplate jdbcTemplate, TransactionTemplate transactionTemplate) {
         this.jdbcTemplate = jdbcTemplate;
         this.transactionTemplate = transactionTemplate;
         initDialect();
     }
 
+    /**
+     * Dba类的构造函数
+     *
+     * @param jdbcTemplate        JdbcTemplate对象，用于执行数据库操作
+     * @param transactionTemplate TransactionTemplate对象，用于管理数据库事务
+     * @param dialect             方言对象，定义数据库操作的特定行为
+     *                            此构造函数用于初始化Dba对象。它接收三个参数：JdbcTemplate、TransactionTemplate和Dialect。
+     *                            JdbcTemplate用于执行数据库操作，如查询、更新等。
+     *                            TransactionTemplate用于管理数据库事务，确保数据库操作的原子性、一致性、隔离性和持久性。
+     *                            Dialect对象定义了针对特定数据库的特定操作行为，以确保数据库操作的正确性和效率。
+     *                            在构造函数内部，这些参数分别被赋值给Dba对象的相应属性。
+     */
     public Dba(JdbcTemplate jdbcTemplate, TransactionTemplate transactionTemplate, Dialect dialect) {
         this.jdbcTemplate = jdbcTemplate;
         this.transactionTemplate = transactionTemplate;
         this.dialect = dialect;
     }
 
+    /**
+     * 获取当前数据库连接的驱动名称
+     *
+     * @return 返回当前数据库连接的驱动名称
+     */
     public String getDriver() {
         DataSource dataSource = Objects.requireNonNull(jdbcTemplate.getDataSource());
         return DriverUtil.identifyDriver(dataSource);
@@ -89,26 +133,70 @@ public class Dba {
         return dialect;
     }
 
+    /**
+     * 返回一个Sql对象
+     *
+     * @return 返回一个新的Sql对象，该对象使用当前Dba实例作为数据源
+     */
     public Sql sql() {
         return new Sql(this);
     }
 
+    /**
+     * 创建一个包含指定SQL语句的Sql对象
+     *
+     * @param sql 需要附加的SQL语句
+     * @return 返回一个包含指定SQL语句的Sql对象
+     */
     public Sql sql(String sql) {
         return sql().append(sql);
     }
 
+    /**
+     * 创建一个用于执行SELECT *语句的Sql对象
+     *
+     * @return 返回一个包含"SELECT *" SQL语句的Sql对象
+     */
     public Sql select() {
         return sql("SELECT *");
     }
 
-    public Sql select(String select) {
-        return sql("SELECT ").append(select);
+
+    /**
+     * 根据指定的字段生成查询用的 Sql对象。
+     *
+     * @param fields 需要查询的字段，可以传入一个或多个字段名。不传默认为 *
+     * @return 根据字段生成的 Sql 对象。
+     */
+    public Sql select(String... fields) {
+        if (fields.length == 0)
+            return sql("SELECT *");
+        if (fields.length == 1)
+            return sql("SELECT ").append(fields[0]);
+        return sql("SELECT ").join(fields);
     }
 
+    /**
+     * 创建一个用于执行SELECT * FROM查询的ObjectSql对象
+     *
+     * @param <T>         实体类的类型
+     * @param selectClass 指定查询实体类
+     * @return 返回一个配置好的ObjectSql对象，用于执行SELECT * FROM 实体类对应数据表的查询
+     */
     public <T> ObjectSql<T> select(Class<T> selectClass) {
-        return new ObjectSql<>(this, selectClass).append("SELECT * FROM ").append(DbaUtil.tableName(selectClass));
+        return new ObjectSql<>(this, selectClass).append("SELECT * FROM ")
+                .append(DbaUtil.tableName(selectClass));
     }
 
+    /**
+     * 创建一个用于执行自定义SELECT查询的ObjectSql对象，并替换查询中的占位符
+     *
+     * @param <T>         实体类的类型
+     * @param selectClass 指定查询结果的实体类
+     * @param replaceMap  包含占位符及其替换值的映射表
+     * @return 返回一个配置好的ObjectSql对象，用于执行自定义SELECT查询
+     * @see ObjectSql#selectFields(Map)
+     */
     public <T> ObjectSql<T> select(Class<T> selectClass, Map<String, Object> replaceMap) {
         return new ObjectSql<>(this, selectClass).selectFields(replaceMap);
     }
@@ -141,8 +229,7 @@ public class Dba {
      * @return 插入改变的行数，正常应该是1
      */
     @SuppressWarnings("unchecked")
-    public <T> int insert(T bean) {
-        Assert.notNull(bean, "can't insert null object");
+    public <T> int insert(@NonNull T bean) {
         return new ObjectDao<>(this, (Class<T>) bean.getClass()).insert(bean);
     }
 
@@ -154,8 +241,7 @@ public class Dba {
      * @return 插入改变的行数，正常应该是1
      */
     @SuppressWarnings("unchecked")
-    public <T> int merge(T bean) {
-        Assert.notNull(bean, "can't insert null object");
+    public <T> int merge(@NonNull T bean) {
         return new ObjectDao<>(this, (Class<T>) bean.getClass()).merge(bean);
     }
 
@@ -169,6 +255,13 @@ public class Dba {
         insert(beans, 0);
     }
 
+    /**
+     * 将一个对象列表批量插入到数据库中。
+     *
+     * @param beans     需要插入的对象列表
+     * @param batchSize 批处理大小
+     * @param <T>       对象类型
+     */
     @SuppressWarnings("unchecked")
     public <T> void insert(List<T> beans, int batchSize) {
         if (CollUtil.isEmpty(beans)) return;
@@ -273,6 +366,14 @@ public class Dba {
         return new ObjectDao<>(this, (Class<T>) object.getClass()).delete(object);
     }
 
+    /**
+     * 根据键删除数据
+     *
+     * @param deleteClass 待删除数据的类类型
+     * @param keys        待删除数据的键
+     * @param <T>         泛型参数，表示待删除数据的类类型
+     * @return 删除的数据条数
+     */
     public <T> int deleteByKey(Class<T> deleteClass, Object... keys) {
         return new ObjectDao<>(this, deleteClass).deleteByKey(keys);
     }

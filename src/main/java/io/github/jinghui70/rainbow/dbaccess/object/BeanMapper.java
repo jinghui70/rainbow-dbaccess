@@ -3,6 +3,7 @@ package io.github.jinghui70.rainbow.dbaccess.object;
 import org.springframework.beans.BeanUtils;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.JdbcUtils;
+import org.springframework.lang.NonNull;
 import org.springframework.util.StringUtils;
 
 import java.sql.ResultSet;
@@ -36,6 +37,7 @@ public class BeanMapper<T> implements RowMapper<T> {
     }
 
     @Override
+    @NonNull
     public T mapRow(ResultSet rs, int rowNum) throws SQLException {
         T result = BeanUtils.instantiateClass(this.mappedClass);
         ResultSetMetaData metaData = rs.getMetaData();

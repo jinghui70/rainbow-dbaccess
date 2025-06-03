@@ -48,12 +48,12 @@ public class ObjectDao<T> {
         return doInsert(DbaUtil.tableName(clazz), object, MERGE_INTO);
     }
 
-    public int insert(String table, T object) {
-        return doInsert(table, object, INSERT_INTO);
+    public int insert(String tableName, T object) {
+        return doInsert(tableName, object, INSERT_INTO);
     }
 
-    public int merge(String table, T object) {
-        return doInsert(table, object, MERGE_INTO);
+    public int merge(String tableName, T object) {
+        return doInsert(tableName, object, MERGE_INTO);
     }
 
     private int doInsert(String table, T object, String action) {
@@ -68,32 +68,32 @@ public class ObjectDao<T> {
         doInsert(DbaUtil.tableName(clazz), objects, INSERT_INTO, 0);
     }
 
-    public void insert(String table, Collection<T> objects) {
-        doInsert(table, objects, INSERT_INTO, 0);
+    public void insert(String tableName, Collection<T> objects) {
+        doInsert(tableName, objects, INSERT_INTO, 0);
     }
 
     public void insert(Collection<T> objects, int batchSize) {
         doInsert(DbaUtil.tableName(clazz), objects, INSERT_INTO, batchSize);
     }
 
-    public void insert(String table, Collection<T> objects, int batchSize) {
-        doInsert(table, objects, INSERT_INTO, batchSize);
+    public void insert(String tableName, Collection<T> objects, int batchSize) {
+        doInsert(tableName, objects, INSERT_INTO, batchSize);
     }
 
     public void merge(Collection<T> objects) {
         doInsert(DbaUtil.tableName(clazz), objects, MERGE_INTO, 0);
     }
 
-    public void merge(String table, Collection<T> objects) {
-        doInsert(table, objects, MERGE_INTO, 0);
+    public void merge(String tableName, Collection<T> objects) {
+        doInsert(tableName, objects, MERGE_INTO, 0);
     }
 
     public void merge(Collection<T> objects, int batchSize) {
         doInsert(DbaUtil.tableName(clazz), objects, MERGE_INTO, batchSize);
     }
 
-    public void merge(String table, Collection<T> objects, int batchSize) {
-        doInsert(table, objects, MERGE_INTO, batchSize);
+    public void merge(String tableName, Collection<T> objects, int batchSize) {
+        doInsert(tableName, objects, MERGE_INTO, batchSize);
     }
 
     public void doInsert(String table, Collection<T> objects, String action, int batchSize) {

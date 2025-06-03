@@ -17,8 +17,11 @@ public class FieldValue {
         this.mapper = mapper;
     }
 
-    public void setValue(PreparedStatement ps, int paramIndex) throws SQLException {
+    public void setParameter(PreparedStatement ps, int paramIndex) throws SQLException {
         mapper.saveToDB(ps, paramIndex, value);
     }
 
+    public Object getValue() {
+        return value;
+    }
 }

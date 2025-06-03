@@ -66,7 +66,11 @@ public abstract class DbaUtil {
         }
 
         if (inValue instanceof FieldValue) {
-            ((FieldValue) inValue).setValue(ps, paramIndex);
+            FieldValue fv = (FieldValue) inValue;
+            if (fv.getValue()==null)
+                setParameterNull(ps, paramIndex, nullTypeCache);
+            else
+                fv.setParameter(ps, paramIndex);
             return;
         }
 

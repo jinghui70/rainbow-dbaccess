@@ -2,10 +2,12 @@ package io.github.jinghui70.rainbow.dbaccess;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.db.dialect.DriverNamePool;
 import cn.hutool.db.dialect.DriverUtil;
 import io.github.jinghui70.rainbow.dbaccess.dialect.Dialect;
 import io.github.jinghui70.rainbow.dbaccess.dialect.DialectDefault;
 import io.github.jinghui70.rainbow.dbaccess.dialect.DialectOracle;
+import io.github.jinghui70.rainbow.dbaccess.dialect.DialectPostgreSQL;
 import io.github.jinghui70.rainbow.utils.StringBuilderX;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -46,7 +48,7 @@ public class Dba {
         if (dialect != null)
             this.dialect = dialect;
         else
-            initDialect();
+            this.dialect = identifyDialect();
     }
 
     public Dba(DataSource dataSource) {
@@ -62,7 +64,7 @@ public class Dba {
         this.jdbcTemplate = jdbcTemplate;
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
         this.transactionTemplate = transactionTemplate;
-        initDialect();
+        this.dialect = identifyDialect();
     }
 
     public Dba(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate,
@@ -73,16 +75,17 @@ public class Dba {
         this.dialect = dialect;
     }
 
-    public String getDriver() {
+    protected Dialect identifyDialect() {
         DataSource dataSource = Objects.requireNonNull(jdbcTemplate.getDataSource());
-        return DriverUtil.identifyDriver(dataSource);
-    }
-
-    protected void initDialect() {
-        String driver = getDriver();
-        if (driver == null) return;
-        if (driver.toLowerCase().contains("oracle"))
-            this.dialect = new DialectOracle();
+        String driver = DriverUtil.identifyDriver(dataSource);
+        switch (driver) {
+            case DriverNamePool.DRIVER_POSTGRESQL:
+                return new DialectPostgreSQL();
+            case DriverNamePool.DRIVER_ORACLE:
+                return new DialectOracle();
+            default:
+                return DialectDefault.INSTANCE;
+        }
     }
 
     public JdbcTemplate getJdbcTemplate() {

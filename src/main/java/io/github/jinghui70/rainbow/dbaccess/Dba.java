@@ -2,10 +2,12 @@ package io.github.jinghui70.rainbow.dbaccess;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.db.dialect.DriverNamePool;
 import cn.hutool.db.dialect.DriverUtil;
 import io.github.jinghui70.rainbow.dbaccess.dialect.Dialect;
 import io.github.jinghui70.rainbow.dbaccess.dialect.DialectDefault;
 import io.github.jinghui70.rainbow.dbaccess.dialect.DialectOracle;
+import io.github.jinghui70.rainbow.dbaccess.dialect.DialectPostgreSQL;
 import io.github.jinghui70.rainbow.dbaccess.map.MapHandler;
 import io.github.jinghui70.rainbow.dbaccess.object.ObjectDao;
 import io.github.jinghui70.rainbow.dbaccess.object.ObjectSql;
@@ -40,10 +42,7 @@ public class Dba {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
         DataSourceTransactionManager transactionManager = new DataSourceTransactionManager(dataSource);
         this.transactionTemplate = new TransactionTemplate(transactionManager);
-        if (dialect != null)
-            this.dialect = dialect;
-        else
-            initDialect();
+        this.dialect = dialect == null ? identifyDialect() : dialect;
     }
 
     /**
@@ -83,7 +82,7 @@ public class Dba {
     public Dba(JdbcTemplate jdbcTemplate, TransactionTemplate transactionTemplate) {
         this.jdbcTemplate = jdbcTemplate;
         this.transactionTemplate = transactionTemplate;
-        initDialect();
+        this.dialect = identifyDialect();
     }
 
     /**
@@ -104,21 +103,18 @@ public class Dba {
         this.dialect = dialect;
     }
 
-    /**
-     * 获取当前数据库连接的驱动名称
-     *
-     * @return 返回当前数据库连接的驱动名称
-     */
-    public String getDriver() {
+    protected Dialect identifyDialect() {
         DataSource dataSource = Objects.requireNonNull(jdbcTemplate.getDataSource());
-        return DriverUtil.identifyDriver(dataSource);
-    }
-
-    protected void initDialect() {
-        String driver = getDriver();
-        if (driver == null) return;
-        if (driver.toLowerCase().contains("oracle"))
-            this.dialect = new DialectOracle();
+        String driver = DriverUtil.identifyDriver(dataSource);
+        switch (driver) {
+            case DriverNamePool.DRIVER_KINGBASE8:
+            case DriverNamePool.DRIVER_POSTGRESQL:
+                return new DialectPostgreSQL();
+            case DriverNamePool.DRIVER_ORACLE:
+                return new DialectOracle();
+            default:
+                return DialectDefault.INSTANCE;
+        }
     }
 
     public JdbcTemplate getJdbcTemplate() {

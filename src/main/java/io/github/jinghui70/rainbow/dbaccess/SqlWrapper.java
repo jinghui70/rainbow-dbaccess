@@ -1,5 +1,6 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Cnd;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Cnds;
@@ -287,6 +288,13 @@ public abstract class SqlWrapper<S extends SqlWrapper<S>> extends StringBuilderW
     public S orderBy(String fields) {
         if (StrUtil.isNotBlank(fields))
             return append(DbaUtil.ORDER_BY).append(fields);
+        return (S) this;
+    }
+
+    public S orderBy(Collection<OrderBy> orderBys) {
+        if (CollUtil.isNotEmpty(orderBys)) {
+            return append(DbaUtil.ORDER_BY).join(orderBys);
+        }
         return (S) this;
     }
 

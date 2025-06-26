@@ -1,1 +1,0 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=io.github.jinghui70.rainbow.dbaccess.DbaAutoConfiguration

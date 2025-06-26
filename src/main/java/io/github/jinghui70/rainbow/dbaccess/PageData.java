@@ -20,20 +20,20 @@ public class PageData<T> {
     /**
      * 查询的结果列表
      */
-    private List<T> rows;
+    private List<T> data;
 
     public PageData() {
-        rows = Collections.emptyList();
+        data = Collections.emptyList();
     }
 
     public PageData(int total) {
         this.total = total;
-        rows = Collections.emptyList();
+        data = Collections.emptyList();
     }
 
-    public PageData(int total, List<T> rows) {
+    public PageData(int total, List<T> data) {
         this.total = total;
-        this.rows = rows;
+        this.data = data;
     }
 
     public int getTotal() {
@@ -44,12 +44,12 @@ public class PageData<T> {
         this.total = total;
     }
 
-    public List<T> getRows() {
-        return rows;
+    public List<T> getData() {
+        return data;
     }
 
-    public void setRows(List<T> rows) {
-        this.rows = rows;
+    public void setData(List<T> data) {
+        this.data = data;
     }
 
     @Override

@@ -61,7 +61,7 @@ public class TreeTest extends BaseTest {
 
     @Test
     void testOrder() {
-        List<TreeOrg> list = dba.select(TreeOrg.class).orderBy("NAME").queryForList();
+        List<TreeOrg> list = dba.select().from("TREE_ORG").orderBy("NAME").queryForList(TreeOrg.class);
         assertEquals(6, list.size());
         assertEquals("AAA", list.get(0).getName());
         assertEquals("CCC", list.get(1).getName());

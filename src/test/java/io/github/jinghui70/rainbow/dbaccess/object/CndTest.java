@@ -31,42 +31,42 @@ public class CndTest extends BaseTest {
         dba.insert(list);
 
         // 基本 like
-        list = dba.select(SimpleObject.class)
-                .where("name", Op.LIKE, "李").queryForList();
+        list = dba.select().from("SIMPLE_OBJECT")
+                .where("name", Op.LIKE, "李").queryForList(SimpleObject.class);
         assertEquals(2, list.size());
 
         // 左侧李
-        SimpleObject so = dba.select(SimpleObject.class)
-                .where("name", Op.LIKE_LEFT, "李").queryForObject();
+        SimpleObject so = dba.select().from("SIMPLE_OBJECT")
+                .where("name", Op.LIKE_LEFT, "李").queryForObject(SimpleObject.class);
         assertEquals("李大宝", so.getName());
 
-        so = dba.select(SimpleObject.class)
-                .where("name", Op.LIKE, "李%").queryForObject();
+        so = dba.select().from("SIMPLE_OBJECT")
+                .where("name", Op.LIKE, "李%").queryForObject(SimpleObject.class);
         assertEquals("李大宝", so.getName());
 
-        so = dba.select(SimpleObject.class)
-                .where("name", Op.NOT_LIKE_LEFT, "李").queryForObject();
+        so = dba.select().from("SIMPLE_OBJECT")
+                .where("name", Op.NOT_LIKE_LEFT, "李").queryForObject(SimpleObject.class);
         assertEquals("刘思李", so.getName());
 
-        so = dba.select(SimpleObject.class)
-                .where("name", Op.NOT_LIKE, "李%").queryForObject();
+        so = dba.select().from("SIMPLE_OBJECT")
+                .where("name", Op.NOT_LIKE, "李%").queryForObject(SimpleObject.class);
         assertEquals("刘思李", so.getName());
 
         // 右侧李
-        so = dba.select(SimpleObject.class)
-                .where("name", Op.LIKE_RIGHT, "李").queryForObject();
+        so = dba.select().from("SIMPLE_OBJECT")
+                .where("name", Op.LIKE_RIGHT, "李").queryForObject(SimpleObject.class);
         assertEquals("刘思李", so.getName());
 
-        so = dba.select(SimpleObject.class)
-                .where("name", Op.LIKE, "%李").queryForObject();
+        so = dba.select().from("SIMPLE_OBJECT")
+                .where("name", Op.LIKE, "%李").queryForObject(SimpleObject.class);
         assertEquals("刘思李", so.getName());
 
-        so = dba.select(SimpleObject.class)
-                .where("name", Op.NOT_LIKE_RIGHT, "李").queryForObject();
+        so = dba.select().from("SIMPLE_OBJECT")
+                .where("name", Op.NOT_LIKE_RIGHT, "李").queryForObject(SimpleObject.class);
         assertEquals("李大宝", so.getName());
 
-        so = dba.select(SimpleObject.class)
-                .where("name", Op.NOT_LIKE, "%李").queryForObject();
+        so = dba.select().from("SIMPLE_OBJECT")
+                .where("name", Op.NOT_LIKE, "%李").queryForObject(SimpleObject.class);
         assertEquals("李大宝", so.getName());
     }
 
@@ -78,15 +78,15 @@ public class CndTest extends BaseTest {
         );
         dba.insert(list);
 
-        ObjectSql<SimpleObject> sql = dba.select(SimpleObject.class).where("SCORE_1", Range.of(70, null));
+        Sql sql = dba.select().from("SIMPLE_OBJECT").where("SCORE_1", Range.of(70, null));
         assertEquals("SELECT * FROM SIMPLE_OBJECT WHERE SCORE_1>=?", sql.getSql().toUpperCase());
-        assertEquals("李大宝", sql.queryForObject().getName());
+        assertEquals("李大宝", sql.queryForObject(SimpleObject.class).getName());
 
-        sql = dba.select(SimpleObject.class).where("SCORE_1", Range.of(null, 99));
+        sql = dba.select().from("SIMPLE_OBJECT").where("SCORE_1", Range.of(null, 99));
         assertEquals("SELECT * FROM SIMPLE_OBJECT WHERE SCORE_1<=?", sql.getSql().toUpperCase());
-        assertEquals("刘思李", sql.queryForObject().getName());
+        assertEquals("刘思李", sql.queryForObject(SimpleObject.class).getName());
 
-        sql = dba.select(SimpleObject.class).where("SCORE_1", Range.of(60, 100));
+        sql = dba.select().from("SIMPLE_OBJECT").where("SCORE_1", Range.of(60, 100));
         assertEquals("SELECT * FROM SIMPLE_OBJECT WHERE SCORE_1 BETWEEN ? AND ?", sql.getSql().toUpperCase());
         assertEquals(2, sql.queryForList().size());
     }
@@ -103,7 +103,7 @@ public class CndTest extends BaseTest {
         // IN
         try {
             // 不能是空参数
-            dba.select(SimpleObject.class).where("SCORE_2", Op.IN, null);
+            dba.select().from("SIMPLE_OBJECT").where("SCORE_2", Op.IN, null);
             fail();
         } catch(Exception e) {
             System.out.println(e.getMessage());
@@ -111,36 +111,36 @@ public class CndTest extends BaseTest {
 
         try {
             // 不能是空数组参数
-            dba.select(SimpleObject.class).where("SCORE_2", new Double[]{});
+            dba.select().from("SIMPLE_OBJECT").where("SCORE_2", new Double[]{});
             fail();
         } catch(Exception e) {
             System.out.println(e.getMessage());
         }
 
-        ObjectSql<SimpleObject> sql = dba.select(SimpleObject.class).where("SCORE_2", new Double[] {80.0} );
+        Sql sql = dba.select().from("SIMPLE_OBJECT").where("SCORE_2", new Double[] {80.0} );
         assertEquals("SELECT * FROM SIMPLE_OBJECT WHERE SCORE_2=?", sql.getSql());
-        assertEquals("李大宝", sql.queryForObject().getName());
+        assertEquals("李大宝", sql.queryForObject(SimpleObject.class).getName());
 
-        sql = dba.select(SimpleObject.class).where("SCORE_2", new Double[] {null} );
+        sql = dba.select().from("SIMPLE_OBJECT").where("SCORE_2", new Double[] {null} );
         assertEquals("SELECT * FROM SIMPLE_OBJECT WHERE SCORE_2 IS NULL", sql.getSql());
-        assertEquals("刘思李", sql.queryForObject().getName());
+        assertEquals("刘思李", sql.queryForObject(SimpleObject.class).getName());
 
-        sql = dba.select(SimpleObject.class).where("SCORE_2", new Double[] {80.0, null} ).orderBy("ID");
+        sql = dba.select().from("SIMPLE_OBJECT").where("SCORE_2", new Double[] {80.0, null} ).orderBy("ID");
         assertEquals("SELECT * FROM SIMPLE_OBJECT WHERE (SCORE_2=? OR SCORE_2 IS NULL) ORDER BY ID", sql.getSql());
-        list = sql.queryForList();
+        list = sql.queryForList(SimpleObject.class);
         assertEquals("李大宝", list.get(0).getName());
         assertEquals("刘思李", list.get(1).getName());
 
-        sql = dba.select(SimpleObject.class).where("SCORE_2", new Double[] {80.0, 60.0} ).orderBy("ID");
+        sql = dba.select().from("SIMPLE_OBJECT").where("SCORE_2", new Double[] {80.0, 60.0} ).orderBy("ID");
         assertEquals("SELECT * FROM SIMPLE_OBJECT WHERE SCORE_2 IN (?,?) ORDER BY ID", sql.getSql());
-        list = sql.queryForList();
+        list = sql.queryForList(SimpleObject.class);
         assertEquals("李大宝", list.get(0).getName());
         assertEquals("李小宝", list.get(1).getName());
 
         // NOT IN
         try {
             // 不能是空参数
-            dba.select(SimpleObject.class).where("SCORE_2", Op.NOT_IN, null);
+            dba.select().from("SIMPLE_OBJECT").where("SCORE_2", Op.NOT_IN, null);
             fail();
         } catch(Exception e) {
             System.out.println(e.getMessage());
@@ -148,19 +148,19 @@ public class CndTest extends BaseTest {
 
         try {
             // 不能是空数组参数
-            dba.select(SimpleObject.class).where("SCORE_2", Op.NOT_IN, new Double[]{});
+            dba.select().from("SIMPLE_OBJECT").where("SCORE_2", Op.NOT_IN, new Double[]{});
             fail();
         } catch(Exception e) {
             System.out.println(e.getMessage());
         }
 
-        sql = dba.select(SimpleObject.class).where("SCORE_2", Op.NOT_IN, new Double[] {80.0} );
+        sql = dba.select().from("SIMPLE_OBJECT").where("SCORE_2", Op.NOT_IN, new Double[] {80.0} );
         assertEquals("SELECT * FROM SIMPLE_OBJECT WHERE SCORE_2!=?", sql.getSql());
-        assertEquals("李小宝", sql.queryForObject().getName()); // null 是匹配不出来的
+        assertEquals("李小宝", sql.queryForObject(SimpleObject.class).getName()); // null 是匹配不出来的
 
-        sql = dba.select(SimpleObject.class).where("SCORE_2", Op.NOT_IN, new Double[] {80.0, 60.0} );
+        sql = dba.select().from("SIMPLE_OBJECT").where("SCORE_2", Op.NOT_IN, new Double[] {80.0, 60.0} );
         assertEquals("SELECT * FROM SIMPLE_OBJECT WHERE SCORE_2 NOT IN (?,?)", sql.getSql());
-        list = sql.queryForList();
+        list = sql.queryForList(SimpleObject.class);
         assertEquals(0, list.size()); // null 是匹配不出来的
     }
 

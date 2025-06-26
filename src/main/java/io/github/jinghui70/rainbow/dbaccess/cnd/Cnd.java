@@ -31,7 +31,7 @@ public class Cnd {
         this.field = field;
         this.op = op;
         this.value = value;
-        if (value instanceof SqlWrapper) return;
+        if (value instanceof Sql) return;
         switch (op) {
             case LIKE:
             case NOT_LIKE:
@@ -95,7 +95,7 @@ public class Cnd {
         this.value = value;
     }
 
-    public void toSql(GeneralSql<?> sql) {
+    public void toSql(Sql sql) {
         if (value instanceof Sql) {
             sql.append(field).append(op.str()).append("(").append((Sql) value).append(")");
             return;
@@ -125,7 +125,7 @@ public class Cnd {
         }
     }
 
-    private boolean rangeSql(GeneralSql<?> sql) {
+    private boolean rangeSql(Sql sql) {
         Range<?> range = paramToRange();
         if (range == null)
             return false;
@@ -154,7 +154,7 @@ public class Cnd {
             return null;
     }
 
-    private void inSql(GeneralSql<?> sql, Op singleOp) {
+    private void inSql(Sql sql, Op singleOp) {
         Object[] array = (Object[]) value;
         Object[] finalArray = Arrays.stream(array).filter(Objects::nonNull).map(DbaUtil::enumCheck).toArray();
         boolean hasNull = finalArray.length != array.length;

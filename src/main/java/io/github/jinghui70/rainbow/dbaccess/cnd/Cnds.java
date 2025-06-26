@@ -2,7 +2,7 @@ package io.github.jinghui70.rainbow.dbaccess.cnd;
 
 import cn.hutool.core.collection.CollUtil;
 import io.github.jinghui70.rainbow.dbaccess.DbaUtil;
-import io.github.jinghui70.rainbow.dbaccess.SqlWrapper;
+import io.github.jinghui70.rainbow.dbaccess.Sql;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -98,7 +98,7 @@ public class Cnds {
         return this;
     }
 
-    public void toSql(SqlWrapper<?> sql) {
+    public void toSql(Sql sql) {
         if (isEmpty()) return;
         if (isSingle()) {
             Cnd cnd = (Cnd) children.get(0);

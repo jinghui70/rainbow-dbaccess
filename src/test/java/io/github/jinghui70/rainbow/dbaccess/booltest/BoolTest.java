@@ -2,6 +2,8 @@ package io.github.jinghui70.rainbow.dbaccess.booltest;
 
 import io.github.jinghui70.rainbow.dbaccess.BaseTest;
 import io.github.jinghui70.rainbow.dbaccess.DbaTestUtil;
+import io.github.jinghui70.rainbow.dbaccess.fieldmapper.BoolFieldMapper;
+import io.github.jinghui70.rainbow.dbaccess.fieldmapper.BoolYN;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -43,13 +45,13 @@ public class BoolTest extends BaseTest {
         assertEquals(Boolean.TRUE, t.getYnBool());
         assertArrayEquals(array, t.getArray());
 
-        dba.update(TBool.class)
+        dba.update("T_BOOL")
                 .set("int_bool", false)
-                .set("string_bool", false)
-                .set("yn_bool", false)
-                .set("array_1", false)
-                .set("array_2", false)
-                .set("array_3", false)
+                .set("string_bool", new BoolFieldMapper(), false)
+                .set("yn_bool", new BoolYN(), false)
+                .set("array_1", new BoolFieldMapper(),false)
+                .set("array_2", new BoolFieldMapper(),false)
+                .set("array_3", new BoolFieldMapper(),false)
                 .where("id", "1")
                 .execute();
         map = dba.select().from("T_BOOL").where("ID", "1").queryForMap();
@@ -78,10 +80,10 @@ public class BoolTest extends BaseTest {
         t.setArray(array);
         dba.insert(t);
 
-        t = dba.select(TBool.class)
+        t = dba.select().from("T_BOOL")
                 .where("ARRAY_2", false)
                 .and("ARRAY_3", true)
-                .queryForObject();
+                .queryForObject(TBool.class);
         assertEquals(Boolean.TRUE, t.getIntBool());
         assertEquals(Boolean.FALSE, t.getStringBool());
         assertArrayEquals(array, t.getArray());

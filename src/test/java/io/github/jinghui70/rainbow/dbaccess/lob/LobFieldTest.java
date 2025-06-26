@@ -65,7 +65,7 @@ public class LobFieldTest extends BaseTest {
         obj.setLobArray(objectList);
         dba.insert(obj);
 
-        obj = dba.select(BlobObject.class).where("id", 1).queryForObject();
+        obj = dba.select().from("BLOB_OBJECT").where("id", 1).queryForObject(BlobObject.class);
         assertEquals(contentStr, obj.getLobString());
         assertArrayEquals(contentByte, obj.getLobByteArray());
         assertTom(obj.getLobObject());
@@ -75,23 +75,23 @@ public class LobFieldTest extends BaseTest {
         assertJerry(list.get(1));
 
         // 测试单个字段提取
-        SimpleObject so = dba.select("LOB_OBJECT").from(BlobObject.class).where("id", 1)
+        SimpleObject so = dba.select("LOB_OBJECT").from("BLOB_OBJECT").where("id", 1)
                 .queryForValue(BlobObjectFieldMapper.of(SimpleObject.class));
         assertTom(so);
 
-        SimpleObject[] array = dba.select("LOB_ARRAY").from(BlobObject.class).where("id", 1)
+        SimpleObject[] array = dba.select("LOB_ARRAY").from("BLOB_OBJECT").where("id", 1)
                 .queryForValue(BlobObjectFieldMapper.ofArray(SimpleObject.class));
         assertEquals(2, array.length);
         assertTom(array[0]);
         assertJerry(array[1]);
 
         // 测试提取 Json
-        JSONObject jsonObject = dba.select("LOB_OBJECT").from(BlobObject.class).where("id", 1)
+        JSONObject jsonObject = dba.select("LOB_OBJECT").from("BLOB_OBJECT").where("id", 1)
                 .queryForValue(BlobObjectFieldMapper.of(JSONObject.class));
         assertEquals("Tom", jsonObject.getStr("name"));
 
         // 测试提取 JsonArray
-        JSONArray jsonArray = dba.select("LOB_ARRAY").from(BlobObject.class).where("id", 1)
+        JSONArray jsonArray = dba.select("LOB_ARRAY").from("BLOB_OBJECT").where("id", 1)
                 .queryForValue(BlobObjectFieldMapper.of(JSONArray.class));
         assertEquals("Tom", jsonArray.getJSONObject(0).getStr("name"));
         assertEquals("Jerry", jsonArray.getJSONObject(1).getStr("name"));
@@ -107,7 +107,7 @@ public class LobFieldTest extends BaseTest {
         obj.setLobArray(objectList.toArray(new SimpleObject[0]));
         dba.insert(obj);
 
-        obj = dba.select(ClobObject.class).where("id", 1).queryForObject();
+        obj = dba.select().from("CLOB_OBJECT").where("id", 1).queryForObject(ClobObject.class);
         assertEquals(contentStr, obj.getLobString());
         assertTom(obj.getLobObject());
         SimpleObject[] array = obj.getLobArray();
@@ -116,23 +116,23 @@ public class LobFieldTest extends BaseTest {
         assertJerry(array[1]);
 
         // 测试单个字段提取
-        SimpleObject so = dba.select("LOB_OBJECT").from(ClobObject.class).where("id", 1)
+        SimpleObject so = dba.select("LOB_OBJECT").from("CLOB_OBJECT").where("id", 1)
                 .queryForValue(ClobObjectFieldMapper.of(SimpleObject.class));
         assertTom(so);
 
-        List<SimpleObject> list = dba.select("LOB_ARRAY").from(ClobObject.class).where("id", 1)
+        List<SimpleObject> list = dba.select("LOB_ARRAY").from("CLOB_OBJECT").where("id", 1)
                 .queryForValue(ClobObjectFieldMapper.ofList(SimpleObject.class));
         assertEquals(2, list.size());
         assertTom(list.get(0));
         assertJerry(list.get(1));
 
         // 测试提取 Json
-        JSONObject jsonObject = dba.select("LOB_OBJECT").from(ClobObject.class).where("id", 1)
+        JSONObject jsonObject = dba.select("LOB_OBJECT").from("CLOB_OBJECT").where("id", 1)
                 .queryForValue(ClobObjectFieldMapper.of(JSONObject.class));
         assertEquals("Tom", jsonObject.getStr("name"));
 
         // 测试提取 JsonArray
-        JSONArray jsonArray = dba.select("LOB_ARRAY").from(ClobObject.class).where("id", 1)
+        JSONArray jsonArray = dba.select("LOB_ARRAY").from("CLOB_OBJECT").where("id", 1)
                 .queryForValue(ClobObjectFieldMapper.of(JSONArray.class));
         assertEquals("Tom", jsonArray.getJSONObject(0).getStr("name"));
         assertEquals("Jerry", jsonArray.getJSONObject(1).getStr("name"));

@@ -33,7 +33,7 @@ public class AutoIncrementTest extends BaseTest {
     @Test
     public void testInsert() {
         dba.insert(list());
-        List<AutoIncrementObject> list = dba.select(AutoIncrementObject.class).orderBy("ID").queryForList();
+        List<AutoIncrementObject> list = dba.select().from("AUTO_INCREMENT_OBJECT").orderBy("ID").queryForList(AutoIncrementObject.class);
         assertEquals(10, list.size());
         AutoIncrementObject o = list.get(9);
         assertEquals("name10", o.getName());
@@ -45,11 +45,11 @@ public class AutoIncrementTest extends BaseTest {
     @Test
     public void testBatchInsert() {
         dba.insert(list(), 3);
-        List<AutoIncrementObject> list = dba.select(AutoIncrementObject.class).orderBy("ID").queryForList();
+        List<AutoIncrementObject> list = dba.select().from("AUTO_INCREMENT_OBJECT").orderBy("ID").queryForList(AutoIncrementObject.class);
         assertEquals(10, list.size());
         for (int i = 1; i <= 10; i++)
             assertEquals(i, list.get(i - 1).getId());
-        List<Integer> ids = dba.select("id").from(AutoIncrementObject.class).orderBy("ID").queryForList(Integer.class);
+        List<Integer> ids = dba.select("id").from("AUTO_INCREMENT_OBJECT").orderBy("ID").queryForList(Integer.class);
         for (int i = 1; i <= 10; i++)
             assertEquals(i, ids.get(i - 1));
     }
@@ -58,11 +58,11 @@ public class AutoIncrementTest extends BaseTest {
     public void testUpdate() {
         AutoIncrementObject o = new AutoIncrementObject("tom", null);
         dba.insert(o);
-        o = dba.select(AutoIncrementObject.class).where("NAME", "tom").queryForObject();
+        o = dba.select().from("AUTO_INCREMENT_OBJECT").where("NAME", "tom").queryForObject(AutoIncrementObject.class);
         o.setName("oldTom");
         o.setScores(new Double[]{100.0, 110.0});
         dba.update(o);
-        o = dba.select(AutoIncrementObject.class).where("ID", o.getId()).queryForObject();
+        o = dba.select().from("AUTO_INCREMENT_OBJECT").where("ID", o.getId()).queryForObject(AutoIncrementObject.class);
         assertEquals("oldTom", o.getName());
         assertEquals(100, o.getScores()[0]);
         assertEquals(110, o.getScores()[1]);

@@ -107,16 +107,16 @@ public class EnumTest extends BaseTest {
         assertEquals(MyEnum.LOCKED, map.get("NORMAL_ENUM"));
 
         // 测试在 IN 条件中的设值
-        t = dba.select(TEnum.class).where("NORMAL_ENUM", MyEnum.values())
-                .queryForObject();
+        t = dba.select().from("T_ENUM").where("NORMAL_ENUM", MyEnum.values())
+                .queryForObject(TEnum.class);
         assertEquals(2, t.getId());
 
-        t = dba.select(TEnum.class).where("NUMBER_ENUM", MyNumber.values())
-                .queryForObject();
+        t = dba.select().from("T_ENUM").where("NUMBER_ENUM", MyNumber.values())
+                .queryForObject(TEnum.class);
         assertEquals(2, t.getId());
 
-        t = dba.select(TEnum.class).where("CODE_ENUM", Op.IN, MyCode.values())
-                .where("id", 2).queryForObject();
+        t = dba.select().from("T_ENUM").where("CODE_ENUM", Op.IN, MyCode.values())
+                .where("id", 2).queryForObject(TEnum.class);
         assertEquals(MyCode.A, t.getCodeEnum());
     }
 }

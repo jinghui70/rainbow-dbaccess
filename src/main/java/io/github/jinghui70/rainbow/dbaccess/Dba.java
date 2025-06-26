@@ -10,7 +10,6 @@ import io.github.jinghui70.rainbow.dbaccess.dialect.DialectOracle;
 import io.github.jinghui70.rainbow.dbaccess.dialect.DialectPostgreSQL;
 import io.github.jinghui70.rainbow.dbaccess.map.MapHandler;
 import io.github.jinghui70.rainbow.dbaccess.object.ObjectDao;
-import io.github.jinghui70.rainbow.dbaccess.object.ObjectSql;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -172,49 +171,12 @@ public class Dba {
         return sql("SELECT ").join(fields);
     }
 
-    /**
-     * 创建一个用于执行SELECT * FROM查询的ObjectSql对象
-     *
-     * @param <T>         实体类的类型
-     * @param selectClass 指定查询实体类
-     * @return 返回一个配置好的ObjectSql对象，用于执行SELECT * FROM 实体类对应数据表的查询
-     */
-    public <T> ObjectSql<T> select(Class<T> selectClass) {
-        return new ObjectSql<>(this, selectClass).append("SELECT * FROM ")
-                .append(DbaUtil.tableName(selectClass));
-    }
-
-    /**
-     * 创建一个用于执行自定义SELECT查询的ObjectSql对象，并替换查询中的占位符
-     *
-     * @param <T>         实体类的类型
-     * @param selectClass 指定查询结果的实体类
-     * @param replaceMap  包含占位符及其替换值的映射表
-     * @return 返回一个配置好的ObjectSql对象，用于执行自定义SELECT查询
-     * @see ObjectSql#selectFields(Map)
-     */
-    public <T> ObjectSql<T> select(Class<T> selectClass, Map<String, Object> replaceMap) {
-        return new ObjectSql<>(this, selectClass).selectFields(replaceMap);
-    }
-
     public Sql update(String table) {
         return sql("UPDATE ").append(table);
     }
 
-    public <T> ObjectSql<T> update(Class<T> updateClass) {
-        return new ObjectSql<>(this, updateClass).append("UPDATE ").append(DbaUtil.tableName(updateClass));
-    }
-
-    public <T> ObjectSql<T> insertInto(Class<T> insertClass) {
-        return new ObjectSql<>(this, insertClass).insertInto();
-    }
-
     public Sql deleteFrom(String table) {
         return sql("DELETE FROM ").append(table);
-    }
-
-    public <T> ObjectSql<T> deleteFrom(Class<T> deleteClass) {
-        return new ObjectSql<>(this, deleteClass).append("DELETE FROM ").append(DbaUtil.tableName(deleteClass));
     }
 
     /**

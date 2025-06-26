@@ -115,11 +115,10 @@ public class TreeUtils {
         return result;
     }
 
-
     /**
      * 过滤树节点
      *
-     * @param <T>            树节点的类型，必须继承自ITreeNode<T>接口
+     * @param <T>            树节点的类型，必须继承自ITreeNode&lt;T&gt;接口
      * @param node           待过滤的树节点
      * @param predicate      用于判断节点是否符合条件的谓词
      * @param recurseOnMatch 当节点符合条件时是否递归过滤其子节点

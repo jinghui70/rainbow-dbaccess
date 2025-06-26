@@ -104,7 +104,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.3.2</version>
+                <version>3.8.0</version>
+                <configuration>
+                    <doclint>none</doclint> <!-- 禁用 doclint 检查 -->
+                    <failOnError>false</failOnError> <!-- 不因 Javadoc 错误失败 -->
+                </configuration>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>

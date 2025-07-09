@@ -4,7 +4,9 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
-import io.github.jinghui70.rainbow.dbaccess.*;
+import io.github.jinghui70.rainbow.dbaccess.DbaUtil;
+import io.github.jinghui70.rainbow.dbaccess.Range;
+import io.github.jinghui70.rainbow.dbaccess.Sql;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -31,52 +33,6 @@ public class Cnd {
         this.field = field;
         this.op = op;
         this.value = value;
-        if (value instanceof Sql) return;
-        switch (op) {
-            case LIKE:
-            case NOT_LIKE:
-                String str = value.toString();
-                if (str.startsWith("%") || str.endsWith("%")) {
-                    this.value = str;
-                } else
-                    this.value = StrUtil.format("%{}%", str);
-                break;
-            case LIKE_LEFT:
-            case NOT_LIKE_LEFT:
-                this.value = value + "%";
-                break;
-            case LIKE_RIGHT:
-            case NOT_LIKE_RIGHT:
-                this.value = "%" + value;
-                break;
-            case EQ:
-                if (ArrayUtil.isArray(value) || value instanceof Collection) {
-                    this.op = Op.IN;
-                    this.value = inValue(value);
-                }
-                break;
-            case NE:
-                if (ArrayUtil.isArray(value) || value instanceof Collection) {
-                    this.op = Op.NOT_IN;
-                    this.value = inValue(value);
-                }
-                break;
-            case IN:
-            case NOT_IN:
-                this.value = inValue(value);
-                break;
-            default:
-                break;
-        }
-    }
-
-    private Object[] inValue(Object value) {
-        Assert.notNull(value, "value of in/not_in condition cannot be null");
-        Object[] array = ArrayUtil.isArray(value)
-                ? (Object[]) value
-                : (value instanceof Collection) ? ((Collection<?>) value).toArray() : null;
-        Assert.isTrue(ArrayUtil.isNotEmpty(array), "value of in/not_in condition should be an array or collection and cannot be empty");
-        return array;
     }
 
     public String getField() {
@@ -87,6 +43,16 @@ public class Cnd {
         this.field = field;
     }
 
+    @SuppressWarnings("unused")
+    public Op getOp() {
+        return op;
+    }
+
+    @SuppressWarnings("unused")
+    public void setOp(Op op) {
+        this.op = op;
+    }
+
     public Object getValue() {
         return value;
     }
@@ -95,29 +61,69 @@ public class Cnd {
         this.value = value;
     }
 
+    private String likeValue() {
+        String str = value.toString();
+        return switch (op) {
+            case LIKE_LEFT,
+                 NOT_LIKE_LEFT -> value + "%";
+            case LIKE_RIGHT, NOT_LIKE_RIGHT -> "%" + value;
+            default -> {
+                if (str.startsWith("%") || str.endsWith("%")) {
+                    yield str;
+                } else
+                    yield "%" + str + "%";
+            }
+        };
+    }
+
+    private Object[] inValue() {
+        Assert.notNull(value, "value of in/not_in condition cannot be null");
+        Object[] array = ArrayUtil.isArray(value)
+                ? (Object[]) value
+                : (value instanceof Collection) ? ((Collection<?>) value).toArray() : null;
+        Assert.isTrue(ArrayUtil.isNotEmpty(array), "value of in/not_in condition should be an array or collection and cannot be empty");
+        return array;
+    }
+
     public void toSql(Sql sql) {
-        if (value instanceof Sql) {
+        if (op == null) op = Op.EQ;
+        if (value != null && value instanceof Sql) {
             sql.append(field).append(op.str()).append("(").append((Sql) value).append(")");
             return;
         }
         switch (op) {
             case EQ:
-                if (value == null) sql.append(field).append(" IS NULL");
-                else if (!rangeSql(sql)) sql.append(field).append("=?").addParam(enumCheck(value));
+                if (rangeSql(sql)) return;
+                if (value == null) {
+                    sql.append(field).append(Op.IS_NULL.str());
+                } else if (ArrayUtil.isArray(value) || value instanceof Collection) {
+                    inSql(sql, Op.IN, inValue());
+                } else
+                    sql.append(field).append("=?").addParam(enumCheck(value));
                 break;
             case NE:
-                if (value == null) sql.append(field).append("IS NOT NULL");
-                else sql.append(field).append("!=?").addParam(enumCheck(value));
+                if (value == null) {
+                    sql.append(field).append(Op.IS_NOT_NULL.str());
+                } else if (ArrayUtil.isArray(value) || value instanceof Collection) {
+                    inSql(sql, Op.NOT_IN, inValue());
+                } else
+                    sql.append(field).append("!=?").addParam(enumCheck(value));
                 break;
             case LIKE:
             case NOT_LIKE:
-                sql.append(field).append(op.str()).append("?").addParam(value);
+            case LIKE_LEFT:
+            case NOT_LIKE_LEFT:
+            case LIKE_RIGHT:
+            case NOT_LIKE_RIGHT:
+                sql.append(field).append(op.str()).append("?").addParam(likeValue());
                 break;
             case IN:
-                inSql(sql, Op.EQ);
-                break;
             case NOT_IN:
-                inSql(sql, Op.NE);
+                inSql(sql, op, inValue());
+                break;
+            case IS_NULL:
+            case IS_NOT_NULL:
+                sql.append(field).append(op.str());
                 break;
             default:
                 sql.append(field).append(op.str()).append("?").addParam(enumCheck(value));
@@ -154,20 +160,20 @@ public class Cnd {
             return null;
     }
 
-    private void inSql(Sql sql, Op singleOp) {
-        Object[] array = (Object[]) value;
+    private void inSql(Sql sql, Op useOp, Object[] array) {
         Object[] finalArray = Arrays.stream(array).filter(Objects::nonNull).map(DbaUtil::enumCheck).toArray();
         boolean hasNull = finalArray.length != array.length;
         if (finalArray.length == 0) {
-            if (hasNull) sql.append(field).append(op == Op.IN ? " IS NULL" : " IS NOT NULL");
+            if (hasNull) sql.append(field).append(useOp == Op.IN ? " IS NULL" : " IS NOT NULL");
             return;
         }
-        hasNull = hasNull && op == Op.IN; // 只有 IN 的时候 才拼 is null 条件， NOT_IN 没有意义
+        hasNull = hasNull && useOp == Op.IN; // 只有 IN 的时候 才拼 is null 条件， NOT_IN 没有意义
         if (hasNull) sql.append("(");
         if (finalArray.length == 1) {
-            sql.append(field).append(singleOp.str()).append("?").addParam(finalArray[0]);
+            String opStr = useOp == Op.IN ? Op.EQ.str() : Op.NE.str();
+            sql.append(field).append(opStr).append("?").addParam(finalArray[0]);
         } else {
-            sql.append(field).append(op.str()).append("(").repeat("?", finalArray.length).append(")")
+            sql.append(field).append(useOp.str()).append("(").repeat("?", finalArray.length).append(")")
                     .addParam(finalArray);
         }
         if (hasNull) sql.append(DbaUtil.OR).append(field).append(" IS NULL").append(")");

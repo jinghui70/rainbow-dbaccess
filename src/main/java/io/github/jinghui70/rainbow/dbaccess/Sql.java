@@ -1,6 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Cnd;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Cnds;
@@ -131,9 +132,9 @@ public class Sql extends StringBuilderWrapper<Sql> {
         }
     }
 
-    private Sql where() {
+    private Sql where(boolean and) {
         if (where) {
-            return append(DbaUtil.AND);
+            return append(and ? DbaUtil.AND : DbaUtil.OR);
         } else {
             where = true;
             return append(DbaUtil.WHERE);
@@ -195,8 +196,15 @@ public class Sql extends StringBuilderWrapper<Sql> {
         return this;
     }
 
+    private boolean checkNotEmpty(Object value) {
+        if (value==null) return false;
+        if (value instanceof Collection<?> c && c.isEmpty()) return false;
+        if (ArrayUtil.isArray(value) && ArrayUtil.isEmpty(value)) return false;
+        return !(value instanceof String s) || !StrUtil.isBlank(s);
+    }
+
     public Sql where(String str) {
-        return where().append(str);
+        return where(true).append(str);
     }
 
     public Sql where(String field, Object value) {
@@ -208,16 +216,16 @@ public class Sql extends StringBuilderWrapper<Sql> {
     }
 
     public Sql where(Cnd cnd) {
-        return where().append(cnd);
+        return where(true).append(cnd);
     }
 
     public Sql where(Cnds cnds) {
-        if (!cnds.isEmpty()) return where().append(cnds);
+        if (!cnds.isEmpty()) return where(true).append(cnds);
         return this;
     }
 
     public Sql where(boolean condition, String str) {
-        return condition ? where().append(str) : this;
+        return condition ? where(true).append(str) : this;
     }
 
     public Sql where(boolean condition, String field, Object value) {
@@ -232,9 +240,17 @@ public class Sql extends StringBuilderWrapper<Sql> {
         if (condition) {
             Cnds cnds = supplier.get();
             if (!cnds.isEmpty())
-                return where().append(cnds);
+                return where(true).append(cnds);
         }
         return this;
+    }
+
+    public Sql whereNotEmpty(String field, Object value) {
+        return where(checkNotEmpty(value), field, value);
+    }
+
+    public Sql whereNotEmpty(String field, Op op, Object value) {
+        return where(checkNotEmpty(value), field, op, value);
     }
 
     public Sql and(String str) {
@@ -273,8 +289,16 @@ public class Sql extends StringBuilderWrapper<Sql> {
         return where(condition, supplier);
     }
 
+    public Sql andNotEmpty(String field, Object value) {
+        return and(checkNotEmpty(value), field, Op.EQ, value);
+    }
+
+    public Sql andNotEmpty(String field, Op op, Object value) {
+        return and(checkNotEmpty(value), field, op, value);
+    }
+
     public Sql or(String str) {
-        return append(DbaUtil.OR).append(str);
+        return where(false).append(str);
     }
 
     public Sql or(String field, Object value) {
@@ -286,28 +310,40 @@ public class Sql extends StringBuilderWrapper<Sql> {
     }
 
     public Sql or(Cnd cnd) {
-        return append(DbaUtil.OR).append(cnd);
+        return or(true, cnd);
     }
 
     public Sql or(Cnds cnds) {
-        return cnds.isEmpty() ? this : append(DbaUtil.OR).append(cnds);
+        return cnds.isEmpty() ? this : where(false).append(cnds);
     }
 
     public Sql or(boolean condition, String field, Object value) {
-        return or(condition, field, Op.EQ, value);
+        return or(condition, new Cnd(field, Op.EQ, value));
     }
 
     public Sql or(boolean condition, String field, Op op, Object value) {
-        return condition ? append(DbaUtil.OR).append(new Cnd(field, op, value)) : this;
+        return or(condition, new Cnd(field, op, value));
+    }
+
+    public Sql or(boolean condition, Cnd cnd) {
+        return condition ? where(false).append(cnd) : this;
     }
 
     public Sql or(boolean condition, Supplier<Cnds> supplier) {
         if (condition) {
             Cnds cnds = supplier.get();
             if (!cnds.isEmpty())
-                return append(DbaUtil.OR).append(cnds);
+                return or(cnds);
         }
         return this;
+    }
+
+    public Sql orNotEmpty(String field, Object value) {
+        return or(checkNotEmpty(value), field, value);
+    }
+
+    public Sql orNotEmpty(String field, Op op, Object value) {
+        return or(checkNotEmpty(value), field, op, value);
     }
 
     public Sql orderBy(String fields) {
@@ -373,18 +409,18 @@ public class Sql extends StringBuilderWrapper<Sql> {
 
 
     public <T> T queryForObject(RowMapper<T> mapper) {
-        if (params.isEmpty())
-            return dba.getJdbcTemplate().queryForObject(getSql(), mapper);
-        else
-            return dba.getJdbcTemplate().queryForObject(getSql(), mapper, params.toArray());
+        try {
+            if (params.isEmpty())
+                return dba.getJdbcTemplate().queryForObject(getSql(), mapper);
+            else
+                return dba.getJdbcTemplate().queryForObject(getSql(), mapper, params.toArray());
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
     public <T> Optional<T> queryForObjectOptional(RowMapper<T> mapper) {
-        try {
-            return Optional.ofNullable(queryForObject(mapper));
-        } catch (EmptyResultDataAccessException e) {
-            return Optional.empty();
-        }
+        return Optional.ofNullable(queryForObject(mapper));
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -399,11 +435,7 @@ public class Sql extends StringBuilderWrapper<Sql> {
     }
 
     public <T> Optional<T> queryForValueOptional(Class<T> requiredType) {
-        try {
-            return Optional.ofNullable(queryForValue(requiredType));
-        } catch (EmptyResultDataAccessException e) {
-            return Optional.empty();
-        }
+        return Optional.ofNullable(queryForValue(requiredType));
     }
 
     public <T> T queryForValue(FieldMapper<T> mapper) {
@@ -411,11 +443,7 @@ public class Sql extends StringBuilderWrapper<Sql> {
     }
 
     public <T> Optional<T> queryForValueOptional(FieldMapper<T> mapper) {
-        try {
-            return Optional.ofNullable(queryForValue(mapper));
-        } catch (EmptyResultDataAccessException e) {
-            return Optional.empty();
-        }
+        return Optional.ofNullable(queryForValue(mapper));
     }
 
     public String queryForString() {
@@ -509,9 +537,9 @@ public class Sql extends StringBuilderWrapper<Sql> {
             sql = String.format("SELECT COUNT(*) FROM (%s) C", sql);
         } else {
             int orderBy = sql.lastIndexOf(DbaUtil.ORDER_BY);
-            sql = "select count(1) " + sql.substring(sql.indexOf("FROM"), orderBy > 0 ? orderBy : sql.length());
+            sql = "select count(*) " + sql.substring(sql.indexOf("FROM"), orderBy > 0 ? orderBy : sql.length());
         }
-        Integer result = dba.getJdbcTemplate().queryForObject(sql, Integer.class);
+        Integer result = dba.getJdbcTemplate().queryForObject(sql, Integer.class, params.toArray());
         return result == null ? 0 : result;
     }
 
@@ -675,6 +703,22 @@ public class Sql extends StringBuilderWrapper<Sql> {
     public Sql disableCountOptimization() {
         this.countOptimization = false;
         return this;
+    }
+
+    public boolean exist() {
+        String sql = getSql().toUpperCase();
+        if (!countOptimization || sql.contains("DISTINCT") || sql.contains(DbaUtil.GROUP_BY) || sql.contains(" UNION ")) {
+            sql = String.format("SELECT 1 FROM (%s LIMIT 1) C", sql);
+        } else {
+            sql = "select 1 " + sql.substring(sql.indexOf("FROM"));
+            sql = dba.getDialect().wrapLimitSql(sql, 1);
+        }
+        try {
+            dba.getJdbcTemplate().queryForObject(sql, Integer.class, params.toArray());
+            return true;
+        } catch (EmptyResultDataAccessException e) {
+            return false;
+        }
     }
 
     public Sql limit(int limit) {

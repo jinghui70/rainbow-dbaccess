@@ -11,8 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ObjectTest extends BaseTest {
 
@@ -35,6 +34,7 @@ public class ObjectTest extends BaseTest {
 
     @Test
     public void testInsert() {
+        assertFalse(dba.select().from("SIMPLE_OBJECT").exist());
         dba.insert(list());
         List<SimpleObject> list = dba.select().from("SIMPLE_OBJECT").orderBy("ID").queryForList(SimpleObject.class);
         assertEquals(10, list.size());
@@ -44,6 +44,8 @@ public class ObjectTest extends BaseTest {
         assertEquals(100, o.getScore()[0]);
         assertEquals(101, o.getScore()[1]);
         assertEquals(102, o.getScore()[2]);
+        assertTrue(dba.select().from("SIMPLE_OBJECT").exist());
+        assertFalse(dba.select("DISTINCT ID").from("SIMPLE_OBJECT").where("ID", 123).exist());
     }
 
     @Test

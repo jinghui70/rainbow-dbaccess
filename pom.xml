@@ -6,17 +6,16 @@
 
     <groupId>io.github.jinghui70</groupId>
     <artifactId>rainbow-dbaccess</artifactId>
-    <version>5.3.1</version>
+    <version>6.0.0</version>
 
-    <name>Rainbow DBAccess</name>
-    <description>Rainbow DBAccess</description>
+    <name>rainbow-dbaccess</name>
+    <description>A powerful database access tool with ORM support, built on Spring JDBC.</description>
     <url>https://github.com/jinghui70/rainbow-dbaccess</url>
     <packaging>jar</packaging>
     <licenses>
         <license>
             <name>MIT License</name>
-            <url>https://www.opensource.org/licenses/mit-license.php</url>
-            <distribution>repo</distribution>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
         </license>
     </licenses>
     <developers>
@@ -27,8 +26,8 @@
         </developer>
     </developers>
     <scm>
-        <connection>scm:git:git://github.com/jinghui70/rainbow-dbaccess</connection>
-        <developerConnection>scm:git:git://github.com/jinghui70/rainbow-dbaccess</developerConnection>
+        <connection>scm:git:git://github.com/jinghui70/rainbow-dbaccess.git</connection>
+        <developerConnection>scm:git:ssh://github.com/jinghui70/rainbow-dbaccess.git</developerConnection>
         <url>https://github.com/jinghui70/rainbow-dbaccess</url>
     </scm>
     <issueManagement>
@@ -42,16 +41,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -66,7 +55,7 @@
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
-            <version>5.8.25</version>
+            <version>5.8.39</version>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
@@ -136,6 +125,16 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0-M7</version>
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>0.8.0</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <publishingServerId>central</publishingServerId>
+                    <autoPublish>true</autoPublish>
+                </configuration>
             </plugin>
         </plugins>
     </build>

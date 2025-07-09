@@ -17,7 +17,9 @@ public enum Op {
     NOT_LIKE_LEFT(DbaUtil.NOT_LIKE),
     NOT_LIKE_RIGHT(DbaUtil.NOT_LIKE),
     IN(" IN "),
-    NOT_IN(" NOT IN ");
+    NOT_IN(" NOT IN "),
+    IS_NULL(" IS NULL"),
+    IS_NOT_NULL(" IS NOT NULL");
 
     private final String op;
 

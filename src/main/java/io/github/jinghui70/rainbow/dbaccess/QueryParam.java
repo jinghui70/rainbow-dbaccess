@@ -3,11 +3,13 @@ package io.github.jinghui70.rainbow.dbaccess;
 import cn.hutool.core.collection.CollUtil;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Cnd;
 import io.github.jinghui70.rainbow.dbaccess.cnd.CndPlus;
+import io.github.jinghui70.rainbow.dbaccess.cnd.Op;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class QueryParam {
 
@@ -25,6 +27,8 @@ public class QueryParam {
 
     private int pageSize;
 
+    private Consumer<Sql> sqlConsumer;
+
     public String getEntity() {
         return entity;
     }
@@ -38,8 +42,15 @@ public class QueryParam {
         return fields;
     }
 
-    public void setFields(List<String> fields) {
+    public QueryParam setFields(List<String> fields) {
         this.fields = fields;
+        return this;
+    }
+
+    public QueryParam addField(String field) {
+        if (fields == null) fields = new LinkedList<>();
+        fields.add(field);
+        return this;
     }
 
     public List<Cnd> getCnds() {
@@ -82,11 +93,31 @@ public class QueryParam {
         this.pageSize = pageSize;
     }
 
+    public QueryParam orderBy(String field) {
+        return orderBy(field, false);
+    }
+
     public QueryParam orderBy(String field, boolean desc) {
         if (orderBys == null) {
             orderBys = new LinkedList<>();
         }
         orderBys.add(new OrderBy(field, desc));
+        return this;
+    }
+
+    public QueryParam addCnd(Cnd cnd) {
+        if (cnds == null)
+            cnds = new LinkedList<>();
+        cnds.add(cnd);
+        return this;
+    }
+
+    public QueryParam addCnd(String field, Op op, Object value) {
+        return addCnd(new Cnd(field, op, value));
+    }
+
+    public QueryParam addCnd(Consumer<Sql> consumer) {
+        this.sqlConsumer = consumer;
         return this;
     }
 
@@ -105,6 +136,9 @@ public class QueryParam {
         }
         if (cndPlus != null) {
             sql.where(cndPlus);
+        }
+        if (sqlConsumer != null) {
+            sqlConsumer.accept(sql);
         }
         if (CollUtil.isNotEmpty(orderBys)) {
             sql.orderBy(orderBys);

@@ -1,3 +1,17 @@
+## [6.0.0]
+
+### Features
+
+- 支持 jdk 17+，不支持 1.8了
+- 废除 ObjectSql 
+- 集中API 到 Dba，Sql两个文件
+- 增加 CamelCaseMapMapper
+- 优化 QueryParam
+
+### Bug Fixes
+
+- **Cnd**: Op 参数为空，SQL错误
+
 
 ## [5.2.11](https://github.com/jinghui70/rainbow-dbaccess/compare/v5.2.11...v5.2.12) (2024-12-26)
 

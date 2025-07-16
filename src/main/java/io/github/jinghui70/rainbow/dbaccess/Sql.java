@@ -1,7 +1,6 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Cnd;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Cnds;
@@ -196,19 +195,12 @@ public class Sql extends StringBuilderWrapper<Sql> {
         return this;
     }
 
-    private boolean checkNotEmpty(Object value) {
-        if (value==null) return false;
-        if (value instanceof Collection<?> c && c.isEmpty()) return false;
-        if (ArrayUtil.isArray(value) && ArrayUtil.isEmpty(value)) return false;
-        return !(value instanceof String s) || !StrUtil.isBlank(s);
-    }
-
     public Sql where(String str) {
         return where(true).append(str);
     }
 
     public Sql where(String field, Object value) {
-        return where(true, field, Op.EQ, value);
+        return where(true, field, value);
     }
 
     public Sql where(String field, Op op, Object value) {
@@ -229,6 +221,9 @@ public class Sql extends StringBuilderWrapper<Sql> {
     }
 
     public Sql where(boolean condition, String field, Object value) {
+        if (Op.IS_NULL.equals(value) || Op.IS_NOT_NULL.equals(value)) {
+            return where(condition, field, (Op) value, null);
+        }
         return where(condition, field, Op.EQ, value);
     }
 
@@ -245,20 +240,12 @@ public class Sql extends StringBuilderWrapper<Sql> {
         return this;
     }
 
-    public Sql whereNotEmpty(String field, Object value) {
-        return where(checkNotEmpty(value), field, value);
-    }
-
-    public Sql whereNotEmpty(String field, Op op, Object value) {
-        return where(checkNotEmpty(value), field, op, value);
-    }
-
     public Sql and(String str) {
         return where(str);
     }
 
     public Sql and(String field, Object value) {
-        return where(true, field, Op.EQ, value);
+        return where(true, field, value);
     }
 
     public Sql and(String field, Op op, Object value) {
@@ -278,7 +265,7 @@ public class Sql extends StringBuilderWrapper<Sql> {
     }
 
     public Sql and(boolean condition, String field, Object value) {
-        return where(condition, field, Op.EQ, value);
+        return where(condition, field, value);
     }
 
     public Sql and(boolean condition, String field, Op op, Object value) {
@@ -289,20 +276,12 @@ public class Sql extends StringBuilderWrapper<Sql> {
         return where(condition, supplier);
     }
 
-    public Sql andNotEmpty(String field, Object value) {
-        return and(checkNotEmpty(value), field, Op.EQ, value);
-    }
-
-    public Sql andNotEmpty(String field, Op op, Object value) {
-        return and(checkNotEmpty(value), field, op, value);
-    }
-
     public Sql or(String str) {
         return where(false).append(str);
     }
 
     public Sql or(String field, Object value) {
-        return or(true, field, Op.EQ, value);
+        return or(true, field, value);
     }
 
     public Sql or(String field, Op op, Object value) {
@@ -318,6 +297,9 @@ public class Sql extends StringBuilderWrapper<Sql> {
     }
 
     public Sql or(boolean condition, String field, Object value) {
+        if (Op.IS_NULL.equals(value) || Op.IS_NOT_NULL.equals(value)) {
+            return or(condition, field, (Op) value, null);
+        }
         return or(condition, new Cnd(field, Op.EQ, value));
     }
 
@@ -336,14 +318,6 @@ public class Sql extends StringBuilderWrapper<Sql> {
                 return or(cnds);
         }
         return this;
-    }
-
-    public Sql orNotEmpty(String field, Object value) {
-        return or(checkNotEmpty(value), field, value);
-    }
-
-    public Sql orNotEmpty(String field, Op op, Object value) {
-        return or(checkNotEmpty(value), field, op, value);
     }
 
     public Sql orderBy(String fields) {

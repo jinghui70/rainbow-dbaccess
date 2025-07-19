@@ -129,22 +129,13 @@ public class Dba {
     }
 
     /**
-     * 返回一个Sql对象
-     *
-     * @return 返回一个新的Sql对象，该对象使用当前Dba实例作为数据源
-     */
-    public Sql sql() {
-        return new Sql(this);
-    }
-
-    /**
      * 创建一个包含指定SQL语句的Sql对象
      *
      * @param sql 需要附加的SQL语句
      * @return 返回一个包含指定SQL语句的Sql对象
      */
     public Sql sql(String sql) {
-        return sql().append(sql);
+        return new Sql(this).append(sql);
     }
 
     /**
@@ -153,9 +144,8 @@ public class Dba {
      * @return 返回一个包含"SELECT *" SQL语句的Sql对象
      */
     public Sql select() {
-        return sql("SELECT *");
+        return Sql.select().setDba(this);
     }
-
 
     /**
      * 根据指定的字段生成查询用的 Sql对象。
@@ -164,11 +154,7 @@ public class Dba {
      * @return 根据字段生成的 Sql 对象。
      */
     public Sql select(String... fields) {
-        if (fields.length == 0)
-            return sql("SELECT *");
-        if (fields.length == 1)
-            return sql("SELECT ").append(fields[0]);
-        return sql("SELECT ").join(fields);
+        return Sql.select(fields).setDba(this);
     }
 
     public Sql update(String table) {

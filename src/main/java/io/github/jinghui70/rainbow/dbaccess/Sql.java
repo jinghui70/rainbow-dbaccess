@@ -28,6 +28,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
+import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.SELECT;
 import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.enumCheck;
 
 /**
@@ -59,6 +60,11 @@ public class Sql extends StringBuilderWrapper<Sql> {
 
     public Sql(Dba dba) {
         this.dba = dba;
+    }
+
+    public Sql setDba(Dba dba) {
+        this.dba = dba;
+        return this;
     }
 
     public List<Object> getParams() {
@@ -183,6 +189,10 @@ public class Sql extends StringBuilderWrapper<Sql> {
      */
     public Sql from(String table) {
         return append(" FROM ").append(table);
+    }
+
+    public Sql from(Class<?> entityClass) {
+        return from(DbaUtil.tableName(entityClass));
     }
 
     public Sql append(Cnd cnd) {
@@ -702,5 +712,23 @@ public class Sql extends StringBuilderWrapper<Sql> {
     public Sql range(Integer from, int to) {
         this.range = Range.of(from, to);
         return this;
+    }
+
+    public static Sql select() {
+        return new Sql("SELECT *");
+    }
+
+    /**
+     * 根据指定的字段生成查询用的 Sql对象。
+     *
+     * @param fields 需要查询的字段，可以传入一个或多个字段名。不传默认为 *
+     * @return 根据字段生成的 Sql 对象。
+     */
+    public static Sql select(String... fields) {
+        if (fields.length == 0)
+            return select();
+        if (fields.length == 1)
+            return new Sql(SELECT).append(fields[0]);
+        return new Sql(SELECT).join(fields);
     }
 }

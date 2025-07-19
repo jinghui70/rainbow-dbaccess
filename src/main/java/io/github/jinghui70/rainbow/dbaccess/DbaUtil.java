@@ -16,6 +16,7 @@ import java.util.Map;
 
 public abstract class DbaUtil {
 
+    public static final String SELECT = "SELECT ";
     public static final String WHERE = " WHERE ";
     public static final String AND = " AND ";
     public static final String OR = " OR ";

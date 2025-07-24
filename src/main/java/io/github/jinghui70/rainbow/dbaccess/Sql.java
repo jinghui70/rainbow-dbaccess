@@ -518,7 +518,7 @@ public class Sql extends StringBuilderWrapper<Sql> {
     public int count() {
         String sql = getSql().toUpperCase();
         if (!countOptimization || sql.contains("DISTINCT") || sql.contains(DbaUtil.GROUP_BY) || sql.contains(" UNION ")) {
-            sql = String.format("SELECT COUNT(*) FROM (%s) C", sql);
+            sql = String.format("SELECT COUNT(*) FROM (%s) C", getSql());
         } else {
             int orderBy = sql.lastIndexOf(DbaUtil.ORDER_BY);
             sql = "select count(*) " + sql.substring(sql.indexOf("FROM"), orderBy > 0 ? orderBy : sql.length());

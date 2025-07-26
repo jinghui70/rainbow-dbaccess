@@ -2,7 +2,6 @@ package io.github.jinghui70.rainbow.dbaccess;
 
 import cn.hutool.core.collection.CollUtil;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Cnd;
-import io.github.jinghui70.rainbow.dbaccess.cnd.CndPlus;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Op;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -18,8 +17,6 @@ public class QueryParam {
     private List<String> fields;
 
     private List<Cnd> cnds;
-
-    private CndPlus cndPlus;
 
     private List<OrderBy> orderBys;
 
@@ -61,14 +58,6 @@ public class QueryParam {
         this.cnds = cnds;
     }
 
-    public CndPlus getCndPlus() {
-        return cndPlus;
-    }
-
-    public void setCndPlus(CndPlus cndPlus) {
-        this.cndPlus = cndPlus;
-    }
-
     public List<OrderBy> getOrderBys() {
         return orderBys;
     }
@@ -106,6 +95,7 @@ public class QueryParam {
     }
 
     public QueryParam addCnd(Cnd cnd) {
+        if (cnd==null) return this;
         if (cnds == null)
             cnds = new LinkedList<>();
         cnds.add(cnd);
@@ -113,7 +103,7 @@ public class QueryParam {
     }
 
     public QueryParam addCnd(String field, Op op, Object value) {
-        return addCnd(new Cnd(field, op, value));
+        return addCnd(Cnd.where(field, op, value));
     }
 
     public QueryParam addCnd(Consumer<Sql> consumer) {
@@ -134,16 +124,10 @@ public class QueryParam {
                 sql.where(cnd);
             }
         }
-        if (cndPlus != null) {
-            sql.where(cndPlus);
-        }
         if (sqlConsumer != null) {
             sqlConsumer.accept(sql);
         }
-        if (CollUtil.isNotEmpty(orderBys)) {
-            sql.orderBy(orderBys);
-        }
-        return sql;
+        return sql.orderBy(orderBys);
     }
 
     public <T> PageData<T> pageQuery(Dba dba, Class<T> objectType) {

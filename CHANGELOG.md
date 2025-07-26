@@ -1,3 +1,14 @@
+## [6.0.1](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.0.0...v6.0.1) (2025-07-26)
+
+### Features
+- Sql 支持 select() 函数
+- 统一了 Cnd 的写法，支持Cnd组，去掉了Cnds
+- 
+### Bug Fixes
+- 去掉 notEmpty 的条件设置函数
+- Op.IS_NULL 条件无需参数
+- count时把sql大写了
+
 ## [6.0.0]
 
 ### Features

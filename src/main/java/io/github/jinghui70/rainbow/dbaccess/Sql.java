@@ -3,7 +3,6 @@ package io.github.jinghui70.rainbow.dbaccess;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Cnd;
-import io.github.jinghui70.rainbow.dbaccess.cnd.Cnds;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Op;
 import io.github.jinghui70.rainbow.dbaccess.enumSupport.EnumMapper;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldMapper;
@@ -200,54 +199,36 @@ public class Sql extends StringBuilderWrapper<Sql> {
         return this;
     }
 
-    public Sql append(Cnds cnds) {
-        cnds.toSql(this);
-        return this;
-    }
-
     public Sql where(String str) {
         return where(true).append(str);
     }
 
     public Sql where(String field, Object value) {
-        return where(true, field, value);
+        return where(Cnd.where(field, value));
     }
 
     public Sql where(String field, Op op, Object value) {
-        return where(true, field, op, value);
+        return where(Cnd.where(field, op, value));
     }
 
     public Sql where(Cnd cnd) {
-        return where(true).append(cnd);
+        return cnd == null ? this : where(true).append(cnd);
     }
 
-    public Sql where(Cnds cnds) {
-        if (!cnds.isEmpty()) return where(true).append(cnds);
-        return this;
+    public Sql where(boolean condition, Supplier<Cnd> supplier) {
+        return condition ? where(supplier.get()) : this;
     }
 
     public Sql where(boolean condition, String str) {
-        return condition ? where(true).append(str) : this;
+        return condition ? where(str) : this;
     }
 
     public Sql where(boolean condition, String field, Object value) {
-        if (Op.IS_NULL.equals(value) || Op.IS_NOT_NULL.equals(value)) {
-            return where(condition, field, (Op) value, null);
-        }
-        return where(condition, field, Op.EQ, value);
+        return condition ? where(field, value) : this;
     }
 
     public Sql where(boolean condition, String field, Op op, Object value) {
-        return condition ? where(new Cnd(field, op, value)) : this;
-    }
-
-    public Sql where(boolean condition, Supplier<Cnds> supplier) {
-        if (condition) {
-            Cnds cnds = supplier.get();
-            if (!cnds.isEmpty())
-                return where(true).append(cnds);
-        }
-        return this;
+        return condition ? where(field, op, value) : this;
     }
 
     public Sql and(String str) {
@@ -255,19 +236,15 @@ public class Sql extends StringBuilderWrapper<Sql> {
     }
 
     public Sql and(String field, Object value) {
-        return where(true, field, value);
+        return where(field, value);
     }
 
     public Sql and(String field, Op op, Object value) {
-        return where(true, field, op, value);
+        return where(field, op, value);
     }
 
     public Sql and(Cnd cnd) {
         return where(cnd);
-    }
-
-    public Sql and(Cnds cnds) {
-        return where(cnds);
     }
 
     public Sql and(boolean condition, String str) {
@@ -282,7 +259,7 @@ public class Sql extends StringBuilderWrapper<Sql> {
         return where(condition, field, op, value);
     }
 
-    public Sql and(boolean condition, Supplier<Cnds> supplier) {
+    public Sql and(boolean condition, Supplier<Cnd> supplier) {
         return where(condition, supplier);
     }
 
@@ -291,43 +268,27 @@ public class Sql extends StringBuilderWrapper<Sql> {
     }
 
     public Sql or(String field, Object value) {
-        return or(true, field, value);
+        return or(Cnd.where(field, value));
     }
 
     public Sql or(String field, Op op, Object value) {
-        return or(true, field, op, value);
+        return or(Cnd.where(field, op, value));
     }
 
     public Sql or(Cnd cnd) {
-        return or(true, cnd);
-    }
-
-    public Sql or(Cnds cnds) {
-        return cnds.isEmpty() ? this : where(false).append(cnds);
+        return cnd == null ? this : where(false).append(cnd);
     }
 
     public Sql or(boolean condition, String field, Object value) {
-        if (Op.IS_NULL.equals(value) || Op.IS_NOT_NULL.equals(value)) {
-            return or(condition, field, (Op) value, null);
-        }
-        return or(condition, new Cnd(field, Op.EQ, value));
+        return condition ? or(field, value) : this;
     }
 
     public Sql or(boolean condition, String field, Op op, Object value) {
-        return or(condition, new Cnd(field, op, value));
+        return condition ? or(field, op, value) : this;
     }
 
-    public Sql or(boolean condition, Cnd cnd) {
-        return condition ? where(false).append(cnd) : this;
-    }
-
-    public Sql or(boolean condition, Supplier<Cnds> supplier) {
-        if (condition) {
-            Cnds cnds = supplier.get();
-            if (!cnds.isEmpty())
-                return or(cnds);
-        }
-        return this;
+    public Sql or(boolean condition, Supplier<Cnd> supplier) {
+        return condition ? or(supplier.get()) : this;
     }
 
     public Sql orderBy(String fields) {
@@ -336,7 +297,7 @@ public class Sql extends StringBuilderWrapper<Sql> {
                 : this;
     }
 
-    public Sql orderBy(Collection<OrderBy> orderBys) {
+    public Sql orderBy(List<OrderBy> orderBys) {
         return (CollUtil.isNotEmpty(orderBys))
                 ? append(DbaUtil.ORDER_BY).join(orderBys)
                 : this;

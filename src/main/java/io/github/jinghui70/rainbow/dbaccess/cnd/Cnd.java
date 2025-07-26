@@ -8,10 +8,7 @@ import io.github.jinghui70.rainbow.dbaccess.DbaUtil;
 import io.github.jinghui70.rainbow.dbaccess.Range;
 import io.github.jinghui70.rainbow.dbaccess.Sql;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.enumCheck;
 
@@ -26,13 +23,20 @@ public class Cnd {
 
     private Object value;
 
-    protected Cnd() {
+    private List<Cnd> children;
+
+    public Cnd() {
     }
 
-    public Cnd(String field, Op op, Object value) {
+    private Cnd(String field, Op op, Object value) {
         this.field = field;
         this.op = op;
         this.value = value;
+    }
+
+    private Cnd(String field, List<Cnd> children) {
+        this.field = field;
+        this.children = children;
     }
 
     public String getField() {
@@ -61,6 +65,14 @@ public class Cnd {
         this.value = value;
     }
 
+    public List<Cnd> getChildren() {
+        return children;
+    }
+
+    public void setChildren(List<Cnd> children) {
+        this.children = children;
+    }
+
     private String likeValue() {
         String str = value.toString();
         return switch (op) {
@@ -86,6 +98,15 @@ public class Cnd {
     }
 
     public void toSql(Sql sql) {
+        if (children != null) {
+            sql.append("(");
+            for (Cnd cnd : children) {
+                cnd.toSql(sql);
+                sql.appendTemp(field);
+            }
+            sql.clearTemp().append(")");
+            return;
+        }
         if (op == null) op = Op.EQ;
         if (value != null && value instanceof Sql) {
             sql.append(field).append(op.str()).append("(").append((Sql) value).append(")");
@@ -182,6 +203,42 @@ public class Cnd {
     @Override
     public String toString() {
         return "{" + field + " " + op + " " + value + "}";
+    }
+
+    public static Cnd and(Cnd... cnds) {
+        List<Cnd> children = Arrays.stream(cnds).filter(Objects::nonNull).toList();
+        return switch (children.size()) {
+            case 0 ->  null;
+            case 1 -> children.get(0);
+            default -> new Cnd(DbaUtil.AND, children);
+        };
+    }
+
+    public static Cnd or(Cnd... cnds) {
+        List<Cnd> children = Arrays.stream(cnds).filter(Objects::nonNull).toList();
+        return switch (children.size()) {
+            case 0 ->  null;
+            case 1 ->  children.get(0);
+            default -> new Cnd(DbaUtil.OR, children);
+        };
+    }
+
+    public static Cnd where(String field, Object value) {
+        if (Op.IS_NULL.equals(value) || Op.IS_NOT_NULL.equals(value))
+            return new Cnd(field, (Op) value, null);
+        return new Cnd(field, Op.EQ, value);
+    }
+
+    public static Cnd where(String field, Op op, Object value) {
+        return new Cnd(field, op, value);
+    }
+
+    public static Cnd where(boolean condition, String field, Object value) {
+        return (condition) ? Cnd.where(field, value) : null;
+    }
+
+    public static Cnd where(boolean condition, String field, Op op, Object value) {
+        return (condition) ? Cnd.where(field, op, value) : null;
     }
 
 }

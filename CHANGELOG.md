@@ -1,3 +1,11 @@
+## [6.0.2](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.0.1...v6.0.2) (2025-09-02)
+
+### Features
+- FieldMapper添加 toValue 函数
+
+### Bug Fixes
+- count 函数在可以优化时，sql大写了
+
 ## [6.0.1](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.0.0...v6.0.1) (2025-07-26)
 
 ### Features

@@ -34,4 +34,8 @@ public abstract class FieldMapper<T> {
         ps.setObject(paramIndex, value);
     }
 
+    public FieldValue toValue(Object value) {
+        return new FieldValue(value, this);
+    }
+
 }

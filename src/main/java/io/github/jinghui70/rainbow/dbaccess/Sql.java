@@ -476,10 +476,16 @@ public class Sql extends StringBuilderWrapper<Sql> {
         return queryForList(new SingleColumnFieldRowMapper<>(fieldMapper));
     }
 
-    public int count() {
+    private boolean countOptimizationDisabled() {
+        if (countOptimization) return true;
         String sql = getSql().toUpperCase();
-        if (!countOptimization || sql.contains("DISTINCT") || sql.contains(DbaUtil.GROUP_BY) || sql.contains(" UNION ")) {
-            sql = String.format("SELECT COUNT(*) FROM (%s) C", getSql());
+        return sql.contains("DISTINCT") || sql.contains(DbaUtil.GROUP_BY) || sql.contains(" UNION ");
+    }
+
+    public int count() {
+        String sql = getSql();
+        if (countOptimizationDisabled()) {
+            sql = String.format("SELECT COUNT(*) FROM (%s) C", sql);
         } else {
             int orderBy = sql.lastIndexOf(DbaUtil.ORDER_BY);
             sql = "select count(*) " + sql.substring(sql.indexOf("FROM"), orderBy > 0 ? orderBy : sql.length());

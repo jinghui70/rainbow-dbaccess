@@ -2,6 +2,7 @@ package io.github.jinghui70.rainbow.dbaccess;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Cnd;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Op;
 import io.github.jinghui70.rainbow.dbaccess.enumSupport.EnumMapper;
@@ -477,7 +478,7 @@ public class Sql extends StringBuilderWrapper<Sql> {
     }
 
     private boolean countOptimizationDisabled() {
-        if (countOptimization) return true;
+        if (!countOptimization) return true;
         String sql = getSql().toUpperCase();
         return sql.contains("DISTINCT") || sql.contains(DbaUtil.GROUP_BY) || sql.contains(" UNION ");
     }
@@ -658,8 +659,9 @@ public class Sql extends StringBuilderWrapper<Sql> {
 
     public boolean exist() {
         String sql = getSql().toUpperCase();
-        if (!countOptimization || sql.contains("DISTINCT") || sql.contains(DbaUtil.GROUP_BY) || sql.contains(" UNION ")) {
-            sql = String.format("SELECT 1 FROM (%s LIMIT 1) C", sql);
+        if (countOptimizationDisabled()) {
+            sql = dba.getDialect().wrapLimitSql(sql, 1);
+            sql = String.format("SELECT 1 FROM (%s) C", sql);
         } else {
             sql = "select 1 " + sql.substring(sql.indexOf("FROM"));
             sql = dba.getDialect().wrapLimitSql(sql, 1);
@@ -697,5 +699,10 @@ public class Sql extends StringBuilderWrapper<Sql> {
         if (fields.length == 1)
             return new Sql(SELECT).append(fields[0]);
         return new Sql(SELECT).join(fields);
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() + "\nParams:" + JSONUtil.toJsonStr(params);
     }
 }

@@ -1,4 +1,4 @@
-## [6.0.2](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.0.1...v6.0.2) (2025-09-02)
+## [6.0.3](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.0.1...v6.0.3) (2025-09-22)
 
 ### Features
 - FieldMapper添加 toValue 函数

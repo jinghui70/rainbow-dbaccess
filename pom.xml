@@ -6,7 +6,7 @@
 
     <groupId>io.github.jinghui70</groupId>
     <artifactId>rainbow-dbaccess</artifactId>
-    <version>6.0.2</version>
+    <version>6.0.3</version>
 
     <name>rainbow-dbaccess</name>
     <description>A powerful database access tool with ORM support, built on Spring JDBC.</description>
@@ -45,12 +45,13 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
-            <version>3.5.3</version>
+            <version>3.5.6</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
-            <version>6.2.8</version>
+            <version>6.2.11</version>
         </dependency>
         <dependency>
             <groupId>cn.hutool</groupId>
@@ -71,7 +72,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-test</artifactId>
-            <version>3.5.3</version>
+            <version>3.5.6</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -95,7 +96,7 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.8.0</version>
                 <configuration>
-                    <doclint>none</doclint> <!-- 禁用 doclint 检查 -->
+                    <doclint>none</doclint> <!-- 禁用 doc lint 检查 -->
                     <failOnError>false</failOnError> <!-- 不因 Javadoc 错误失败 -->
                 </configuration>
                 <executions>

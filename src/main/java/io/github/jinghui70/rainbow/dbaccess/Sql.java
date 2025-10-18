@@ -2,7 +2,6 @@ package io.github.jinghui70.rainbow.dbaccess;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Cnd;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Op;
 import io.github.jinghui70.rainbow.dbaccess.enumSupport.EnumMapper;
@@ -477,19 +476,26 @@ public class Sql extends StringBuilderWrapper<Sql> {
         return queryForList(new SingleColumnFieldRowMapper<>(fieldMapper));
     }
 
-    private boolean countOptimizationDisabled() {
-        if (!countOptimization) return true;
+    private record OptimizeInfo(int fromIndex, int endIndex) {
+    }
+
+    private OptimizeInfo getCountOptimizeInfo() {
+        if (!countOptimization) return null;
         String sql = getSql().toUpperCase();
-        return sql.contains("DISTINCT") || sql.contains(DbaUtil.GROUP_BY) || sql.contains(" UNION ");
+        if (sql.contains("DISTINCT") || sql.contains(DbaUtil.GROUP_BY) || sql.contains(" UNION ")) return null;
+        int fromIndex = sql.indexOf("FROM ");
+        int endIndex = sql.lastIndexOf(DbaUtil.ORDER_BY);
+        if (endIndex==-1) endIndex = sql.length();
+        return new OptimizeInfo(fromIndex, endIndex);
     }
 
     public int count() {
         String sql = getSql();
-        if (countOptimizationDisabled()) {
+        OptimizeInfo optimizeInfo = getCountOptimizeInfo();
+        if (optimizeInfo == null) {
             sql = String.format("SELECT COUNT(*) FROM (%s) C", sql);
         } else {
-            int orderBy = sql.lastIndexOf(DbaUtil.ORDER_BY);
-            sql = "select count(*) " + sql.substring(sql.indexOf("FROM"), orderBy > 0 ? orderBy : sql.length());
+            sql = "SELECT COUNT(*) " + sql.substring(optimizeInfo.fromIndex, optimizeInfo.endIndex);
         }
         Integer result = dba.getJdbcTemplate().queryForObject(sql, Integer.class, params.toArray());
         return result == null ? 0 : result;
@@ -658,12 +664,13 @@ public class Sql extends StringBuilderWrapper<Sql> {
     }
 
     public boolean exist() {
-        String sql = getSql().toUpperCase();
-        if (countOptimizationDisabled()) {
+        String sql = getSql();
+        OptimizeInfo optimizeInfo = getCountOptimizeInfo();
+        if (optimizeInfo == null) {
             sql = dba.getDialect().wrapLimitSql(sql, 1);
             sql = String.format("SELECT 1 FROM (%s) C", sql);
         } else {
-            sql = "select 1 " + sql.substring(sql.indexOf("FROM"));
+            sql = "select 1 " + sql.substring(optimizeInfo.fromIndex, optimizeInfo.endIndex);
             sql = dba.getDialect().wrapLimitSql(sql, 1);
         }
         try {
@@ -701,8 +708,4 @@ public class Sql extends StringBuilderWrapper<Sql> {
         return new Sql(SELECT).join(fields);
     }
 
-    @Override
-    public String toString() {
-        return super.toString() + "\nParams:" + JSONUtil.toJsonStr(params);
-    }
 }

@@ -75,6 +75,15 @@ public class ObjectTest extends BaseTest {
     }
 
     @Test
+    public void testCountOptimize() {
+        dba.insert(list());
+        int count = dba.select().from("SIMPLE_OBJECT").orderBy("SCORE_1").count();
+        assertEquals(10, count);
+        count = dba.select().from("SIMPLE_OBJECT").orderBy("SCORE_1").disableCountOptimization().count();
+        assertEquals(10, count);
+    }
+
+    @Test
     public void testPageQuery() {
         dba.insert(list());
         PageData<SimpleObject> data = dba.select().from("SIMPLE_OBJECT").orderBy("ID").pageQuery(SimpleObject.class, 2, 2);

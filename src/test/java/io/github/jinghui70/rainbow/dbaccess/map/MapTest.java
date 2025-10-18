@@ -6,6 +6,7 @@ import io.github.jinghui70.rainbow.dbaccess.DbaTestUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,5 +31,20 @@ public class MapTest extends BaseTest {
         Object obj = map.get("CREATED_TIME");
         assertNotNull(obj);
         assertEquals(obj, mapCamel.get("createdTime"));
+    }
+
+    @Test
+    public void testBatchInsert() {
+        List<Map<String, Object>> list = List.of(
+                Map.of("ID", "1", "REVISION", 1),
+                Map.of("ID", "2", "REVISION", 2),
+                Map.of("ID", "A", "REVISION", 1),
+                Map.of("ID", "B", "REVISION", 1)
+        );
+        dba.insert("SIMPLE_DATA", list);
+        List<SimpleData> result = dba.select().from(SimpleData.class).orderBy("ID")
+                .queryForList(SimpleData.class);
+        assertEquals(4, result.size());
+        assertEquals("A", result.get(2).getId());
     }
 }

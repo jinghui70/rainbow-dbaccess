@@ -39,8 +39,10 @@ public class MapHandler {
             if (JdbcUtils.supportsBatchUpdates(ps.getConnection())) {
                 int i = 0;
                 for (Map<String, Object> t : data) {
-                    for (String key : keys)
-                        DbaUtil.setParameterValue(ps, i++, t.get(key), nullTypeCache);
+                    int f = 1;
+                    for (String key : keys) {
+                        DbaUtil.setParameterValue(ps, f++, t.get(key), nullTypeCache);
+                    }
                     ps.addBatch();
                     if (batchSize > 0 && ++i == batchSize) {
                         ps.executeBatch();

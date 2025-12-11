@@ -1,4 +1,4 @@
-package io.github.jinghui70.rainbow.dbaccess.map;
+package io.github.jinghui70.rainbow.dbaccess.mapper;
 
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldMapper;
 import org.h2.value.CaseInsensitiveMap;

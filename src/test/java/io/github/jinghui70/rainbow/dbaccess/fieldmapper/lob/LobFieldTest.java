@@ -1,4 +1,4 @@
-package io.github.jinghui70.rainbow.dbaccess.lob;
+package io.github.jinghui70.rainbow.dbaccess.fieldmapper.lob;
 
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.json.JSONArray;

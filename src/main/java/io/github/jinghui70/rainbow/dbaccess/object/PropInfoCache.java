@@ -6,7 +6,7 @@ import cn.hutool.core.map.WeakConcurrentMap;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.dbaccess.annotation.*;
-import io.github.jinghui70.rainbow.dbaccess.enumSupport.EnumMapper;
+import io.github.jinghui70.rainbow.dbaccess.fieldmapper.EnumFieldMapper;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.*;
 
 import java.util.LinkedHashMap;
@@ -84,7 +84,7 @@ public class PropInfoCache {
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static FieldMapper<?> isEnumOrBooleanMapper(Class<?> fieldClass) {
         if (fieldClass.isEnum()) {
-            return new EnumMapper(fieldClass);
+            return new EnumFieldMapper(fieldClass);
         } else if (Boolean.class.equals(fieldClass) || boolean.class.equals(fieldClass)) {
             return BoolFieldMapper.INSTANCE;
         }

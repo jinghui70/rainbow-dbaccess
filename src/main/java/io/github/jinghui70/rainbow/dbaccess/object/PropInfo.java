@@ -47,6 +47,10 @@ public class PropInfo {
         this.index = index;
     }
 
+    public String getName() {
+        return propDesc.getRawFieldName();
+    }
+
     /**
      * 如果是数组属性，创建一个新数组
      *

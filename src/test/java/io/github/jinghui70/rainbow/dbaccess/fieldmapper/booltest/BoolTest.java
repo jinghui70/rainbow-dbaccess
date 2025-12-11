@@ -1,4 +1,4 @@
-package io.github.jinghui70.rainbow.dbaccess.booltest;
+package io.github.jinghui70.rainbow.dbaccess.fieldmapper.booltest;
 
 import io.github.jinghui70.rainbow.dbaccess.BaseTest;
 import io.github.jinghui70.rainbow.dbaccess.DbaTestUtil;

@@ -1,10 +1,10 @@
-package io.github.jinghui70.rainbow.dbaccess.enumtest;
+package io.github.jinghui70.rainbow.dbaccess.fieldmapper.enumtest;
 
 import io.github.jinghui70.rainbow.dbaccess.BaseTest;
 import io.github.jinghui70.rainbow.dbaccess.DbaTestUtil;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Op;
-import io.github.jinghui70.rainbow.dbaccess.enumSupport.EnumMapper;
-import io.github.jinghui70.rainbow.dbaccess.map.MapRowMapper;
+import io.github.jinghui70.rainbow.dbaccess.fieldmapper.EnumFieldMapper;
+import io.github.jinghui70.rainbow.dbaccess.mapper.MapRowMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.RowMapper;
@@ -95,9 +95,9 @@ public class EnumTest extends BaseTest {
         dba.update(t);
 
         RowMapper<Map<String, Object>> mapper = MapRowMapper.create()
-                .setFieldMapper(1, new EnumMapper<>(MyCode.class))
-                .setFieldMapper("NUMBER_ENUM", new EnumMapper<>(MyNumber.class))
-                .setFieldMapper(3, new EnumMapper<>(MyEnum.class));
+                .setFieldMapper(1, new EnumFieldMapper<>(MyCode.class))
+                .setFieldMapper("NUMBER_ENUM", new EnumFieldMapper<>(MyNumber.class))
+                .setFieldMapper(3, new EnumFieldMapper<>(MyEnum.class));
 
         Map<String, Object> map = dba.select("CODE_ENUM,NUMBER_ENUM,NORMAL_ENUM").from("T_ENUM")
                 .where("ID", 2)

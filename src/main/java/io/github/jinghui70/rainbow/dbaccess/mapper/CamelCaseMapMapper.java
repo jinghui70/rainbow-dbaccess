@@ -1,4 +1,4 @@
-package io.github.jinghui70.rainbow.dbaccess.map;
+package io.github.jinghui70.rainbow.dbaccess.mapper;
 
 import cn.hutool.core.map.CamelCaseMap;
 

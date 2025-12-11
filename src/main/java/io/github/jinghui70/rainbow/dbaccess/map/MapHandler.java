@@ -1,6 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess.map;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.dbaccess.*;
 import io.github.jinghui70.rainbow.utils.StringBuilderX;
 import org.springframework.jdbc.core.PreparedStatementCallback;
@@ -10,28 +11,22 @@ import java.util.*;
 
 public class MapHandler {
 
-    private final Dba dba;
-
-    public MapHandler(Dba dba) {
-        this.dba = dba;
-    }
-
-    public int doInsert(String tableName, Map<String, Object> map, String action) {
+    public static int doInsert(Dba dba, String tableName, Map<String, Object> map, String action) {
         Sql sql = dba.sql(action).append(tableName).append("(");
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             sql.append(entry.getKey()).appendTempComma().addParam(entry.getValue());
         }
-        sql.clearTemp().append(") values (").repeat("?", map.size()).append(")");
+        sql.clearTemp().append(") values (").repeat("?", map.size(), StrUtil.COMMA).append(")");
         return sql.execute();
     }
 
-    public void doInsert(String tableName, List<Map<String, Object>> data, String action, int batchSize) {
+    public static void doInsert(Dba dba, String tableName, List<Map<String, Object>> data, String action, int batchSize) {
         if (CollUtil.isEmpty(data))
             return;
         List<String> keys = new ArrayList<>(data.get(0).keySet());
         String sql = new StringBuilderX(action).append(tableName) //
                 .append("(").join(keys).append(") values(")
-                .repeat("?", keys.size())
+                .repeat("?", keys.size(), StrUtil.COMMA)
                 .append(")")
                 .toString();
         Map<Integer, Integer> nullTypeCache = new HashMap<>();

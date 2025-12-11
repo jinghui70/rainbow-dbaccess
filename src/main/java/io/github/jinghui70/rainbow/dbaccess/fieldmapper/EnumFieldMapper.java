@@ -1,7 +1,8 @@
-package io.github.jinghui70.rainbow.dbaccess.enumSupport;
+package io.github.jinghui70.rainbow.dbaccess.fieldmapper;
 
 import cn.hutool.core.util.EnumUtil;
-import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldMapper;
+import io.github.jinghui70.rainbow.dbaccess.enumSupport.CodeEnum;
+import io.github.jinghui70.rainbow.dbaccess.enumSupport.OrdinalEnum;
 import org.springframework.lang.NonNull;
 
 import java.sql.PreparedStatement;
@@ -9,7 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
 
-public class EnumMapper<T extends Enum<T>> extends FieldMapper<T> {
+public class EnumFieldMapper<T extends Enum<T>> extends FieldMapper<T> {
 
     private final Class<T> enumClass;
 
@@ -17,7 +18,7 @@ public class EnumMapper<T extends Enum<T>> extends FieldMapper<T> {
 
     private final boolean isOrdinal;
 
-    public EnumMapper(Class<T> enumClass) {
+    public EnumFieldMapper(Class<T> enumClass) {
         this.enumClass = enumClass;
         isCode = CodeEnum.class.isAssignableFrom(enumClass);
         isOrdinal = OrdinalEnum.class.isAssignableFrom(enumClass);
@@ -50,5 +51,9 @@ public class EnumMapper<T extends Enum<T>> extends FieldMapper<T> {
             ps.setString(paramIndex, ((CodeEnum) value).code());
         else
             ps.setString(paramIndex, ((Enum<?>) value).name());
+    }
+
+    public static <T extends Enum<T>> EnumFieldMapper<T> of(Class<T> enumClass) {
+        return new EnumFieldMapper<>(enumClass);
     }
 }

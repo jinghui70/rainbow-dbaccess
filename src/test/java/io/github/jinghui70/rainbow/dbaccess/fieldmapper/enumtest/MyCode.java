@@ -1,4 +1,4 @@
-package io.github.jinghui70.rainbow.dbaccess.enumtest;
+package io.github.jinghui70.rainbow.dbaccess.fieldmapper.enumtest;
 
 import io.github.jinghui70.rainbow.dbaccess.enumSupport.CodeEnum;
 

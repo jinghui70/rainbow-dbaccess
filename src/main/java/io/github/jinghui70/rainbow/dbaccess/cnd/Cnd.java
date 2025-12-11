@@ -194,7 +194,7 @@ public class Cnd {
             String opStr = useOp == Op.IN ? Op.EQ.str() : Op.NE.str();
             sql.append(field).append(opStr).append("?").addParam(finalArray[0]);
         } else {
-            sql.append(field).append(useOp.str()).append("(").repeat("?", finalArray.length).append(")")
+            sql.append(field).append(useOp.str()).append("(").repeat("?", finalArray.length, StrUtil.COMMA).append(")")
                     .addParam(finalArray);
         }
         if (hasNull) sql.append(DbaUtil.OR).append(field).append(" IS NULL").append(")");
@@ -207,20 +207,36 @@ public class Cnd {
 
     public static Cnd and(Cnd... cnds) {
         List<Cnd> children = Arrays.stream(cnds).filter(Objects::nonNull).toList();
-        return switch (children.size()) {
-            case 0 ->  null;
-            case 1 -> children.get(0);
-            default -> new Cnd(DbaUtil.AND, children);
+        return and(children);
+    }
+
+    public static Cnd and(List<Cnd> cnds) {
+        return switch (cnds.size()) {
+            case 0 -> null;
+            case 1 -> cnds.get(0);
+            default -> new Cnd(DbaUtil.AND, cnds);
         };
     }
 
     public static Cnd or(Cnd... cnds) {
         List<Cnd> children = Arrays.stream(cnds).filter(Objects::nonNull).toList();
-        return switch (children.size()) {
-            case 0 ->  null;
-            case 1 ->  children.get(0);
-            default -> new Cnd(DbaUtil.OR, children);
+        return or(children);
+    }
+
+    public static Cnd or(List<Cnd> cnds) {
+        return switch (cnds.size()) {
+            case 0 -> null;
+            case 1 -> cnds.get(0);
+            default -> new Cnd(DbaUtil.OR, cnds);
         };
+    }
+
+    public static Cnd isNull(String field) {
+        return new Cnd(field, Op.IS_NULL, null);
+    }
+
+    public static Cnd isNotNull(String field) {
+        return new Cnd(field, Op.IS_NOT_NULL, null);
     }
 
     public static Cnd where(String field, Object value) {

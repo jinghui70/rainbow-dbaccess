@@ -1,6 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess.object;
 
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.dbaccess.Dba;
 import io.github.jinghui70.rainbow.dbaccess.DbaUtil;
 import io.github.jinghui70.rainbow.dbaccess.Sql;
@@ -36,7 +37,7 @@ public class ObjectDao<T> {
                 .collect(Collectors.toList());
         return new StringBuilderX(action).append(table).append("(")
                 .join(fieldNames).append(") values(")
-                .repeat("?", fieldNames.size()).append(")")
+                .repeat("?", fieldNames.size(), StrUtil.COMMA).append(")")
                 .toString();
     }
 

@@ -232,7 +232,7 @@ public class Dba {
      * @return 插入改变的行数，正常应该是1
      */
     public int insert(String tableName, Map<String, Object> map) {
-        return new MapHandler(this).doInsert(tableName, map, INSERT_INTO);
+        return MapHandler.doInsert(this, tableName, map, INSERT_INTO);
     }
 
     /**
@@ -243,7 +243,7 @@ public class Dba {
      * @return 插入改变的行数，正常应该是1
      */
     public int merge(String tableName, Map<String, Object> map) {
-        return new MapHandler(this).doInsert(tableName, map, MERGE_INTO);
+        return MapHandler.doInsert(this, tableName, map, MERGE_INTO);
     }
 
     /**
@@ -253,7 +253,7 @@ public class Dba {
      * @param data      数据列表
      */
     public void insert(String tableName, List<Map<String, Object>> data) {
-        new MapHandler(this).doInsert(tableName, data, INSERT_INTO, 0);
+        MapHandler.doInsert(this, tableName, data, INSERT_INTO, 0);
     }
 
     /**
@@ -264,7 +264,7 @@ public class Dba {
      * @param batchSize 批量大小，如果小于1则不开启批量模式
      */
     public void insert(String tableName, List<Map<String, Object>> data, int batchSize) {
-        new MapHandler(this).doInsert(tableName, data, INSERT_INTO, batchSize);
+        MapHandler.doInsert(this, tableName, data, INSERT_INTO, batchSize);
     }
 
     /**
@@ -274,7 +274,7 @@ public class Dba {
      * @param data      数据
      */
     public void merge(String tableName, List<Map<String, Object>> data) {
-        new MapHandler(this).doInsert(tableName, data, MERGE_INTO, 0);
+        MapHandler.doInsert(this, tableName, data, MERGE_INTO, 0);
     }
 
 

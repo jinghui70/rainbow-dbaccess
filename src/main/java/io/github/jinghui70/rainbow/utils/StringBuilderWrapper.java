@@ -67,9 +67,12 @@ public abstract class StringBuilderWrapper<T extends StringBuilderWrapper<T>> im
         return (T) this;
     }
 
-    public T append(boolean condition, String str) {
+    public T append(boolean condition, String... str) {
         checkTemp();
-        if (condition) sb.append(str);
+        if (condition) {
+            for (String s : str)
+                sb.append(s);
+        }
         return (T) this;
     }
 
@@ -81,7 +84,7 @@ public abstract class StringBuilderWrapper<T extends StringBuilderWrapper<T>> im
      * @return 自己
      */
     public T repeat(String str, int times) {
-        return repeat(str, times, StrUtil.COMMA);
+        return repeat(str, times, null);
     }
 
     /**

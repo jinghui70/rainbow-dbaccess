@@ -1,27 +1,22 @@
-package io.github.jinghui70.rainbow.dbaccess.lob;
+package io.github.jinghui70.rainbow.dbaccess.fieldmapper.lob;
 
 import io.github.jinghui70.rainbow.dbaccess.annotation.Column;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Id;
 import io.github.jinghui70.rainbow.dbaccess.annotation.LobType;
 import io.github.jinghui70.rainbow.dbaccess.object.SimpleObject;
 
-import java.util.List;
-
-public class BlobObject {
+public class ClobObject {
     @Id
     private int id;
 
-    @Column(lobType = LobType.BLOB)
+    @Column(lobType = LobType.CLOB)
     private String lobString;
 
-    @Column(lobType = LobType.BLOB)
-    private byte[] lobByteArray;
-
-    @Column(lobType = LobType.BLOB)
+    @Column(lobType = LobType.CLOB)
     private SimpleObject lobObject;
 
-    @Column(lobType = LobType.BLOB)
-    private List<SimpleObject> lobArray;
+    @Column(lobType = LobType.CLOB)
+    private SimpleObject[] lobArray;
 
     public int getId() {
         return id;
@@ -39,14 +34,6 @@ public class BlobObject {
         this.lobString = lobString;
     }
 
-    public byte[] getLobByteArray() {
-        return lobByteArray;
-    }
-
-    public void setLobByteArray(byte[] lobByteArray) {
-        this.lobByteArray = lobByteArray;
-    }
-
     public SimpleObject getLobObject() {
         return lobObject;
     }
@@ -55,11 +42,12 @@ public class BlobObject {
         this.lobObject = lobObject;
     }
 
-    public List<SimpleObject> getLobArray() {
+    public SimpleObject[] getLobArray() {
         return lobArray;
     }
 
-    public void setLobArray(List<SimpleObject> lobArray) {
+    public void setLobArray(SimpleObject[] lobArray) {
         this.lobArray = lobArray;
     }
 }
+

@@ -3,6 +3,7 @@ package io.github.jinghui70.rainbow.dbaccess.map;
 
 import io.github.jinghui70.rainbow.dbaccess.BaseTest;
 import io.github.jinghui70.rainbow.dbaccess.DbaTestUtil;
+import io.github.jinghui70.rainbow.dbaccess.mapper.CamelCaseMapMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

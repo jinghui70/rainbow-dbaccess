@@ -6,12 +6,9 @@ import org.springframework.lang.NonNull;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 
-public class ClobObjectFieldMapper<T> extends FieldMapper<T> {
+public class ClobObjectFieldMapper<T> extends ClobFieldMapper<T> {
 
     private final Class<T> fieldClass;
 
@@ -32,27 +29,24 @@ public class ClobObjectFieldMapper<T> extends FieldMapper<T> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public T formDB(ResultSet rs, int index) throws SQLException {
-        String json = rs.getString(index);
-        if (rs.wasNull()) return null;
+    public T parse(String str) {
         if (JSON.class.isAssignableFrom(fieldClass)) {
-            return (T) JSONUtil.parse(json, jsonConfig);
+            return (T) JSONUtil.parse(str, jsonConfig);
         }
         if (fieldClass.isArray()) {
-            JSONArray array = JSONUtil.parseArray(json);
+            JSONArray array = JSONUtil.parseArray(str);
             return (T) array.toArray(componentClass);
         }
         if (fieldClass.isAssignableFrom(List.class)) {
-            JSONArray array = JSONUtil.parseArray(json);
+            JSONArray array = JSONUtil.parseArray(str);
             return (T) array.toList(componentClass);
         }
-        return JSONUtil.toBean(json, fieldClass);
+        return JSONUtil.toBean(str, fieldClass);
     }
 
     @Override
-    public void saveToDB(PreparedStatement ps, int paramIndex, @NonNull Object value) throws SQLException {
-        String json = JSONUtil.toJsonStr(value);
-        ps.setString(paramIndex, json);
+    public String getString(@NonNull Object value) {
+        return JSONUtil.toJsonStr(value);
     }
 
     public static <T> ClobObjectFieldMapper<T> of(Class<T> fieldClass) {

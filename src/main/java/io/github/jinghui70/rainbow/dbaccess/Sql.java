@@ -4,10 +4,10 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Cnd;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Op;
-import io.github.jinghui70.rainbow.dbaccess.enumSupport.EnumMapper;
+import io.github.jinghui70.rainbow.dbaccess.fieldmapper.EnumFieldMapper;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldMapper;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldValue;
-import io.github.jinghui70.rainbow.dbaccess.map.MapRowMapper;
+import io.github.jinghui70.rainbow.dbaccess.mapper.MapRowMapper;
 import io.github.jinghui70.rainbow.dbaccess.mapper.SingleColumnFieldRowMapper;
 import io.github.jinghui70.rainbow.dbaccess.object.BeanMapper;
 import io.github.jinghui70.rainbow.utils.StringBuilderWrapper;
@@ -371,7 +371,7 @@ public class Sql extends StringBuilderWrapper<Sql> {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private <T> RowMapper<T> typeToMapper(Class<T> requiredType) {
         return requiredType.isEnum()
-                ? new SingleColumnFieldRowMapper(new EnumMapper(requiredType))
+                ? new SingleColumnFieldRowMapper(new EnumFieldMapper(requiredType))
                 : new SingleColumnRowMapper<>(requiredType);
     }
 

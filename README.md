@@ -2,7 +2,7 @@ English | [简体中文](./README-CN.md)
 
 # Rainbow DBAccess
 
-Rainbow DBAccess  is a database access tool based on Spring JDBC.
+Rainbow DBAccess is a database access tool based on Spring JDBC.
 
 ## Documentation
 
@@ -22,7 +22,5 @@ Detailed changes for each release are documented in the [CHANGELOG](https://gith
 - Key ID: 61C309A980A98B1A
 - Fingerprint: 8057 869C 6777 F0CD CE55  596A 61C3 09A9 80A9 8B1A
 - Owner: Jinghui Li <jinghui70@gmail.com>
-
-### Current 
 
 Copyright (c) 2020-present, Jinghui Li

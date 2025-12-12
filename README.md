@@ -16,4 +16,13 @@ Detailed changes for each release are documented in the [CHANGELOG](https://gith
 
 [MIT](https://github.com/jinghui70/rainbow-dbaccess/blob/main/LICENSE)
 
+## PGP Signature Verification
+
+**Public Key Information:**
+- Key ID: 61C309A980A98B1A
+- Fingerprint: 8057 869C 6777 F0CD CE55  596A 61C3 09A9 80A9 8B1A
+- Owner: Jinghui Li <jinghui70@gmail.com>
+
+### Current 
+
 Copyright (c) 2020-present, Jinghui Li

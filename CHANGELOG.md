@@ -1,10 +1,14 @@
-## [6.0.3](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.0.1...v6.0.3) (2025-09-22)
+## [6.1.0](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.0.1...v6.1.0) (2025-12-12)
 
 ### Features
 - FieldMapper添加 toValue 函数
+- 优化一些mapper位置与命名
+- StringBuilderWrapper 的repeat 默认改为不提供链接符
+- PropInfo 提供 getName
 
 ### Bug Fixes
 - count 函数在可以优化时，sql大写了
+- 6.0.3 有严重问题，不可使用
 
 ## [6.0.1](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.0.0...v6.0.1) (2025-07-26)
 

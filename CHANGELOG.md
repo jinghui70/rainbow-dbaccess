@@ -1,3 +1,9 @@
+## [6.1.1](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.0.1...v6.1.1) (2025-12-12)
+### Features
+- 优化 groupBy 多个参数
+- update，deleteFrom支持class参数
+- StringBuilderWrapper 的 join 参数修改顺序
+
 ## [6.1.0](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.0.1...v6.1.0) (2025-12-12)
 
 ### Features

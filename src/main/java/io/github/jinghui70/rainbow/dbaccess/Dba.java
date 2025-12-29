@@ -161,8 +161,16 @@ public class Dba {
         return sql("UPDATE ").append(table);
     }
 
+    public Sql update(Class<?> objClass) {
+        return update(DbaUtil.tableName(objClass));
+    }
+
     public Sql deleteFrom(String table) {
         return sql("DELETE FROM ").append(table);
+    }
+
+    public Sql deleteFrom(Class<?> objClass) {
+        return deleteFrom(DbaUtil.tableName(objClass));
     }
 
     /**

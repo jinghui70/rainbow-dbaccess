@@ -114,18 +114,18 @@ public abstract class StringBuilderWrapper<T extends StringBuilderWrapper<T>> im
      * @return 自己
      */
     public T join(Collection<?> objects) {
-        return this.join(objects, StrUtil.COMMA);
+        return this.join(StrUtil.COMMA, objects);
     }
 
     /**
      * 添加一组对象，转为toString字符串
      *
-     * @param objects   对象列表
      * @param delimiter 分隔符
+     * @param objects   对象列表
      * @return 自己
      */
-    public T join(Collection<?> objects, String delimiter) {
-        return join(objects, Object::toString, delimiter);
+    public T join(String delimiter, Collection<?> objects) {
+        return join(delimiter, Object::toString, objects);
     }
 
     /**
@@ -135,32 +135,32 @@ public abstract class StringBuilderWrapper<T extends StringBuilderWrapper<T>> im
      * @param <O>   对象泛型
      * @return 自己
      */
-    public <O> T join(O[] array) {
-        return join(array, Object::toString, StrUtil.COMMA);
+    public <O> T join(O... array) {
+        return join(StrUtil.COMMA, array);
     }
 
     /**
      * 添加一组对象，转为toString字符串，以指定分隔符分隔
      *
-     * @param array     对象列表
      * @param delimiter 分隔符
+     * @param array     对象列表
      * @param <O>       对象泛型
      * @return 自己
      */
-    public <O> T join(O[] array, String delimiter) {
-        return join(array, Object::toString, delimiter);
+    public <O> T join(String delimiter, O... array) {
+        return join(delimiter, Object::toString, array);
     }
 
     /**
      * 一组对象，转为字符串后添加进来
      *
-     * @param list      对象列表
-     * @param toString  对象转为字符串的函数
      * @param delimiter 分隔符
+     * @param toString  对象转为字符串的函数
+     * @param list      对象列表
      * @param <O>       对象泛型
      * @return 自己
      */
-    public <O> T join(Collection<O> list, Function<O, String> toString, String delimiter) {
+    public <O> T join(String delimiter, Function<O, String> toString, Collection<O> list) {
         if (CollUtil.isNotEmpty(list)) {
             for (O obj : list) {
                 append(toString.apply(obj)).appendTemp(delimiter);
@@ -179,7 +179,7 @@ public abstract class StringBuilderWrapper<T extends StringBuilderWrapper<T>> im
      * @param <O>       对象泛型
      * @return 自己
      */
-    public <O> T join(O[] array, Function<O, String> toString, String delimiter) {
+    public <O> T join(String delimiter, Function<O, String> toString, O... array) {
         if (ArrayUtil.isNotEmpty(array)) {
             for (O obj : array) {
                 append(toString.apply(obj)).appendTemp(delimiter);

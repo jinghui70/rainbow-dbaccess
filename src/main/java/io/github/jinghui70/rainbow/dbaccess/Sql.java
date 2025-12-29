@@ -1,6 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Cnd;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Op;
@@ -291,9 +292,9 @@ public class Sql extends StringBuilderWrapper<Sql> {
         return condition ? or(supplier.get()) : this;
     }
 
-    public Sql orderBy(String fields) {
-        return (StrUtil.isNotBlank(fields))
-                ? append(DbaUtil.ORDER_BY).append(fields)
+    public Sql orderBy(String... fields) {
+        return ArrayUtil.isNotEmpty(fields)
+                ? append(DbaUtil.ORDER_BY).join(fields)
                 : this;
     }
 
@@ -303,8 +304,8 @@ public class Sql extends StringBuilderWrapper<Sql> {
                 : this;
     }
 
-    public Sql groupBy(String fields) {
-        return append(DbaUtil.GROUP_BY).append(fields);
+    public Sql groupBy(String... fields) {
+        return append(DbaUtil.GROUP_BY).join(fields);
     }
 
     /**

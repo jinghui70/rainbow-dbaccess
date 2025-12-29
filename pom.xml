@@ -6,7 +6,7 @@
 
     <groupId>io.github.jinghui70</groupId>
     <artifactId>rainbow-dbaccess</artifactId>
-    <version>6.1.0</version>
+    <version>6.1.1</version>
 
     <name>rainbow-dbaccess</name>
     <description>A powerful database access tool with ORM support, built on Spring JDBC.</description>
@@ -129,7 +129,7 @@
             <plugin>
                 <groupId>org.sonatype.central</groupId>
                 <artifactId>central-publishing-maven-plugin</artifactId>
-                <version>0.8.0</version>
+                <version>0.9.0</version>
                 <extensions>true</extensions>
                 <configuration>
                     <publishingServerId>central</publishingServerId>

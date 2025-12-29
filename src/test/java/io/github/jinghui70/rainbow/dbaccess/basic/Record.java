@@ -1,7 +1,11 @@
 package io.github.jinghui70.rainbow.dbaccess.basic;
 
+import io.github.jinghui70.rainbow.dbaccess.annotation.Id;
+
 public class Record {
-    private String org;
+    @Id
+    private String orgId;
+    @Id
     private int id;
     private String name;
     private String status;
@@ -9,19 +13,19 @@ public class Record {
     public Record() {
     }
 
-    public Record(String org, int id, String name, String status) {
-        this.org = org;
+    public Record(String orgId, int id, String name, String status) {
+        this.orgId = orgId;
         this.id = id;
         this.name = name;
         this.status = status;
     }
 
-    public String getOrg() {
-        return org;
+    public String getOrgId() {
+        return orgId;
     }
 
-    public void setOrg(String org) {
-        this.org = org;
+    public void setOrgId(String orgId) {
+        this.orgId = orgId;
     }
 
     public int getId() {

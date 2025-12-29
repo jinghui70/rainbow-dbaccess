@@ -1,20 +1,22 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Cnd;
-import io.github.jinghui70.rainbow.dbaccess.cnd.Op;
+import io.github.jinghui70.rainbow.dbaccess.object.PropInfo;
+import io.github.jinghui70.rainbow.dbaccess.object.PropInfoCache;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class QueryParam {
 
     private String entity;
 
-    private List<String> fields;
+    private String fields;
 
     private List<Cnd> cnds;
 
@@ -24,7 +26,7 @@ public class QueryParam {
 
     private int pageSize;
 
-    private Consumer<Sql> sqlConsumer;
+    private String defaultOrderBys;
 
     public String getEntity() {
         return entity;
@@ -35,18 +37,19 @@ public class QueryParam {
         return this;
     }
 
-    public List<String> getFields() {
-        return fields;
-    }
-
-    public QueryParam setFields(List<String> fields) {
-        this.fields = fields;
+    public QueryParam setEntity(Class<?> entityClass) {
+        this.setEntity(DbaUtil.tableName(entityClass));
+        if (StrUtil.isEmpty(defaultOrderBys)) {
+            this.defaultOrderBys = PropInfoCache.get(entityClass).values().stream()
+                    .filter(p -> p.getId() != null)
+                    .map(PropInfo::getFieldName)
+                    .collect(Collectors.joining(StrUtil.COMMA));
+        }
         return this;
     }
 
-    public QueryParam addField(String field) {
-        if (fields == null) fields = new LinkedList<>();
-        fields.add(field);
+    public QueryParam setFields(String fields) {
+        this.fields = fields;
         return this;
     }
 
@@ -82,52 +85,43 @@ public class QueryParam {
         this.pageSize = pageSize;
     }
 
-    public QueryParam orderBy(String field) {
-        return orderBy(field, false);
-    }
-
-    public QueryParam orderBy(String field, boolean desc) {
-        if (orderBys == null) {
-            orderBys = new LinkedList<>();
-        }
-        orderBys.add(new OrderBy(field, desc));
-        return this;
-    }
-
     public QueryParam addCnd(Cnd cnd) {
-        if (cnd==null) return this;
+        if (cnd == null) return this;
         if (cnds == null)
             cnds = new LinkedList<>();
         cnds.add(cnd);
         return this;
     }
 
-    public QueryParam addCnd(String field, Op op, Object value) {
-        return addCnd(Cnd.where(field, op, value));
-    }
-
-    public QueryParam addCnd(Consumer<Sql> consumer) {
-        this.sqlConsumer = consumer;
+    public QueryParam defaultOrderBys(Object... defaultOrderBys) {
+        this.defaultOrderBys = StrUtil.join(StrUtil.COMMA, defaultOrderBys);
         return this;
     }
 
     public Sql getSql(Dba dba) {
-        Sql sql = dba.sql("select ");
-        if (CollUtil.isEmpty(fields)) {
-            sql.append("*");
-        } else {
-            sql.join(fields);
-        }
-        sql.from(entity);
+        Sql sql = dba.select(getFields());
+        sql.from(getEntity());
+        processCnd(sql);
+        processOrderBy(sql);
+        return sql;
+    }
+
+    protected String getFields() {
+        return StrUtil.isEmpty(fields) ? "*" : this.fields;
+    }
+
+    protected void processCnd(Sql sql) {
         if (CollUtil.isNotEmpty(cnds)) {
-            for (Cnd cnd : cnds) {
+            for (Cnd cnd: cnds)
                 sql.where(cnd);
-            }
         }
-        if (sqlConsumer != null) {
-            sqlConsumer.accept(sql);
-        }
-        return sql.orderBy(orderBys);
+    }
+
+    protected void processOrderBy(Sql sql) {
+        if (CollUtil.isNotEmpty(orderBys)) {
+            sql.orderBy(orderBys);
+        } else if (StrUtil.isNotEmpty(defaultOrderBys))
+            sql.orderBy(defaultOrderBys);
     }
 
     public <T> PageData<T> pageQuery(Dba dba, Class<T> objectType) {
@@ -153,4 +147,5 @@ public class QueryParam {
     public List<Map<String, Object>> query(Dba dba) {
         return getSql(dba).queryForList();
     }
+
 }

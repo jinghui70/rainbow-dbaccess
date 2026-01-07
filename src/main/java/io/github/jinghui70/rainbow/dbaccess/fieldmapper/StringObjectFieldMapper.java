@@ -1,16 +1,18 @@
 package io.github.jinghui70.rainbow.dbaccess.fieldmapper;
 
-import cn.hutool.json.*;
+import cn.hutool.json.JSON;
+import cn.hutool.json.JSONUtil;
+import org.springframework.lang.NonNull;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
-public class BlobObjectFieldMapper<T> extends BlobFieldMapper<T> {
+public class StringObjectFieldMapper<T> extends FieldMapper<T> {
 
     private final Class<T> fieldClass;
 
@@ -18,30 +20,22 @@ public class BlobObjectFieldMapper<T> extends BlobFieldMapper<T> {
 
     private ParameterizedType parameterizedType;
 
-    public BlobObjectFieldMapper(Class<T> fieldClass) {
+    public StringObjectFieldMapper(Class<T> fieldClass, Field field) {
         this.fieldClass = fieldClass;
         if (JSON.class.isAssignableFrom(fieldClass)) return;
-        if (fieldClass.isArray())
+        if (fieldClass.isArray()) {
             componentClass = fieldClass.getComponentType();
-    }
-
-    public BlobObjectFieldMapper(Class<T> fieldClass, Field field) {
-        this(fieldClass);
-        if (Collection.class.isAssignableFrom(fieldClass) || Map.class.isAssignableFrom(fieldClass)) {
+        } else if (Collection.class.isAssignableFrom(fieldClass) || Map.class.isAssignableFrom(fieldClass)) {
             parameterizedType = (ParameterizedType) field.getGenericType();
         }
     }
 
-    @Override
-    protected byte[] getBytes(Object value) {
-        String json = JSONUtil.toJsonStr(value);
-        return json.getBytes(StandardCharsets.UTF_8);
-    }
 
-    @SuppressWarnings("unchecked")
     @Override
-    protected T parse(byte[] bytes) {
-        String str = new String(bytes, StandardCharsets.UTF_8);
+    @SuppressWarnings("unchecked")
+    public T formDB(ResultSet rs, int index) throws SQLException {
+        String str = rs.getString(index);
+        if (rs.wasNull()) return null;
         if (JSON.class.isAssignableFrom(fieldClass))
             return (T) JSONUtil.parse(str);
         if (componentClass != null)
@@ -49,6 +43,12 @@ public class BlobObjectFieldMapper<T> extends BlobFieldMapper<T> {
         if (parameterizedType != null)
             return JSONUtil.toBean(str, parameterizedType, false);
         return JSONUtil.toBean(str, fieldClass);
+    }
+
+    @Override
+    public void saveToDB(PreparedStatement ps, int paramIndex, @NonNull Object value) throws SQLException {
+        String str = JSONUtil.toJsonStr(value);
+        ps.setString(paramIndex, str);
     }
 
 }

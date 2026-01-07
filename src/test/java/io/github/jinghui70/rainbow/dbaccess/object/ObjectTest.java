@@ -5,29 +5,33 @@ import io.github.jinghui70.rainbow.dbaccess.DbaTestUtil;
 import io.github.jinghui70.rainbow.dbaccess.PageData;
 import io.github.jinghui70.rainbow.dbaccess.Sql;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Op;
+import io.github.jinghui70.rainbow.dbaccess.memory.Field;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.github.jinghui70.rainbow.dbaccess.StrConst.ID;
+import static io.github.jinghui70.rainbow.dbaccess.StrConst.NAME;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ObjectTest extends BaseTest {
 
     @BeforeEach
     void init() {
-        DbaTestUtil.initTable(dba, "SIMPLE_OBJECT");
+        dba.sql("DROP TABLE IF EXISTS SIMPLE_OBJECT").execute();
+        dba.createTable("SIMPLE_OBJECT",
+                Field.createKeyInt(ID),
+                Field.createString(NAME),
+                Field.createDouble("SCORE")
+        );
     }
 
     private List<SimpleObject> list() {
         List<SimpleObject> list = new ArrayList<>();
         for (int i = 1; i <= 10; i++) {
-            Double[] score = new Double[3];
-            score[0] = i * 10.0;
-            score[1] = i * 10.0 + 1;
-            score[2] = i * 10.0 + 2;
-            list.add(new SimpleObject(i, "name" + i, score));
+            list.add(new SimpleObject(i, "name" + i, i * 10.0));
         }
         return list;
     }
@@ -41,9 +45,7 @@ public class ObjectTest extends BaseTest {
         SimpleObject o = list.get(9);
         assertEquals(10, o.getId());
         assertEquals("name10", o.getName());
-        assertEquals(100, o.getScore()[0]);
-        assertEquals(101, o.getScore()[1]);
-        assertEquals(102, o.getScore()[2]);
+        assertEquals(100, o.getScore());
         assertTrue(dba.select().from("SIMPLE_OBJECT").exist());
         assertFalse(dba.select("DISTINCT ID").from("SIMPLE_OBJECT").where("ID", 123).exist());
     }
@@ -65,21 +67,19 @@ public class ObjectTest extends BaseTest {
         SimpleObject o = new SimpleObject(27, "tom", null);
         dba.insert(o);
         o.setName("oldTom");
-        o.setScore(new Double[]{100.0, 110.0});
+        o.setScore(110.0);
         dba.update(o);
         o = dba.select().from("SIMPLE_OBJECT").where("ID", 27).queryForObject(SimpleObject.class);
         assertEquals("oldTom", o.getName());
-        assertEquals(100, o.getScore()[0]);
-        assertEquals(110, o.getScore()[1]);
-        assertNull(o.getScore()[2]);
+        assertEquals(110, o.getScore());
     }
 
     @Test
     public void testCountOptimize() {
         dba.insert(list());
-        int count = dba.select().from("SIMPLE_OBJECT").orderBy("SCORE_1").count();
+        int count = dba.select().from("SIMPLE_OBJECT").orderBy("SCORE").count();
         assertEquals(10, count);
-        count = dba.select().from("SIMPLE_OBJECT").orderBy("SCORE_1").disableCountOptimization().count();
+        count = dba.select().from("SIMPLE_OBJECT").orderBy("SCORE").disableCountOptimization().count();
         assertEquals(10, count);
     }
 
@@ -93,9 +93,7 @@ public class ObjectTest extends BaseTest {
         SimpleObject o = data.getData().get(0);
         assertEquals(3, o.getId());
         assertEquals("name3", o.getName());
-        assertEquals(30, o.getScore()[0]);
-        assertEquals(31, o.getScore()[1]);
-        assertEquals(32, o.getScore()[2]);
+        assertEquals(30, o.getScore());
 
         data = dba.select().from("SIMPLE_OBJECT").pageQuery(SimpleObject.class, 2, 2);
         assertEquals(10, data.getTotal());

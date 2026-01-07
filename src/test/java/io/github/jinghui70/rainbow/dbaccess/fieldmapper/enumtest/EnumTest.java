@@ -5,6 +5,7 @@ import io.github.jinghui70.rainbow.dbaccess.DbaTestUtil;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Op;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.EnumFieldMapper;
 import io.github.jinghui70.rainbow.dbaccess.mapper.MapRowMapper;
+import io.github.jinghui70.rainbow.dbaccess.memory.Field;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.RowMapper;
@@ -12,13 +13,21 @@ import org.springframework.jdbc.core.RowMapper;
 import java.util.List;
 import java.util.Map;
 
+import static io.github.jinghui70.rainbow.dbaccess.StrConst.ID;
+import static io.github.jinghui70.rainbow.dbaccess.StrConst.NAME;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class EnumTest extends BaseTest {
 
     @BeforeEach
     void init() {
-        DbaTestUtil.initTable(dba, "T_ENUM");
+        dba.sql("DROP TABLE IF EXISTS T_ENUM").execute();
+        dba.createTable("T_ENUM",
+                Field.createKeyInt(ID),
+                Field.createInt("NUMBER_ENUM"),
+                Field.createString("CODE_ENUM", 50),
+                Field.createString("NORMAL_ENUM", 50)
+        );
     }
 
     @Test
@@ -28,31 +37,23 @@ public class EnumTest extends BaseTest {
         t.setNormalEnum(MyEnum.NORMAL);
         t.setCodeEnum(MyCode.A);
         t.setNumberEnum(MyNumber.ONE);
-        t.setE(new MyEnum[]{MyEnum.NORMAL, MyEnum.LOCKED, MyEnum.DELETED});
         dba.insert(t);
 
         t = dba.select("*").from("T_ENUM").queryForObject(TEnum.class);
         assertEquals(MyEnum.NORMAL, t.getNormalEnum());
         assertEquals(MyCode.A, t.getCodeEnum());
         assertEquals(MyNumber.ONE, t.getNumberEnum());
-        assertArrayEquals(new MyEnum[]{MyEnum.NORMAL, MyEnum.LOCKED, MyEnum.DELETED}, t.getE());
 
         Map<String, Object> map = dba.select("*").from("T_ENUM").queryForMap();
         assertEquals(MyEnum.NORMAL.name(), map.get("Normal_Enum"));
         assertEquals(MyCode.A.code(), map.get("code_enum"));
         assertEquals(MyNumber.ONE.ordinal(), map.get("number_enum"));
-        assertEquals(MyEnum.NORMAL.name(), map.get("e_1"));
-        assertEquals(MyEnum.LOCKED.name(), map.get("e_2"));
-        assertEquals(MyEnum.DELETED.name(), map.get("e_3"));
 
         map = dba.select("*").from("T_ENUM")
                 .where("NORMAL_ENUM", MyEnum.NORMAL)
                 .and("CODE_ENUM", MyCode.A)
                 .and("NUMBER_ENUM", MyNumber.ONE)
                 .queryForMap();
-        assertEquals(MyEnum.NORMAL.name(), map.get("e_1"));
-        assertEquals(MyEnum.LOCKED.name(), map.get("e_2"));
-        assertEquals(MyEnum.DELETED.name(), map.get("e_3"));
     }
 
     @Test

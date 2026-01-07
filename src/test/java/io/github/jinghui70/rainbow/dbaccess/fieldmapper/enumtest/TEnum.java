@@ -1,6 +1,5 @@
 package io.github.jinghui70.rainbow.dbaccess.fieldmapper.enumtest;
 
-import io.github.jinghui70.rainbow.dbaccess.annotation.ArrayField;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Id;
 
 public class TEnum {
@@ -13,9 +12,6 @@ public class TEnum {
     private MyCode codeEnum;
 
     private MyNumber numberEnum;
-
-    @ArrayField(length = 3, start = 1, underline = true)
-    private MyEnum[] e;
 
     public int getId() {
         return id;
@@ -49,11 +45,4 @@ public class TEnum {
         this.numberEnum = numberEnum;
     }
 
-    public MyEnum[] getE() {
-        return e;
-    }
-
-    public void setE(MyEnum[] e) {
-        this.e = e;
-    }
 }

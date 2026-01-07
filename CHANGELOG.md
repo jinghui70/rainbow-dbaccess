@@ -1,3 +1,8 @@
+## [6.1.3](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.1.2..v6.1.3) (2025-12-12)
+### Features
+- 删除 ArrayField
+- 重构 ObjectFieldMapper
+
 ## [6.1.2](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.0.1...v6.1.2) (2025-12-12)
 ### Features
 - 优化 groupBy 多个参数

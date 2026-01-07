@@ -1,13 +1,11 @@
 package io.github.jinghui70.rainbow.dbaccess.object;
 
 import cn.hutool.core.bean.PropDesc;
-import io.github.jinghui70.rainbow.dbaccess.annotation.ArrayField;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Id;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldMapper;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldValue;
 import org.springframework.jdbc.support.JdbcUtils;
 
-import java.lang.reflect.Array;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -16,15 +14,10 @@ public class PropInfo {
     private final String fieldName;
     private final PropDesc propDesc;
     private final FieldMapper<?> mapper;
-    private final int index;
     private Id id;
 
     public String getFieldName() {
         return fieldName;
-    }
-
-    public int getIndex() {
-        return index;
     }
 
     public Id getId() {
@@ -36,30 +29,18 @@ public class PropInfo {
     }
 
     public PropInfo(String fieldName, PropDesc propDesc, FieldMapper<?> mapper, Id id) {
-        this(fieldName, propDesc, mapper, -1);
+        this(fieldName, propDesc, mapper);
         this.id = id;
     }
 
-    public PropInfo(String fieldName, PropDesc propDesc, FieldMapper<?> mapper, int index) {
+    public PropInfo(String fieldName, PropDesc propDesc, FieldMapper<?> mapper) {
         this.fieldName = fieldName;
         this.propDesc = propDesc;
         this.mapper = mapper;
-        this.index = index;
     }
 
     public String getName() {
         return propDesc.getRawFieldName();
-    }
-
-    /**
-     * 如果是数组属性，创建一个新数组
-     *
-     * @return 新建的数组
-     */
-    private Object newArray() {
-        Class<?> componentType = propDesc.getFieldClass().getComponentType();
-        ArrayField annotation = propDesc.getField().getAnnotation(ArrayField.class);
-        return Array.newInstance(componentType, annotation.length());
     }
 
     /**
@@ -70,14 +51,6 @@ public class PropInfo {
      */
     public Object getValue(Object object) {
         Object value = propDesc.getValue(object);
-        if (value == null) return null;
-        if (index >= 0) {
-            try {
-                value = Array.get(value, index);
-            } catch (ArrayIndexOutOfBoundsException e) {
-                return null;
-            }
-        }
         if (value == null) return null;
         return mapper == null ? value : new FieldValue(value, mapper);
     }
@@ -94,7 +67,6 @@ public class PropInfo {
         if (mapper != null)
             return mapper.formDB(rs, index);
         Class<?> type = propDesc.getFieldClass();
-        if (this.index >= 0) type = type.getComponentType();
         return JdbcUtils.getResultSetValue(rs, index, type);
     }
 
@@ -105,17 +77,7 @@ public class PropInfo {
      * @param value  需要保存的值
      */
     public void setValue(Object object, Object value) {
-        if (index >= 0) {
-            Object array = propDesc.getValue(object);
-            if (array == null) {
-                array = newArray();
-                propDesc.setValue(object, array);
-            }
-            if (value != null)
-                Array.set(array, index, value);
-        } else {
-            propDesc.setValue(object, value);
-        }
+        propDesc.setValue(object, value);
     }
 
     public boolean isAutoIncrement() {

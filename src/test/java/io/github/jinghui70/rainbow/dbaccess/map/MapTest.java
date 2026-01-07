@@ -27,8 +27,10 @@ public class MapTest extends BaseTest {
         data.setRevision(1);
         data.logCreate();
         dba.insert(data);
-        Map<String, Object> map = dba.select().from("SIMPLE_DATA").limit(1).queryForMap();
-        Map<String, Object> mapCamel = dba.select().from("SIMPLE_DATA").limit(1).queryForObject(new CamelCaseMapMapper());
+        Map<String, Object> map = dba.select().from("SIMPLE_DATA").limit(1)
+                .queryForMap();
+        Map<String, Object> mapCamel = dba.select().from("SIMPLE_DATA").limit(1)
+                .queryForObject(new CamelCaseMapMapper());
         Object obj = map.get("CREATED_TIME");
         assertNotNull(obj);
         assertEquals(obj, mapCamel.get("createdTime"));

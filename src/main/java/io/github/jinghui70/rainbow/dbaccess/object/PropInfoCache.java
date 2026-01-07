@@ -5,10 +5,12 @@ import cn.hutool.core.bean.PropDesc;
 import cn.hutool.core.map.WeakConcurrentMap;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
-import io.github.jinghui70.rainbow.dbaccess.annotation.*;
-import io.github.jinghui70.rainbow.dbaccess.fieldmapper.EnumFieldMapper;
+import io.github.jinghui70.rainbow.dbaccess.annotation.Column;
+import io.github.jinghui70.rainbow.dbaccess.annotation.Id;
+import io.github.jinghui70.rainbow.dbaccess.annotation.Transient;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.*;
 
+import java.sql.Types;
 import java.util.LinkedHashMap;
 
 public class PropInfoCache {
@@ -30,18 +32,8 @@ public class PropInfoCache {
             String fieldName = column == null || StrUtil.isEmpty(column.name()) ?
                     StrUtil.toUnderlineCase(propDesc.getRawFieldName()) : column.name();
             fieldName = fieldName.toLowerCase();
-            ArrayField arrayAnnotation = propDesc.getField().getAnnotation(ArrayField.class);
-            if (arrayAnnotation == null) {
-                Id id = propDesc.getField().getAnnotation(Id.class);
-                result.put(fieldName, new PropInfo(fieldName, propDesc, mapper, id));
-            } else {
-                if (mapper == null) mapper = isEnumOrBooleanMapper(propDesc.getFieldClass().getComponentType());
-                String join = arrayAnnotation.underline() ? "_" : "";
-                for (int i = 0; i < arrayAnnotation.length(); i++) {
-                    String field = String.format("%s%s%d", fieldName, join, i + arrayAnnotation.start());
-                    result.put(field, new PropInfo(field, propDesc, mapper, i));
-                }
-            }
+            Id id = propDesc.getField().getAnnotation(Id.class);
+            result.put(fieldName, new PropInfo(fieldName, propDesc, mapper, id));
         });
         return result;
     }
@@ -49,7 +41,7 @@ public class PropInfoCache {
     /**
      * 根据字段配置，获取 FieldMapper 对象
      *
-     * @param column  字段配置
+     * @param column   字段配置
      * @param propDesc 属性描述
      * @return FieldMapper 对象
      */
@@ -63,19 +55,20 @@ public class PropInfoCache {
             return ReflectUtil.newInstance(mapperClass);
         }
         // Lob 类型的映射器
-        LobType lobType = column.lobType();
-        switch (lobType) {
-            case BLOB:
+        int sqlType = column.sqlType();
+        switch (sqlType) {
+            case Types.BLOB:
                 if (fieldClass == String.class)
                     return new BlobStringFieldMapper();
                 if (fieldClass == byte[].class)
                     return new BlobByteArrayFieldMapper();
                 return new BlobObjectFieldMapper(fieldClass, propDesc.getField());
-            case CLOB:
-                // 如果是字符串，暂时没有必要做特殊处理，因为对象中的字符串要读到内存中，当做普通的字符串处理了
+            case Types.CLOB:
+            case Types.VARCHAR:
+                // 如果是字符串，暂时没有必要做特殊处理
                 if (fieldClass == String.class)
                     return null;
-                return new ClobObjectFieldMapper(fieldClass, propDesc.getField());
+                return new StringObjectFieldMapper(fieldClass, propDesc.getField());
             default:
                 return isEnumOrBooleanMapper(fieldClass);
         }

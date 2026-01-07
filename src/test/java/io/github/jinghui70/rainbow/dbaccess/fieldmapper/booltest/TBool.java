@@ -1,6 +1,5 @@
 package io.github.jinghui70.rainbow.dbaccess.fieldmapper.booltest;
 
-import io.github.jinghui70.rainbow.dbaccess.annotation.ArrayField;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Column;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Id;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.BoolYN;
@@ -16,9 +15,6 @@ public class TBool {
 
     @Column(mapper= BoolYN.class)
     private Boolean ynBool;
-
-    @ArrayField(length = 3, start = 1, underline = true)
-    private Boolean[] array;
 
     public String getId() {
         return id;
@@ -52,11 +48,4 @@ public class TBool {
         this.ynBool = ynBool;
     }
 
-    public Boolean[] getArray() {
-        return array;
-    }
-
-    public void setArray(Boolean[] array) {
-        this.array = array;
-    }
 }

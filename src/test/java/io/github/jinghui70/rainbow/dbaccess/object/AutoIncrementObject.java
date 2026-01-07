@@ -1,6 +1,5 @@
 package io.github.jinghui70.rainbow.dbaccess.object;
 
-import io.github.jinghui70.rainbow.dbaccess.annotation.ArrayField;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Column;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Id;
 
@@ -11,16 +10,14 @@ public class AutoIncrementObject {
 
     private String name;
 
-    @Column(name = "SCORE")
-    @ArrayField(length = 3, start = 1, underline = true)
-    private Double[] scores;
+    private Double score;
 
     public AutoIncrementObject() {
     }
 
-    public AutoIncrementObject(String name, Double[] scores) {
+    public AutoIncrementObject(String name, Double score) {
         this.name = name;
-        this.scores = scores;
+        this.score = score;
     }
 
     public int getId() {
@@ -39,11 +36,11 @@ public class AutoIncrementObject {
         this.name = name;
     }
 
-    public Double[] getScores() {
-        return scores;
+    public Double getScore() {
+        return score;
     }
 
-    public void setScores(Double[] scores) {
-        this.scores = scores;
+    public void setScore(Double score) {
+        this.score = score;
     }
 }

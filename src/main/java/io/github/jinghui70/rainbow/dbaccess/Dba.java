@@ -186,18 +186,6 @@ public class Dba {
     }
 
     /**
-     * 插入一个对象，如果已经存在就更新。这个函数H2支持，别的数据库未必支持
-     *
-     * @param bean 需要插入的对象
-     * @param <T>  对象泛型
-     * @return 插入改变的行数，正常应该是1
-     */
-    @SuppressWarnings("unchecked")
-    public <T> int merge(@NonNull T bean) {
-        return new ObjectDao<>(this, (Class<T>) bean.getClass()).merge(bean);
-    }
-
-    /**
      * 插入一组数据
      *
      * @param beans 数据的集合
@@ -208,7 +196,7 @@ public class Dba {
     }
 
     /**
-     * 将一个对象列表批量插入到数据库中。
+     * 将一个对象列表批量插入到对应数据表中。
      *
      * @param beans     需要插入的对象列表
      * @param batchSize 批处理大小
@@ -221,15 +209,41 @@ public class Dba {
     }
 
     /**
-     * 插入一组数据，如果已经存在就更新。这个函数H2支持，别的数据库未必支持
+     * 插入一个对象到指定的表
      *
-     * @param beans 数据的集合
-     * @param <T>   对象泛型
+     * @param bean      需要插入的对象
+     * @param tableName 表名
+     * @param <T>       对象泛型
+     * @return 插入改变的行数，正常应该是1
      */
     @SuppressWarnings("unchecked")
-    public <T> void merge(List<T> beans) {
+    public <T> int insert(@NonNull T bean, String tableName) {
+        return new ObjectDao<>(this, (Class<T>) bean.getClass()).insert(tableName, bean);
+    }
+
+    /**
+     * 插入一批数据到指定的表
+     *
+     * @param beans     数据的集合
+     * @param tableName 表名
+     * @param <T>       对象泛型
+     */
+    public <T> void insert(List<T> beans, String tableName) {
+        insert(beans, tableName, 0);
+    }
+
+    /**
+     * 将一个对象列表批量插入到指定数据表中
+     *
+     * @param beans     需要插入的对象列表
+     * @param tableName 表名
+     * @param batchSize 批处理大小
+     * @param <T>       对象类型
+     */
+    @SuppressWarnings("unchecked")
+    public <T> void insert(List<T> beans, String tableName, int batchSize) {
         if (CollUtil.isEmpty(beans)) return;
-        new ObjectDao<>(this, (Class<T>) beans.get(0).getClass()).merge(beans);
+        new ObjectDao<>(this, (Class<T>) beans.get(0).getClass()).insert(tableName, beans, batchSize);
     }
 
     /**
@@ -241,17 +255,6 @@ public class Dba {
      */
     public int insert(String tableName, Map<String, Object> map) {
         return MapHandler.doInsert(this, tableName, map, INSERT_INTO);
-    }
-
-    /**
-     * 插入一条记录到指定的表里，如果已经存在就更新。这个函数H2支持，别的数据库未必支持
-     *
-     * @param tableName 数据表名
-     * @param map       map对象
-     * @return 插入改变的行数，正常应该是1
-     */
-    public int merge(String tableName, Map<String, Object> map) {
-        return MapHandler.doInsert(this, tableName, map, MERGE_INTO);
     }
 
     /**
@@ -275,6 +278,68 @@ public class Dba {
         MapHandler.doInsert(this, tableName, data, INSERT_INTO, batchSize);
     }
 
+
+    /**
+     * 插入一个对象，如果已经存在就更新。这个函数H2支持，别的数据库未必支持
+     *
+     * @param bean 需要插入的对象
+     * @param <T>  对象泛型
+     * @return 插入改变的行数，正常应该是1
+     */
+    @SuppressWarnings("unchecked")
+    public <T> int merge(@NonNull T bean) {
+        return new ObjectDao<>(this, (Class<T>) bean.getClass()).merge(bean);
+    }
+
+    /**
+     * 插入一组数据，如果已经存在就更新。这个函数H2支持，别的数据库未必支持
+     *
+     * @param beans 数据的集合
+     * @param <T>   对象泛型
+     */
+    @SuppressWarnings("unchecked")
+    public <T> void merge(List<T> beans) {
+        if (CollUtil.isEmpty(beans)) return;
+        new ObjectDao<>(this, (Class<T>) beans.get(0).getClass()).merge(beans);
+    }
+
+    /**
+     * 插入一个对象，如果已经存在就更新。这个函数H2支持，别的数据库未必支持
+     *
+     * @param bean      需要插入的对象
+     * @param tableName 表名
+     * @param <T>       对象泛型
+     * @return 插入改变的行数，正常应该是1
+     */
+    @SuppressWarnings("unchecked")
+    public <T> int merge(@NonNull T bean, String tableName) {
+        return new ObjectDao<>(this, (Class<T>) bean.getClass()).merge(tableName, bean);
+    }
+
+    /**
+     * 插入一组数据，如果已经存在就更新。这个函数H2支持，别的数据库未必支持
+     *
+     * @param beans 数据的集合
+     * @param tableName 表名
+     * @param <T>   对象泛型
+     */
+    @SuppressWarnings("unchecked")
+    public <T> void merge(List<T> beans, String tableName) {
+        if (CollUtil.isEmpty(beans)) return;
+        new ObjectDao<>(this, (Class<T>) beans.get(0).getClass()).merge(tableName, beans);
+    }
+
+    /**
+     * 插入一条记录到指定的表里，如果已经存在就更新。这个函数H2支持，别的数据库未必支持
+     *
+     * @param tableName 数据表名
+     * @param map       map对象
+     * @return 插入改变的行数，正常应该是1
+     */
+    public int merge(String tableName, Map<String, Object> map) {
+        return MapHandler.doInsert(this, tableName, map, MERGE_INTO);
+    }
+
     /**
      * 插入一组数据到指定的表里，如果已经存在就更新。这个函数H2支持，别的数据库未必支持
      *
@@ -284,7 +349,6 @@ public class Dba {
     public void merge(String tableName, List<Map<String, Object>> data) {
         MapHandler.doInsert(this, tableName, data, MERGE_INTO, 0);
     }
-
 
     /**
      * 更新一个对象
@@ -334,6 +398,18 @@ public class Dba {
         return new ObjectDao<>(this, selectClass).selectByKey(keys);
     }
 
+    public void transaction(Runnable runnable) {
+        transactionTemplate.execute(status -> {
+            runnable.run();
+            return null;
+        });
+    }
+
+    public <T> T transaction(TransactionCallback<T> action) {
+        return transactionTemplate.execute(action);
+    }
+
+
     /**
      * 检查一个数据表是否存在
      *
@@ -350,15 +426,12 @@ public class Dba {
         return true;
     }
 
-    public void transaction(Runnable runnable) {
-        transactionTemplate.execute(status -> {
-            runnable.run();
-            return null;
-        });
+    /**
+     * 删除一个数据表
+     *
+     * @param tableName 数据表名
+     */
+    public void dropTable(String tableName) {
+        this.sql("DROP TABLE IF EXISTS ").append(tableName).execute();
     }
-
-    public <T> T transaction(TransactionCallback<T> action) {
-        return transactionTemplate.execute(action);
-    }
-
 }

@@ -55,20 +55,23 @@ public class PropInfoCache {
             return ReflectUtil.newInstance(mapperClass);
         }
         // Lob 类型的映射器
-        int sqlType = column.sqlType();
-        switch (sqlType) {
+        switch (column.sqlType()) {
             case Types.BLOB:
+                BlobFieldMapper mapper;
                 if (fieldClass == String.class)
-                    return new BlobStringFieldMapper();
-                if (fieldClass == byte[].class)
-                    return new BlobByteArrayFieldMapper();
-                return new BlobObjectFieldMapper(fieldClass, propDesc.getField());
+                    mapper = new BlobStringFieldMapper();
+                else if (fieldClass == byte[].class)
+                    mapper = new BlobByteArrayFieldMapper();
+                else
+                    mapper = new BlobObjectFieldMapper(fieldClass, propDesc.getField());
+                mapper.setCompress(column.compress());
+                return mapper;
             case Types.CLOB:
             case Types.VARCHAR:
                 // 如果是字符串，暂时没有必要做特殊处理
                 if (fieldClass == String.class)
                     return null;
-                return new StringObjectFieldMapper(fieldClass, propDesc.getField());
+                return new ObjectFieldMapper(fieldClass, propDesc.getField());
             default:
                 return isEnumOrBooleanMapper(fieldClass);
         }

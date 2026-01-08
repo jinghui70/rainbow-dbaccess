@@ -2,6 +2,7 @@ package io.github.jinghui70.rainbow.dbaccess.fieldmapper.lob;
 
 import io.github.jinghui70.rainbow.dbaccess.annotation.Column;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Id;
+import io.github.jinghui70.rainbow.dbaccess.annotation.Table;
 import io.github.jinghui70.rainbow.dbaccess.object.SimpleObject;
 
 import java.sql.Types;
@@ -9,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@Table(name = "LOB_OBJECT")
 public class BlobObject {
     @Id
     private int id;

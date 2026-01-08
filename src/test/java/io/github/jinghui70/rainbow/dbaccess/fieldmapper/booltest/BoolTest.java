@@ -19,7 +19,6 @@ public class BoolTest extends BaseTest {
 
     @BeforeEach
     void init() {
-        dba.sql("DROP TABLE IF EXISTS T_BOOL").execute();
         dba.createTable("T_BOOL",
                 Field.createKeyInt(ID),
                 Field.create("INT_BOOL").setType(DataType.SMALLINT),

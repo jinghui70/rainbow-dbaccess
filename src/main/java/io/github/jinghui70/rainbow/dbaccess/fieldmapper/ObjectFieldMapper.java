@@ -5,17 +5,20 @@ import cn.hutool.core.lang.TypeReference;
 import cn.hutool.json.JSON;
 import cn.hutool.json.JSONUtil;
 import io.github.jinghui70.rainbow.dbaccess.map.MapHandler;
+import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class BlobObjectFieldMapper<T> extends BlobFieldMapper<T> {
+public class ObjectFieldMapper<T> extends FieldMapper<T> {
 
     private Class<T> fieldClass;
 
@@ -23,38 +26,34 @@ public class BlobObjectFieldMapper<T> extends BlobFieldMapper<T> {
 
     private ParameterizedType parameterizedType;
 
-    private BlobObjectFieldMapper() {
+    private ObjectFieldMapper() {
     }
 
-    public BlobObjectFieldMapper(Class<T> fieldClass) {
+    public ObjectFieldMapper(Class<T> fieldClass) {
         this.fieldClass = fieldClass;
     }
 
-    public BlobObjectFieldMapper(TypeReference<T> type) {
+    public ObjectFieldMapper(TypeReference<T> type) {
         Assert.isInstanceOf(ParameterizedType.class, type.getType());
         this.parameterizedType = (ParameterizedType) type.getType();
     }
 
-    public BlobObjectFieldMapper(Class<T> fieldClass, Field field) {
+    public ObjectFieldMapper(Class<T> fieldClass, Field field) {
         this.fieldClass = fieldClass;
         if (JSON.class.isAssignableFrom(fieldClass)) return;
-        if (fieldClass.isArray())
+        if (fieldClass.isArray()) {
             componentClass = fieldClass.getComponentType();
-        if (Collection.class.isAssignableFrom(fieldClass) || Map.class.isAssignableFrom(fieldClass)) {
+        } else if (Collection.class.isAssignableFrom(fieldClass) || Map.class.isAssignableFrom(fieldClass)) {
             parameterizedType = (ParameterizedType) field.getGenericType();
         }
     }
 
-    @Override
-    protected byte[] getBytes(Object value) {
-        String json = JSONUtil.toJsonStr(value);
-        return json.getBytes(StandardCharsets.UTF_8);
-    }
 
-    @SuppressWarnings("unchecked")
     @Override
-    protected T parse(byte[] bytes) {
-        String str = new String(bytes, StandardCharsets.UTF_8);
+    @SuppressWarnings("unchecked")
+    public T formDB(ResultSet rs, int index) throws SQLException {
+        String str = rs.getString(index);
+        if (rs.wasNull()) return null;
         if (componentClass != null)
             return (T) JSONUtil.parseArray(str).toArray(componentClass);
         if (parameterizedType != null)
@@ -65,23 +64,30 @@ public class BlobObjectFieldMapper<T> extends BlobFieldMapper<T> {
         return JSONUtil.toBean(str, fieldClass);
     }
 
-    public static <T> BlobObjectFieldMapper<T> of(Class<T> fieldClass) {
-        return new BlobObjectFieldMapper<>(fieldClass);
+    @Override
+    public void saveToDB(PreparedStatement ps, int paramIndex, @NonNull Object value) throws SQLException {
+        String str = JSONUtil.toJsonStr(value);
+        ps.setString(paramIndex, str);
     }
 
-    public static <T> BlobObjectFieldMapper<T[]> ofArray(Class<T> componentClass) {
-        BlobObjectFieldMapper<T[]> result = new BlobObjectFieldMapper<>();
+    public static <T> ObjectFieldMapper<T> of(Class<T> fieldClass) {
+        return new ObjectFieldMapper<>(fieldClass);
+    }
+
+    public static <T> ObjectFieldMapper<T[]> ofArray(Class<T> componentClass) {
+        ObjectFieldMapper<T[]> result = new ObjectFieldMapper<>();
         result.componentClass = componentClass;
         return result;
     }
 
-    public static <T> BlobObjectFieldMapper<List<T>> ofList(Class<T> componentClass) {
-        BlobObjectFieldMapper<List<T>> result = new BlobObjectFieldMapper<>();
+    public static <T> ObjectFieldMapper<List<T>> ofList(Class<T> componentClass) {
+        ObjectFieldMapper<List<T>> result = new ObjectFieldMapper<>();
         result.parameterizedType = new ParameterizedTypeImpl(new Type[]{componentClass}, null, List.class);
         return result;
     }
 
-    public static BlobObjectFieldMapper<Map<String, Object>> ofMap() {
-        return new BlobObjectFieldMapper<>(MapHandler.MAP_TYPE);
+    public static ObjectFieldMapper<Map<String, Object>> ofMap() {
+        return new ObjectFieldMapper<>(MapHandler.MAP_TYPE);
     }
+
 }

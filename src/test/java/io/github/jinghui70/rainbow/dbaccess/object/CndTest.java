@@ -20,7 +20,6 @@ public class CndTest extends BaseTest {
 
     @BeforeEach
     void init() {
-        dba.sql("DROP TABLE IF EXISTS SIMPLE_OBJECT").execute();
         dba.createTable("SIMPLE_OBJECT",
                 Field.createKeyInt(ID),
                 Field.createString(NAME),

@@ -17,7 +17,6 @@ public class AutoIncrementTest extends BaseTest {
 
     @BeforeEach
     void init() {
-        dba.sql("DROP TABLE IF EXISTS AUTO_INCREMENT_OBJECT").execute();
         dba.createTable("AUTO_INCREMENT_OBJECT",
                 Field.createKeyInt(ID).setAutoIncrement(true),
                 Field.createString(NAME),

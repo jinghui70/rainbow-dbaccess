@@ -4,10 +4,6 @@ import java.nio.charset.StandardCharsets;
 
 public class BlobStringFieldMapper extends BlobFieldMapper<String> {
 
-    public BlobStringFieldMapper() {
-        super(true);
-    }
-
     @Override
     protected byte[] getBytes(Object value) {
         String string = (String) value;

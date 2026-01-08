@@ -22,4 +22,6 @@ public @interface Column {
     int sqlType() default SqlTypeValue.TYPE_UNKNOWN;
 
     Class<? extends FieldMapper> mapper() default FieldMapper.class;
+
+    boolean compress() default true;
 }

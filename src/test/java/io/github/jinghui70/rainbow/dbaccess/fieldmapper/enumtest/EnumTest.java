@@ -21,7 +21,6 @@ public class EnumTest extends BaseTest {
 
     @BeforeEach
     void init() {
-        dba.sql("DROP TABLE IF EXISTS T_ENUM").execute();
         dba.createTable("T_ENUM",
                 Field.createKeyInt(ID),
                 Field.createInt("NUMBER_ENUM"),

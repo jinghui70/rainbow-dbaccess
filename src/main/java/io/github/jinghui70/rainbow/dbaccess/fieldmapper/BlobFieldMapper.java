@@ -10,13 +10,13 @@ import java.sql.SQLException;
 
 public abstract class BlobFieldMapper<T> extends FieldMapper<T> {
 
-    protected boolean compress;
+    protected boolean compress = true;
 
-    protected BlobFieldMapper() {
-        this(true);
+    public boolean isCompress() {
+        return compress;
     }
 
-    protected BlobFieldMapper(boolean compress) {
+    public void setCompress(boolean compress) {
         this.compress = compress;
     }
 

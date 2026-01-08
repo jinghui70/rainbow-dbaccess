@@ -1,6 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess.map;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.dbaccess.*;
 import io.github.jinghui70.rainbow.utils.StringBuilderX;
@@ -10,6 +11,9 @@ import org.springframework.jdbc.support.JdbcUtils;
 import java.util.*;
 
 public class MapHandler {
+
+    public static TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {
+    };
 
     public static int doInsert(Dba dba, String tableName, Map<String, Object> map, String action) {
         Sql sql = dba.sql(action).append(tableName).append("(");

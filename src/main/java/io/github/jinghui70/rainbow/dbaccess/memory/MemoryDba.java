@@ -40,6 +40,7 @@ public class MemoryDba extends Dba implements Closeable {
      * @param table 表对象
      */
     public void createTable(Table table) {
+        dropTable(table.getName());
         getJdbcTemplate().update(table.ddl());
     }
 

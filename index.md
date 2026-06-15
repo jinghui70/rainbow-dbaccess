@@ -1,29 +1,25 @@
 ---
-# https://vitepress.dev/reference/default-theme-home-page
 layout: home
 
 hero:
   name: 'Rainbow DBAccess'
   text: '轻量、简单、直观的数据库访问工具'
-  tagline: 让数据库的操作更高效
+  tagline: SQL 是第一公民，约定大于配置
   actions:
     - theme: brand
-      text: 什么是 Rainbow DBAccess？
+      text: 了解 Rainbow DBAccess
       link: /concept
     - theme: alt
       text: 快速开始
       link: /getting-started
-    - theme: alt
-      text: API 速查参考
-      link: /api-examples
 
 features:
-  - title: 简单高效的 ORM
-    details: 简化数据库操作，自动映射对象与数据库记录。
-  - title: 直观的 SQL 编写
-    details: 简化复杂查询编写和参数化查询。
-  - title: 灵活的查询结果处理
-    details: 支持多种数据格式，轻松映射查询结果。
+  - title: 链式 SQL 编写
+    details: SQL 不应该和代码分离，链式写法让代码灵活、清晰、易维护
+  - title: 约定大于配置
+    details: 任意 Java 对象都可以自然地进入 SQL 交互，无需繁琐的映射文件
+  - title: 轻量但强大
+    details: FieldMapper 让 Java 属性更有业务意义，数据库存 CHAR(8) 就是 LocalDate，存 TINYINT 就是 Boolean
   - title: 内存数据库支持
-    details: 用数据库方式处理数据
+    details: 用数据库的方式处理内存数据，跨数据源合并计算轻松搞定
 ---

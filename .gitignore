@@ -1,3 +1,7 @@
 node_modules
 .vitepress/cache
 .vitepress/dist
+.vscode
+.idea
+target/
+.DS_Store

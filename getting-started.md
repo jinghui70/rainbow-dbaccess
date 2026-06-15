@@ -1,66 +1,63 @@
 # 快速开始
 
-## 依赖
+## 依赖引入
 
-- JDK 1.8+
-- SpringBoot 2.7+ / Spring5.3+
-- [Hutool](https://hutool.cn) / 5.8.25
-- [H2 database](http://www.h2database.com) 2.2.228
-
-## 安装
-
-在项目的 pom.xml 中的依赖项中添加以下内容
+项目基于 Java 17，通过 Maven 引入：
 
 ```xml
-
 <dependency>
     <groupId>io.github.jinghui70</groupId>
     <artifactId>rainbow-dbaccess</artifactId>
-    <version>5.2.12</version>
+    <version>6.2.0</version>
 </dependency>
 ```
 
-## 使用
+## Spring Boot 自动装配
 
-Rainbow DBAccess 中，[Dba 对象](/dba) 是访问一个数据库的唯一入口。
-
-### 自动配置 Dba 对象
-
-在 SpringBoot 项目中，[Dba 对象](/dba) 支持自动配置，可以直接注入：
+当 classpath 中存在 `JdbcTemplate` 和 `TransactionTemplate` 时，`DbaAutoConfiguration` 会自动创建 `Dba` Bean，无需手动配置：
 
 ```java
 @Autowired
 private Dba dba;
 ```
 
-### 手动创建 Dba 对象
+自动装配条件：
+- 容器中存在 `JdbcTemplate`（单例）
+- 容器中存在 `TransactionTemplate`
+- 容器中不存在自定义 `Dba` Bean
 
-构造函数：
+方言自动识别：H2/MySQL → `DialectDefault`，PostgreSQL/Kingbase → `DialectPostgreSQL`，Oracle → `DialectOracle`。不支持的数据库可以实现 `Dialect` 接口自行扩展。
+
+## 手动创建
 
 ```java
-// 传入 java.sql.dataSource 对象
-public Dba(DataSource dataSource)
+DataSource ds = ...;
+Dba dba = new Dba(ds);
 
-// 传入 java.sql.dataSource 对象和数据库方言示例
-public Dba(DataSource dataSource, Dialect dialect)
+Dba dba = new Dba(jdbcTemplate, transactionTemplate);
+
+Dba dba = new Dba(ds, new DialectCustom());
 ```
 
-默认情况下，Dba 会根据 dataSource 的信息，自动创建相应的[数据库方言](/other/dialect)对象。如果使用的是 Rainbow-DBAccess 不支持的数据库，可以实现一个新的[数据库方言](/other/dialect)，调用第二个构造函数来创建 [Dba 对象](/dba) 。
+内置支持的方言会自动识别，无需手动指定。只有使用不支持的数据库时才需要传入自定义方言。
 
-### 多个数据源配置
-
-一个 [Dba 对象](/dba)，对应一个 DataSource。有些数据类的项目，会配置很多数据源并同时访问，下面的例子，演示了使用 Hiraki 连接池，动态配置多个 Dba 的场景。
+## 第一个查询
 
 ```java
-public class DbaMaster() {
-
-    // 项目主数据源对应的 Dba
-    @Autowired
-    private Dba dba;
-
-    private Map<String, Dba> dbaMap = new HashMap<>();
-
-
+public class UserInfo { // 默认表名: USER_INFO
+    @Id
+    private String id;
+    private String name;
+    private Integer age;
 }
 
+List<UserInfo> users = dba.select().from("USER_INFO").queryForList(UserInfo.class);
+
+UserInfo user = dba.select().from("USER_INFO").where("ID", "1").queryForObject(UserInfo.class);
+
+dba.insert(new UserInfo("1", "Alice", 25));
+
+dba.update("USER_INFO").set("NAME", "Bob").where("ID", "1").execute();
+
+dba.deleteFrom("USER_INFO").where("ID", "1").execute();
 ```

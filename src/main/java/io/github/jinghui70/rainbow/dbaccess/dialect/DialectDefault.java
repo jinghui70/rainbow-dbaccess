@@ -23,5 +23,5 @@ public class DialectDefault implements Dialect {
         return String.format("%s LIMIT %d, %d", sql, from - 1, to - from + 1);
     }
 
-    public static Dialect INSTANCE = new DialectDefault();
+    public static final Dialect INSTANCE = new DialectDefault();
 }

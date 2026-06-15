@@ -1,6 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
 import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
+import org.springframework.lang.NonNull;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -13,7 +14,7 @@ public class ArgumentSetter extends ArgumentPreparedStatementSetter {
     }
 
     @Override
-    public void doSetValue(PreparedStatement ps, int parameterPosition, Object argValue) throws SQLException {
+    public void doSetValue(@NonNull PreparedStatement ps, int parameterPosition, Object argValue) throws SQLException {
         DbaUtil.setParameterValue(ps, parameterPosition, argValue, null);
     }
 }

@@ -1,8 +1,6 @@
 package io.github.jinghui70.rainbow.dbaccess.fieldmapper;
 
-import cn.hutool.core.util.EnumUtil;
-import io.github.jinghui70.rainbow.dbaccess.enumSupport.CodeEnum;
-import io.github.jinghui70.rainbow.dbaccess.enumSupport.OrdinalEnum;
+import io.github.jinghui70.rainbow.dbaccess.CodeEnum;
 import org.springframework.lang.NonNull;
 
 import java.sql.PreparedStatement;
@@ -16,21 +14,13 @@ public class EnumFieldMapper<T extends Enum<T>> extends FieldMapper<T> {
 
     private final boolean isCode;
 
-    private final boolean isOrdinal;
-
     public EnumFieldMapper(Class<T> enumClass) {
         this.enumClass = enumClass;
         isCode = CodeEnum.class.isAssignableFrom(enumClass);
-        isOrdinal = OrdinalEnum.class.isAssignableFrom(enumClass);
     }
 
     @Override
     public T formDB(ResultSet rs, int index) throws SQLException {
-        if (isOrdinal) {
-            int value = rs.getInt(index);
-            if (rs.wasNull()) return null;
-            return EnumUtil.getEnumAt(enumClass, value);
-        }
         String value = rs.getString(index);
         if (value == null) return null;
         if (isCode) {
@@ -45,9 +35,7 @@ public class EnumFieldMapper<T extends Enum<T>> extends FieldMapper<T> {
 
     @Override
     public void saveToDB(PreparedStatement ps, int paramIndex, @NonNull Object value) throws SQLException {
-        if (isOrdinal)
-            ps.setInt(paramIndex, ((Enum<?>) value).ordinal());
-        else if (isCode)
+        if (isCode)
             ps.setString(paramIndex, ((CodeEnum) value).code());
         else
             ps.setString(paramIndex, ((Enum<?>) value).name());

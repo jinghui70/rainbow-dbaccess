@@ -21,5 +21,5 @@ public class BoolFieldMapper extends FieldMapper<Boolean> {
         super.saveToDB(ps, paramIndex, value);
     }
 
-    public static BoolFieldMapper INSTANCE = new BoolFieldMapper();
+    public static final BoolFieldMapper INSTANCE = new BoolFieldMapper();
 }

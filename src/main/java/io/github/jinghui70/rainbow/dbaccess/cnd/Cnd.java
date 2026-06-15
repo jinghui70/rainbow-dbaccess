@@ -17,9 +17,9 @@ import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.enumCheck;
  */
 public class Cnd {
 
-    protected String field;
+    private String field;
 
-    private Op op;
+    private Op op = Op.EQ;
 
     private Object value;
 
@@ -28,12 +28,25 @@ public class Cnd {
     public Cnd() {
     }
 
+    /**
+     * 构造一个条件
+     *
+     * @param field 字段名
+     * @param op    比较符
+     * @param value 条件值
+     */
     private Cnd(String field, Op op, Object value) {
         this.field = field;
         this.op = op;
         this.value = value;
     }
 
+     /**
+     * 构造一个复合条件，这时候 field 保存的是 逻辑运算符，例如：AND、OR
+     *
+     * @param field    逻辑运算符，例如：AND、OR
+     * @param children 子条件列表
+     */
     private Cnd(String field, List<Cnd> children) {
         this.field = field;
         this.children = children;
@@ -47,12 +60,10 @@ public class Cnd {
         this.field = field;
     }
 
-    @SuppressWarnings("unused")
     public Op getOp() {
         return op;
     }
 
-    @SuppressWarnings("unused")
     public void setOp(Op op) {
         this.op = op;
     }
@@ -107,7 +118,6 @@ public class Cnd {
             sql.clearTemp().append(")");
             return;
         }
-        if (op == null) op = Op.EQ;
         if (value != null && value instanceof Sql) {
             sql.append(field).append(op.str()).append("(").append((Sql) value).append(")");
             return;

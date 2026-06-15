@@ -1,3 +1,43 @@
+## [6.2.0](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.1.4..v6.2.0) (2026-06-15)
+
+### Breaking Changes
+
+- **Dba.insert()** 重构：`insert(T bean)` 返回值从 `int` 改为 `void`；移除 `insert(List)`、`insert(List, batchSize)`、`insert(bean, tableName)`、`insert(List, tableName)`、`insert(List, tableName, batchSize)` 等重载；Map 插入的重载全部移除。改用 `insertOf(data)` 返回 `InsertBuilder` 构建器
+- **Dba.merge()** 重构：`merge(T bean)` 返回值从 `int` 改为 `void`；移除 `merge(List)`、`merge(bean, tableName)`、`merge(List, tableName)` 等重载；Map 合并的重载全部移除。改用 `mergeOf(data)` 返回 `InsertBuilder` 构建器
+- **Dba.update()** 返回类型变更：`update(String/Class)` 返回类型从 `Sql` 改为 `UpdateSql`；移除 `update(String tableName, T bean)`，改用 `updateOf(bean)` 返回 `UpdateBuilder` 构建器
+- **Sql.set()** 系列方法全部移除，迁移到 `UpdateSql`，包括 `set(field, value)`、`set(field, fieldMapper, value)`、`set(setStr)` 及其条件式变体
+- **Sql.queryForWrapTree()** 移除
+- **删除 ObjectDao 类**，功能拆分到 `InsertBuilder`、`UpdateBuilder`、`DeleteBuilder`
+- **删除 MapHandler 类**，逻辑合并到 `InsertBuilder`
+- **删除 QueryParam 类**
+- **删除 StrConst 类**
+- **删除 OrdinalEnum 接口**，`EnumFieldMapper` 不再支持 ordinal 模式，枚举统一按 name 存储
+- **删除 TreeObject、WrapTree 类**，树结构直接使用 `Tree<T>` 和 `ITreeNode<T>`
+- **FieldMapper.toValue()** 重命名为 `ofValue()`
+- **Cnd.field** 从 `protected` 改为 `private`
+- **Cnd.op** 默认值从 `null` 改为 `Op.EQ`
+
+### Features
+
+- 新增 `InsertBuilder` 构建器，统一处理 Bean/Map、单条/批量、默认表名/指定表名、INSERT/MERGE 等场景
+- 新增 `UpdateBuilder` 构建器，支持 include/exclude/excludeNull 字段过滤
+- 新增 `UpdateSql` 构建器，替代 Sql 的 set 方法，支持条件式 set
+- 新增 `DeleteBuilder` 构建器，支持按 Bean/Bean 数组/Bean 集合删除
+- 新增 `Dba.selectByKey()` 方法，根据主键值查询单条记录，支持复合主键
+- 新增 `Dba.updateOf()` 方法，创建 Bean 模式更新构建器
+- 新增 `Dba.delete()` 方法，按主键删除记录
+- 新增 `Sql.exist()` 方法，使用 LIMIT 1 优化存在性检查
+- 新增 `ObjectCodec` 类，提取 ObjectFieldMapper/BlobObjectFieldMapper 的共享 JSON 编解码逻辑
+- 新增 `InsertBuilder.into(Class)` 方法，通过实体类指定表名
+- 全面补充 Javadoc 文档
+
+### Other
+
+- `Dba` 构造函数 Javadoc 优化
+- `MapRowMapper.INSTANCE` 改为 `final`
+- `MapRowMapper.mapRow()` 返回值加 `@NonNull`，列名处理逻辑调整
+- `TreeUtils.filter()` 移除 `TreeObject` 特殊处理逻辑
+
 ## [6.1.4](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.1.2..v6.1.4) (2025-12-12)
 ### Features
 - 删除 ArrayField

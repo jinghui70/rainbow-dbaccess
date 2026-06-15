@@ -129,7 +129,6 @@ public class TreeUtils {
         if (match) {
             if (node.hasChild() && recurseOnMatch) {
                 List<T> children = filter(node.getChildren(), predicate, recurseOnMatch);
-                node = createNewNodeIfTreeObject(node);
                 node.setChildren(children.isEmpty() ? null : children);
             }
             return node;
@@ -137,21 +136,11 @@ public class TreeUtils {
         if (node.hasChild()) {
             List<T> children = filter(node.getChildren(), predicate, recurseOnMatch);
             if (CollUtil.isNotEmpty(children)) {
-                node = createNewNodeIfTreeObject(node);
                 node.setChildren(children);
                 return node;
             }
         }
         return null;
-    }
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private static <T extends ITreeNode<T>> T createNewNodeIfTreeObject(T node) {
-        if (node instanceof TreeObject) {
-            TreeObject treeObject = (TreeObject) node;
-            return (T) new TreeObject(treeObject.getData());
-        }
-        return node;
     }
 
     /**

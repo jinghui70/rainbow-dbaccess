@@ -41,7 +41,7 @@ public class MemoryDba extends Dba implements Closeable {
      */
     public void createTable(Table table) {
         dropTable(table.getName());
-        getJdbcTemplate().update(table.ddl());
+        sql(table.ddl()).execute();
     }
 
     public void createTable(String tableName, Field... fields) {
@@ -55,6 +55,7 @@ public class MemoryDba extends Dba implements Closeable {
      * @param fields 字段列表
      */
     public void createTable(Field... fields) {
-        createTable(Table.DEFAULT_NAME, fields);
+        Table table = new Table(fields);
+        createTable(table);
     }
 }

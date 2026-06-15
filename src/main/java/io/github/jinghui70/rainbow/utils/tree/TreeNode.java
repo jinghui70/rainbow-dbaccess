@@ -1,6 +1,5 @@
 package io.github.jinghui70.rainbow.utils.tree;
 
-import cn.hutool.core.collection.CollUtil;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Transient;
 
 import java.util.ArrayList;

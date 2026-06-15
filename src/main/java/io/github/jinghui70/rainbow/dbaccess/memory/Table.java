@@ -5,7 +5,6 @@ import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.utils.StringBuilderX;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -26,6 +25,10 @@ public class Table {
             this.fields = new ArrayList<>();
         else
             this.fields = CollUtil.newArrayList(fields);
+    }
+
+    public Table(Field... fields) {
+        this(DEFAULT_NAME, fields);
     }
 
     public boolean hasKey() {

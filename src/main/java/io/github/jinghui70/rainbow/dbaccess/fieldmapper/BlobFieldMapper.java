@@ -3,6 +3,8 @@ package io.github.jinghui70.rainbow.dbaccess.fieldmapper;
 import cn.hutool.core.util.ZipUtil;
 import org.springframework.lang.NonNull;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Blob;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,7 +12,7 @@ import java.sql.SQLException;
 
 public abstract class BlobFieldMapper<T> extends FieldMapper<T> {
 
-    protected boolean compress = true;
+    protected boolean compress = false;
 
     public boolean isCompress() {
         return compress;
@@ -18,6 +20,11 @@ public abstract class BlobFieldMapper<T> extends FieldMapper<T> {
 
     public void setCompress(boolean compress) {
         this.compress = compress;
+    }
+
+    public BlobFieldMapper<T> compress() {
+        this.compress = true;
+        return this;
     }
 
     protected abstract byte[] getBytes(Object value);
@@ -28,8 +35,21 @@ public abstract class BlobFieldMapper<T> extends FieldMapper<T> {
     public T formDB(ResultSet rs, int index) throws SQLException {
         Blob blob = rs.getBlob(index);
         if (rs.wasNull()) return null;
-        byte[] bytes = compress ? ZipUtil.unGzip(blob.getBinaryStream()) : blob.getBytes(1, (int) blob.length());
-        return parse(bytes);
+        try {
+            byte[] bytes;
+            if (compress) {
+                try (InputStream is = blob.getBinaryStream()) {
+                    bytes = ZipUtil.unGzip(is);
+                } catch (IOException e) {
+                    throw new RuntimeException("unzip blob failed", e);
+                }
+            } else {
+                bytes = blob.getBytes(1, (int) blob.length());
+            }
+            return parse(bytes);
+        } finally {
+            blob.free();
+        }
     }
 
     @Override

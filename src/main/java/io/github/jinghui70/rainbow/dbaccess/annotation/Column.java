@@ -23,5 +23,10 @@ public @interface Column {
 
     Class<? extends FieldMapper> mapper() default FieldMapper.class;
 
-    boolean compress() default true;
+    /**
+     * 用于Blob字段Json化之后是否压缩
+     *
+     * @return 压缩开关值，默认false
+     */
+    boolean compress() default false;
 }

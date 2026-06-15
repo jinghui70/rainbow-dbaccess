@@ -1,17 +1,20 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.db.StatementUtil;
 import cn.hutool.db.sql.SqlUtil;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Table;
-import io.github.jinghui70.rainbow.dbaccess.enumSupport.CodeEnum;
-import io.github.jinghui70.rainbow.dbaccess.enumSupport.OrdinalEnum;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldValue;
+import io.github.jinghui70.rainbow.dbaccess.object.PropInfo;
+import io.github.jinghui70.rainbow.dbaccess.object.PropInfoCache;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public abstract class DbaUtil {
@@ -42,6 +45,43 @@ public abstract class DbaUtil {
                 entityAnnotation.name();
     }
 
+    public static boolean isIdentifier(String name) {
+        return name.matches("^[a-zA-Z][a-zA-Z0-9_]*$");
+    }
+
+    private static final String INVALID_TABLE_NAME = "非法的数据表名:{}";
+
+    public static String validTableName(String tableName) {
+        Assert.notBlank(tableName, "表名不能为空");
+        String[] parts = tableName.split("\\.");
+        // 允许：table / schema.table / catalog.schema.table
+        Assert.isTrue(parts.length >= 1 && parts.length <= 3, INVALID_TABLE_NAME, tableName);
+        for (String part : parts) {
+            Assert.isTrue(isIdentifier(part), INVALID_TABLE_NAME, tableName);
+        }
+        return tableName;
+    }
+
+    private static final String INVALID_FIELD_NAME = "非法的字段名:{}";
+
+    public static String validFieldName(String fieldName) {
+        Assert.notBlank(fieldName, "字段名不能为空");
+        String[] parts = fieldName.split("\\.");
+        // 允许：field / alias.field
+        Assert.isTrue(parts.length >= 1 && parts.length <= 2, INVALID_FIELD_NAME, fieldName);
+        for (String part : parts) {
+            Assert.isTrue(isIdentifier(part), INVALID_FIELD_NAME, fieldName);
+        }
+        return fieldName;
+    }
+
+    public static List<PropInfo> keyArray(Class<?> clazz) {
+        LinkedHashMap<String, PropInfo> propMap = PropInfoCache.get(clazz);
+        List<PropInfo> keyArray = propMap.values().stream().filter(p -> p.getId() != null).toList();
+        Assert.notEmpty(keyArray, "{} 没有定义主键", clazz.getName());
+        return keyArray;
+    }
+
     /**
      * 检查参数是否是枚举，枚举默认用取值ordinal()，除非它有code()函数
      *
@@ -52,8 +92,6 @@ public abstract class DbaUtil {
         if (value == null || !value.getClass().isEnum()) return value;
         if (value instanceof CodeEnum)
             return ((CodeEnum) value).code();
-        if (value instanceof OrdinalEnum)
-            return ((Enum<?>) value).ordinal();
         return ((Enum<?>) value).name();
     }
 
@@ -66,9 +104,8 @@ public abstract class DbaUtil {
             return;
         }
 
-        if (inValue instanceof FieldValue) {
-            FieldValue fv = (FieldValue) inValue;
-            if (fv.getValue()==null)
+        if (inValue instanceof FieldValue fv) {
+            if (fv.getValue() == null)
                 setParameterNull(ps, paramIndex, nullTypeCache);
             else
                 fv.setParameter(ps, paramIndex);

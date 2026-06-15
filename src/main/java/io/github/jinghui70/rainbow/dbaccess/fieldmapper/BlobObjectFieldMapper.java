@@ -1,87 +1,52 @@
 package io.github.jinghui70.rainbow.dbaccess.fieldmapper;
 
-import cn.hutool.core.lang.ParameterizedTypeImpl;
-import cn.hutool.core.lang.TypeReference;
-import cn.hutool.json.JSON;
-import cn.hutool.json.JSONUtil;
-import io.github.jinghui70.rainbow.dbaccess.map.MapHandler;
-import org.springframework.util.Assert;
-
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 public class BlobObjectFieldMapper<T> extends BlobFieldMapper<T> {
 
-    private Class<T> fieldClass;
+    private final ObjectCodec<T> codec;
 
-    private Class<?> componentClass;
-
-    private ParameterizedType parameterizedType;
-
-    private BlobObjectFieldMapper() {
-    }
-
-    public BlobObjectFieldMapper(Class<T> fieldClass) {
-        this.fieldClass = fieldClass;
-    }
-
-    public BlobObjectFieldMapper(TypeReference<T> type) {
-        Assert.isInstanceOf(ParameterizedType.class, type.getType());
-        this.parameterizedType = (ParameterizedType) type.getType();
+    private BlobObjectFieldMapper(ObjectCodec<T> codec) {
+        this.codec = codec;
     }
 
     public BlobObjectFieldMapper(Class<T> fieldClass, Field field) {
-        this.fieldClass = fieldClass;
-        if (JSON.class.isAssignableFrom(fieldClass)) return;
-        if (fieldClass.isArray())
-            componentClass = fieldClass.getComponentType();
-        if (Collection.class.isAssignableFrom(fieldClass) || Map.class.isAssignableFrom(fieldClass)) {
-            parameterizedType = (ParameterizedType) field.getGenericType();
-        }
+        this.codec = new ObjectCodec<>(fieldClass, field);
     }
 
     @Override
     protected byte[] getBytes(Object value) {
-        String json = JSONUtil.toJsonStr(value);
+        String json = codec.toJson(value);
         return json.getBytes(StandardCharsets.UTF_8);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     protected T parse(byte[] bytes) {
         String str = new String(bytes, StandardCharsets.UTF_8);
-        if (componentClass != null)
-            return (T) JSONUtil.parseArray(str).toArray(componentClass);
-        if (parameterizedType != null)
-            return JSONUtil.toBean(str, parameterizedType, false);
-        Assert.notNull(fieldClass, "object field mapper class is null");
-        if (JSON.class.isAssignableFrom(fieldClass))
-            return (T) JSONUtil.parse(str);
-        return JSONUtil.toBean(str, fieldClass);
+        return codec.parse(str);
     }
 
     public static <T> BlobObjectFieldMapper<T> of(Class<T> fieldClass) {
-        return new BlobObjectFieldMapper<>(fieldClass);
+        return new BlobObjectFieldMapper<>(ObjectCodec.of(fieldClass));
     }
 
     public static <T> BlobObjectFieldMapper<T[]> ofArray(Class<T> componentClass) {
-        BlobObjectFieldMapper<T[]> result = new BlobObjectFieldMapper<>();
-        result.componentClass = componentClass;
-        return result;
+        return new BlobObjectFieldMapper<>(ObjectCodec.ofArray(componentClass));
     }
 
     public static <T> BlobObjectFieldMapper<List<T>> ofList(Class<T> componentClass) {
-        BlobObjectFieldMapper<List<T>> result = new BlobObjectFieldMapper<>();
-        result.parameterizedType = new ParameterizedTypeImpl(new Type[]{componentClass}, null, List.class);
-        return result;
+        return new BlobObjectFieldMapper<>(ObjectCodec.ofList(componentClass));
     }
 
-    public static BlobObjectFieldMapper<Map<String, Object>> ofMap() {
-        return new BlobObjectFieldMapper<>(MapHandler.MAP_TYPE);
+    public static <T> BlobObjectFieldMapper<Map<String, T>> ofMap(Class<T> valueClass) {
+        return new BlobObjectFieldMapper<>(ObjectCodec.ofMap(valueClass));
+    }
+
+    public static <T> BlobObjectFieldMapper<T> ofMap(Type complexType) {
+        return new BlobObjectFieldMapper<>(ObjectCodec.ofType(complexType));
     }
 }

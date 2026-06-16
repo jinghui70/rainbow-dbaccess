@@ -18,7 +18,7 @@ public @interface Table {
     /**
      * 数据库表名。
      * <p>
-     * 默认值为 ""，表示将类名自动转换为 kebab-case 格式作为表名。
+     * 默认值为 ""，表示将类名自动转换为大写下划线（UPPER_SNAKE_CASE）格式作为表名，如 UserInfo → USER_INFO。
      * </p>
      *
      * @return 数据库表名

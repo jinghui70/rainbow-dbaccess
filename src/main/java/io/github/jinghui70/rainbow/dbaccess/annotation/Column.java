@@ -21,7 +21,7 @@ public @interface Column {
     /**
      * 数据库字段名。
      * <p>
-     * 默认值为 ""，表示将属性名自动转换为 kebab-case 格式作为字段名。
+     * 默认值为 ""，表示将属性名自动转换为小写下划线（snake_case）格式作为字段名，如 userName → user_name。
      * </p>
      *
      * @return 数据库字段名

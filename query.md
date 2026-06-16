@@ -14,6 +14,27 @@ dba.select("NAME", "AGE").from("T_USER").where("AGE", Op.GT, 20).queryForList(Us
 dba.select().from(User.class).count();
 ```
 
+## 关联查询
+
+`from` 方法接受原始 SQL 片段，可以直接写 JOIN：
+
+```java
+dba.select("P.*", "O.QTY")
+    .from("PRODUCT P LEFT JOIN ORDERS O ON P.ID=O.PRODUCT_ID")
+    .where("O.QTY", Op.GT, 0)
+    .queryForList(ProductVO.class);
+```
+
+关联查询的表名和 JOIN 条件写在 `from` 中，WHERE 条件仍然用链式 API 拼接。也可以用 `append` 分步拼接：
+
+```java
+dba.select("P.*", "O.QTY")
+    .from("PRODUCT P")
+    .append(" LEFT JOIN ORDERS O ON P.ID=O.PRODUCT_ID")
+    .where("O.QTY", Op.GT, 0)
+    .queryForList(ProductVO.class);
+```
+
 ## 条件拼接
 
 ```java
@@ -26,13 +47,25 @@ dba.select().from("T_USER")
 
 `where`/`and`/`or` 方法会自动管理 WHERE 关键字和 AND/OR 连接符的位置。
 
+## 调试与底层访问
+
+```java
+String sql = dba.select().from("T_USER").where("ID", "1").getSql();
+// 获取最终生成的 SQL 字符串，设置了 limit/range 时会自动通过方言包装分页 SQL
+
+List<Object> params = dba.select().from("T_USER").where("AGE", Op.GT, 20).getParams();
+// 获取当前参数列表
+```
+
+`Dba` 也暴露了底层组件的 getter：`getJdbcTemplate()`、`getTransactionTemplate()`、`getDialect()`，在需要直接使用 Spring JDBC 原生能力或获取方言信息时可用。
+
 ## 条件开关：避免 if 打断链式调用
 
 ```java
-function List<User> getUser(String name, int age) {
+public List<User> getUser(String name, int minAge) {
     return dba.select().from("T_USER")
         .where(StrUtil.isNotBlank(name), "NAME", name) // name 参数为空则不包括此条件
-        .and(age>0, "AGE", Op.GT, minAge) // age 参数大于0 才有此条件
+        .and(minAge > 0, "AGE", Op.GT, minAge) // minAge 大于0 才有此条件
         .queryForList(User.class);
 }
 ```
@@ -80,6 +113,13 @@ Map<String, User> userMap = dba.select().from("T_USER")
 Map<String, Map<String, Object>> allMap = dba.select().from("T_USER")
     .queryToMap(rs -> rs.getString("ID"));
 // 结果: {"1" -> {ID:"1", NAME:"Alice", ...}, "2" -> {ID:"2", NAME:"Bob", ...}}
+```
+
+`queryToMap` 还支持传入 `Supplier<Map>` 来指定 Map 实现类，例如保持插入顺序：
+
+```java
+Map<String, User> orderedMap = dba.select().from("T_USER")
+    .queryToMap(rs -> rs.getString("ID"), User.class, LinkedHashMap::new);
 ```
 
 ### 分组
@@ -207,8 +247,11 @@ MapRowMapper.create()
     .ignore("AGE", "SCORE")
     .ignoreNull()
     .post(m -> m.put("_extra", 1))
-    .setFieldMapper("STATUS", EnumFieldMapper.of(Status.class));
+    .setFieldMapper("STATUS", EnumFieldMapper.of(Status.class))
+    .setFieldMapper(3, EnumFieldMapper.of(Color.class));
 ```
+
+`setFieldMapper` 支持按列名和按列索引两种方式设置 FieldMapper。
 
 **自定义 RowMapper：**
 

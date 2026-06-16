@@ -7,7 +7,7 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: '指南', link: '/concept' },
-      { text: 'API 速查', link: '/api' },
+      { text: 'JavaDoc', link: '/javadoc/index.html', target: '_self' },
     ],
     outline: {
       level: [2, 3],
@@ -25,8 +25,8 @@ export default defineConfig({
       { text: '事务管理', link: '/transaction' },
       { text: '原始 SQL', link: '/raw-sql' },
       { text: 'MemoryDba', link: '/memory-dba' },
+      { text: '快速 CRUD', link: '/crud' },
       { text: '规则与最佳实践', link: '/tips' },
-      { text: 'API 速查', link: '/api' },
     ],
     socialLinks: [
       { icon: 'github', link: 'https://github.com/jinghui70/rainbow-dbaccess' },

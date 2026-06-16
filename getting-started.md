@@ -8,7 +8,7 @@
 <dependency>
     <groupId>io.github.jinghui70</groupId>
     <artifactId>rainbow-dbaccess</artifactId>
-    <version>6.2.0</version>
+    <version>6.2.2</version>
 </dependency>
 ```
 
@@ -22,7 +22,7 @@ private Dba dba;
 ```
 
 自动装配条件：
-- 容器中存在 `JdbcTemplate`（单例）
+- 容器中有且仅有一个 `JdbcTemplate`（或标记了 `@Primary`）
 - 容器中存在 `TransactionTemplate`
 - 容器中不存在自定义 `Dba` Bean
 

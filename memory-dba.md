@@ -29,7 +29,13 @@ try (MemoryDba mem = new MemoryDba()) {
 }
 ```
 
-不指定表名时，默认表名为 `Table.DEFAULT_NAME`（"X"）。
+不指定表名时，默认表名为 `Table.DEFAULT_NAME`（"X"）。也可以通过 `createTable(tableName, Field...)` 指定表名：
+
+```java
+mem.createTable("MY_TABLE",
+    Field.createKeyString("ID"),
+    Field.createString("NAME"));
+```
 
 ## Field DSL
 

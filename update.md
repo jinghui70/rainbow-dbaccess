@@ -64,6 +64,15 @@ dba.update("T_USER")
     .execute();
 ```
 
+条件开关与 FieldMapper 可以组合使用：
+
+```java
+dba.update("T_USER")
+    .set(tags != null, "TAGS", ObjectFieldMapper.ofList(String.class), tags)
+    .where("ID", "1")
+    .execute();
+```
+
 枚举和 Boolean 直接使用即可，不需要 FieldMapper：
 
 ```java

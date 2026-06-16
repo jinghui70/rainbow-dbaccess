@@ -1,0 +1,11 @@
+io.github.jinghui70.rainbow.dbaccess
+io.github.jinghui70.rainbow.dbaccess.annotation
+io.github.jinghui70.rainbow.dbaccess.cnd
+io.github.jinghui70.rainbow.dbaccess.crud
+io.github.jinghui70.rainbow.dbaccess.dialect
+io.github.jinghui70.rainbow.dbaccess.fieldmapper
+io.github.jinghui70.rainbow.dbaccess.memory
+io.github.jinghui70.rainbow.dbaccess.object
+io.github.jinghui70.rainbow.dbaccess.rowmapper
+io.github.jinghui70.rainbow.dbaccess.tree
+io.github.jinghui70.rainbow.dbaccess.utils

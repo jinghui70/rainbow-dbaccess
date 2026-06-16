@@ -12,4 +12,7 @@ dba.sql("INSERT INTO T_USER(ID,NAME,AGE) VALUES(?,?,?)")
         new Object[]{"a", "A", 20},
         new Object[]{"b", "B", 30}
     ));
+
+dba.sql("INSERT INTO T_USER(ID,NAME,AGE) VALUES(?,?,?)")
+    .batchUpdate(largeList, 500);
 ```

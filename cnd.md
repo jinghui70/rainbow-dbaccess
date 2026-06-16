@@ -10,7 +10,7 @@ Cnd 的设计原则就是**简单**。多数情况下操作符都是 EQ，所以
 
 - **字段名**：数据库列名
 - **操作符**：`Op` 枚举，不指定时默认为 `EQ`
-- **条件值**：普通值、集合、Range、子查询 Sql 对象均可
+- **条件值**：普通值、集合、Range、子查询 Sql 对象均可，当 `Op` 为 `IS_NULL` 或 `IS_NOT_NULL` 时不需要这个参数
 
 ## 操作符一览
 
@@ -45,7 +45,11 @@ dba.select().from("T_USER")
     .queryForList(User.class);
 ```
 
-也可以通过 `Cnd.where()` 函数手动创建 Cnd，常用于创建**复合条件**分支：
+也可以通过 `Cnd.where()` 函数手动创建 Cnd，`Cnd.where()`常用于创建**复合条件**的分支项：
+
+## 复合条件：嵌套组合
+
+`Cnd.and()` / `Cnd.or()` 可以嵌套组合，生成任意复杂的条件表达式。复合条件会自动简化：0 个条件返回 null，1 个条件返回自身。
 
 ```java
 Cnd.or(
@@ -54,10 +58,6 @@ Cnd.or(
 )
 // 生成: ((A=? AND B=?) OR (C=? AND D=?))
 ```
-
-## 复合条件：嵌套组合
-
-`Cnd.and()` / `Cnd.or()` 可以嵌套组合，生成任意复杂的条件表达式。复合条件会自动简化：0 个条件返回 null，1 个条件返回自身。
 
 ## 条件开关
 
@@ -83,6 +83,11 @@ Cnd.where(minAge != null, "AGE", Op.GT, minAge)
 | `Cnd.where("AGE", Range.of(25, 25))` | = | `AGE=?` |
 | `Cnd.where("NAME", Op.NE, null)` | IS NOT NULL | `NAME IS NOT NULL` |
 | `Cnd.where("ID", Op.NE, list)` | NOT IN | `ID NOT IN (?,?)` |
+
+```java
+Cnd.where("NAME", Op.IS_NULL)     // 等价于 Cnd.isNull("NAME")
+Cnd.where("NAME", Op.IS_NOT_NULL) // 等价于 Cnd.isNotNull("NAME")
+```
 
 ## LIKE 变体
 
@@ -111,6 +116,6 @@ IN 中的 null 会额外生成 `OR IS NULL` 条件。NOT IN 中的 null 被忽�
 ```java
 Sql sub = dba.select("ID").from("T_USER").where("NAME", "Alice");
 dba.select().from("T_ORDER")
-    .where(Cnd.where("USER_ID", Op.IN, sub))
+    .where("USER_ID", Op.IN, sub)
     .queryForList(Order.class);
 ```

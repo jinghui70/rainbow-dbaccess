@@ -7,7 +7,7 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: '指南', link: '/concept' },
-      { text: 'JavaDoc', link: '/javadoc/index.html', target: '_self' },
+      { text: 'JavaDoc', link: '/apidocs/index.html', target: '_self' },
     ],
     outline: {
       level: [2, 3],

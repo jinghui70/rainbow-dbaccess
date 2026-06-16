@@ -62,7 +62,7 @@ public class QueryDTO {
      */
     public QueryDTO setEntity(Class<?> entityClass) {
         this.setEntity(DbaUtil.tableName(entityClass));
-        if (StrUtil.isNotEmpty(defaultOrderBys)) {
+        if (StrUtil.isEmpty(defaultOrderBys)) {
             this.defaultOrderBys = DbaUtil.defaultOrderBy(entityClass);
         }
         return this;

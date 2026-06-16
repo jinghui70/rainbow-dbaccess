@@ -56,42 +56,41 @@ class SqlCoverageTest extends BaseTest {
     }
 
     @Test
-    void testSetDba() {
-        Sql sql = new Sql();
-        Sql result = sql.setDba(dba);
-        assertSame(sql, result);
-    }
-
-    @Test
     void testAddParamsList() {
-        Sql sql = new Sql();
-        sql.addParams(List.of("a", "b", "c"));
-        assertEquals(3, sql.getParams().size());
+        setupUsers();
+        List<User> list = dba.sql("SELECT * FROM T_USER WHERE AGE>? AND SCORE>?")
+                .addParams(List.of(30, 60))
+                .queryForList(User.class);
+        assertEquals(1, list.size());
     }
 
     @Test
     void testSetParamsList() {
-        Sql sql = new Sql();
-        sql.addParam("x");
-        sql.setParams(List.of("a", "b"));
-        assertEquals(2, sql.getParams().size());
-        assertEquals("a", sql.getParams().get(0));
+        setupUsers();
+        Sql sql = dba.update(User.class).set("SCORE", 88).where("ID", "1");
+        sql.execute();
+        User user = dba.selectByKey(User.class, "1");
+        assertEquals(88, user.getScore());
+
+        sql.setParams(List.of(99, "2")).execute();
+        user = dba.selectByKey(User.class, "2");
+        assertEquals(99, user.getScore());
     }
 
     @Test
     void testGetSqlWithRange() {
         setupUsers();
-        Sql sql = dba.select().from("T_USER").limit(2);
-        String result = sql.getSql();
-        assertTrue(result.contains("LIMIT"));
+        List<User> result = dba.select().from("T_USER").limit(1).queryForList(User.class);
+        assertEquals(1, result.size());
     }
 
     @Test
     void testGetSqlWithRangeFromTo() {
         setupUsers();
-        Sql sql = dba.select().from("T_USER").range(1, 2);
-        String result = sql.getSql();
-        assertNotNull(result);
+        List<User> result = dba.select().from("T_USER").orderBy("ID")
+                .range(2,3).queryForList(User.class);
+        assertEquals(2, result.size());
+        assertEquals("2", result.get(0).getId());
     }
 
     @Test
@@ -124,14 +123,18 @@ class SqlCoverageTest extends BaseTest {
     @Test
     void testWhereConditionTrueWithOp() {
         setupUsers();
-        List<User> list = dba.select().from("T_USER").where(true, "AGE", Op.GT, 28).queryForList(User.class);
+        List<User> list = dba.select().from("T_USER")
+                .where(true, "AGE", Op.GT, 28)
+                .queryForList(User.class);
         assertEquals(2, list.size());
     }
 
     @Test
     void testWhereConditionFalseWithOp() {
         setupUsers();
-        List<User> list = dba.select().from("T_USER").where(false, "AGE", Op.GT, 28).queryForList(User.class);
+        List<User> list = dba.select().from("T_USER")
+                .where(false, "AGE", Op.GT, 28)
+                .queryForList(User.class);
         assertEquals(3, list.size());
     }
 

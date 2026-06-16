@@ -1,4 +1,4 @@
-## [6.2.1](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.1.4..v6.2.1) (2026-06-15)
+## [6.2.2](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.1.4..v6.2.2) (2026-06-15)
 
 ### Breaking Changes
 

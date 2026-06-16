@@ -1,7 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
 import io.github.jinghui70.rainbow.dbaccess.model.OrgNode;
-import io.github.jinghui70.rainbow.utils.tree.Tree;
+import io.github.jinghui70.rainbow.dbaccess.tree.Tree;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

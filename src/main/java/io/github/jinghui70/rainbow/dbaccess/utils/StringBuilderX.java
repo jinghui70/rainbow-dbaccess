@@ -1,4 +1,4 @@
-package io.github.jinghui70.rainbow.utils;
+package io.github.jinghui70.rainbow.dbaccess.utils;
 
 /**
  * 增强StringBuild，在连续append的时候处理多余的逗号这样的场景

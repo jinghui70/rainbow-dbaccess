@@ -25,6 +25,9 @@ public class Cnd {
 
     private List<Cnd> children;
 
+    /**
+     * 无参构造函数
+     */
     public Cnd() {
     }
 
@@ -52,38 +55,83 @@ public class Cnd {
         this.children = children;
     }
 
+    /**
+     * 获取字段名
+     *
+     * @return 字段名
+     */
     public String getField() {
         return field;
     }
 
+    /**
+     * 设置字段名
+     *
+     * @param field 字段名
+     */
     public void setField(String field) {
         this.field = field;
     }
 
+    /**
+     * 获取比较运算符
+     *
+     * @return 比较运算符
+     */
     public Op getOp() {
         return op;
     }
 
+    /**
+     * 设置比较运算符
+     *
+     * @param op 比较运算符
+     */
     public void setOp(Op op) {
         this.op = op;
     }
 
+    /**
+     * 获取条件值
+     *
+     * @return 条件值
+     */
     public Object getValue() {
         return value;
     }
 
+    /**
+     * 设置条件值
+     *
+     * @param value 条件值
+     */
     public void setValue(Object value) {
         this.value = value;
     }
 
+    /**
+     * 获取子条件列表
+     *
+     * @return 子条件列表
+     */
     public List<Cnd> getChildren() {
         return children;
     }
 
+    /**
+     * 设置子条件列表
+     *
+     * @param children 子条件列表
+     */
     public void setChildren(List<Cnd> children) {
         this.children = children;
     }
 
+    /**
+     * 根据运算符类型处理LIKE条件值
+     *
+     * @return 处理后的LIKE条件值
+     */
     private String likeValue() {
         String str = value.toString();
         return switch (op) {
@@ -99,6 +147,11 @@ public class Cnd {
         };
     }
 
+    /**
+     * 处理IN/NOT IN条件的值，将其转换为数组
+     *
+     * @return 条件值数组
+     */
     private Object[] inValue() {
         Assert.notNull(value, "value of in/not_in condition cannot be null");
         Object[] array = ArrayUtil.isArray(value)
@@ -108,6 +161,11 @@ public class Cnd {
         return array;
     }
 
+    /**
+     * 将条件转换为SQL语句
+     *
+     * @param sql SQL对象，用于拼接SQL语句
+     */
     public void toSql(Sql sql) {
         if (children != null) {
             sql.append("(");
@@ -162,6 +220,12 @@ public class Cnd {
         }
     }
 
+    /**
+     * 处理范围查询的SQL拼接
+     *
+     * @param sql SQL对象
+     * @return 是否为范围查询
+     */
     private boolean rangeSql(Sql sql) {
         Range<?> range = paramToRange();
         if (range == null)
@@ -182,6 +246,11 @@ public class Cnd {
         return true;
     }
 
+    /**
+     * 将参数转换为Range对象
+     *
+     * @return Range对象，若无法转换则返回null
+     */
     private Range<?> paramToRange() {
         if (value instanceof Map) {
             return BeanUtil.toBeanIgnoreCase(value, Range.class, false);
@@ -191,6 +260,13 @@ public class Cnd {
             return null;
     }
 
+    /**
+     * 处理IN/NOT IN条件的SQL拼接
+     *
+     * @param sql    SQL对象
+     * @param useOp  使用的运算符
+     * @param array  条件值数组
+     */
     private void inSql(Sql sql, Op useOp, Object[] array) {
         Object[] finalArray = Arrays.stream(array).filter(Objects::nonNull).map(DbaUtil::enumCheck).toArray();
         boolean hasNull = finalArray.length != array.length;
@@ -210,16 +286,33 @@ public class Cnd {
         if (hasNull) sql.append(DbaUtil.OR).append(field).append(" IS NULL").append(")");
     }
 
+    /**
+     * 返回条件的字符串表示
+     *
+     * @return 条件的字符串表示
+     */
     @Override
     public String toString() {
         return "{" + field + " " + op + " " + value + "}";
     }
 
+    /**
+     * 创建AND复合条件
+     *
+     * @param cnds 条件数组
+     * @return AND复合条件，若没有有效条件则返回null
+     */
     public static Cnd and(Cnd... cnds) {
         List<Cnd> children = Arrays.stream(cnds).filter(Objects::nonNull).toList();
         return and(children);
     }
 
+    /**
+     * 创建AND复合条件
+     *
+     * @param cnds 条件列表
+     * @return AND复合条件，若没有有效条件则返回null
+     */
     public static Cnd and(List<Cnd> cnds) {
         return switch (cnds.size()) {
             case 0 -> null;
@@ -228,11 +321,23 @@ public class Cnd {
         };
     }
 
+    /**
+     * 创建OR复合条件
+     *
+     * @param cnds 条件数组
+     * @return OR复合条件，若没有有效条件则返回null
+     */
     public static Cnd or(Cnd... cnds) {
         List<Cnd> children = Arrays.stream(cnds).filter(Objects::nonNull).toList();
         return or(children);
     }
 
+    /**
+     * 创建OR复合条件
+     *
+     * @param cnds 条件列表
+     * @return OR复合条件，若没有有效条件则返回null
+     */
     public static Cnd or(List<Cnd> cnds) {
         return switch (cnds.size()) {
             case 0 -> null;
@@ -241,28 +346,72 @@ public class Cnd {
         };
     }
 
+    /**
+     * 创建IS NULL条件
+     *
+     * @param field 字段名
+     * @return IS NULL条件
+     */
     public static Cnd isNull(String field) {
         return new Cnd(field, Op.IS_NULL, null);
     }
 
+    /**
+     * 创建IS NOT NULL条件
+     *
+     * @param field 字段名
+     * @return IS NOT NULL条件
+     */
     public static Cnd isNotNull(String field) {
         return new Cnd(field, Op.IS_NOT_NULL, null);
     }
 
+    /**
+     * 创建等于条件
+     *
+     * @param field 字段名
+     * @param value 条件值
+     * @return 条件对象
+     */
     public static Cnd where(String field, Object value) {
         if (Op.IS_NULL.equals(value) || Op.IS_NOT_NULL.equals(value))
             return new Cnd(field, (Op) value, null);
         return new Cnd(field, Op.EQ, value);
     }
 
+    /**
+     * 创建条件
+     *
+     * @param field 字段名
+     * @param op    比较运算符
+     * @param value 条件值
+     * @return 条件对象
+     */
     public static Cnd where(String field, Op op, Object value) {
         return new Cnd(field, op, value);
     }
 
+    /**
+     * 根据条件创建等于条件
+     *
+     * @param condition 是否创建条件
+     * @param field     字段名
+     * @param value     条件值
+     * @return 条件对象，若condition为false则返回null
+     */
     public static Cnd where(boolean condition, String field, Object value) {
         return (condition) ? Cnd.where(field, value) : null;
     }
 
+    /**
+     * 根据条件创建条件
+     *
+     * @param condition 是否创建条件
+     * @param field     字段名
+     * @param op        比较运算符
+     * @param value     条件值
+     * @return 条件对象，若condition为false则返回null
+     */
     public static Cnd where(boolean condition, String field, Op op, Object value) {
         return (condition) ? Cnd.where(field, op, value) : null;
     }

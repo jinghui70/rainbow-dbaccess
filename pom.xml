@@ -6,7 +6,7 @@
 
     <groupId>io.github.jinghui70</groupId>
     <artifactId>rainbow-dbaccess</artifactId>
-    <version>6.2.0</version>
+    <version>6.2.1</version>
 
     <name>rainbow-dbaccess</name>
     <description>A powerful database access tool with ORM support, built on Spring JDBC.</description>
@@ -92,7 +92,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.2.1</version>
+                <version>3.4.0</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -105,10 +105,14 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.8.0</version>
+                <version>3.12.0</version>
                 <configuration>
-                    <doclint>none</doclint> <!-- 禁用 doc lint 检查 -->
-                    <failOnError>false</failOnError> <!-- 不因 Javadoc 错误失败 -->
+                    <encoding>UTF-8</encoding>
+                    <docencoding>UTF-8</docencoding>
+                    <charset>UTF-8</charset>
+                    <source>${java.version}</source>
+                    <doclint>none</doclint>
+                    <failOnError>false</failOnError>
                 </configuration>
                 <executions>
                     <execution>

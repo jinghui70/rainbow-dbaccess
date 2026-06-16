@@ -152,6 +152,14 @@ public class MapRowMapper extends ColumnMapRowMapper {
      * @param column      the column name
      * @return the FieldMapper or null if not found
      */
+    /**
+     * 获取指定列的FieldMapper。
+     * 先按列索引查找，未找到则按列名查找。
+     *
+     * @param columnIndex 列索引
+     * @param column 列名
+     * @return FieldMapper实例，如果未找到则返回null
+     */
     private FieldMapper<?> getFieldMapper(int columnIndex, String column) {
         if (mapperMap == null) return null;
         FieldMapper<?> mapper = mapperMap.get(Integer.toString(columnIndex));

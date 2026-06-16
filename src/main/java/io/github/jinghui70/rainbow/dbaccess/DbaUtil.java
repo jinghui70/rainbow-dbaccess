@@ -1,5 +1,6 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.db.StatementUtil;
@@ -16,28 +17,60 @@ import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+/**
+ * 数据库访问工具类，提供表名推导、字段校验、主键提取、枚举转换和 {@link PreparedStatement} 参数设值等底层能力。
+ */
 public abstract class DbaUtil {
 
+    /** SELECT 关键字 */
     public static final String SELECT = "SELECT ";
+
+    /** WHERE 关键字 */
     public static final String WHERE = " WHERE ";
+
+    /** AND 连接符 */
     public static final String AND = " AND ";
+
+    /** OR 连接符 */
     public static final String OR = " OR ";
 
+    /** MERGE INTO 关键字 */
     public static final String MERGE_INTO = "MERGE INTO ";
+
+    /** INSERT INTO 关键字 */
     public static final String INSERT_INTO = "INSERT INTO ";
 
+    /** ORDER BY 关键字 */
     public static final String ORDER_BY = " ORDER BY ";
+
+    /** GROUP BY 关键字 */
     public static final String GROUP_BY = " GROUP BY ";
 
+    /** LIKE 关键字 */
     public static final String LIKE = " LIKE ";
+
+    /** NOT LIKE 关键字 */
     public static final String NOT_LIKE = " NOT LIKE ";
 
     /**
-     * 根据一个对象的类，得到它对应的数据表名
+     * 生成降序排序表达式。
      *
-     * @param clazz 对象类
-     * @return 数据表名
+     * @param field 字段名
+     * @return {@code field DESC}
+     */
+    public static String desc(String field) {
+        return field + " DESC";
+    }
+
+    /**
+     * 根据实体类推导表名。
+     * <p>
+     * 若类标注了 {@link Table} 注解则取注解值；否则将类名转为下划线大写作为表名。
+     *
+     * @param clazz 实体类
+     * @return 表名
      */
     public static String tableName(Class<?> clazz) {
         Table entityAnnotation = clazz.getAnnotation(Table.class);
@@ -45,12 +78,27 @@ public abstract class DbaUtil {
                 entityAnnotation.name();
     }
 
+    /**
+     * 判断字符串是否为合法 SQL 标识符（以字母开头，仅含字母、数字和下划线）。
+     *
+     * @param name 待检验字符串
+     * @return 合法返回 {@code true}
+     */
     public static boolean isIdentifier(String name) {
         return name.matches("^[a-zA-Z][a-zA-Z0-9_]*$");
     }
 
     private static final String INVALID_TABLE_NAME = "非法的数据表名:{}";
 
+    /**
+     * 校验表名合法性，支持 {@code table}、{@code schema.table}、{@code catalog.schema.table} 格式。
+     * <p>
+     * 每段必须为合法 SQL 标识符，否则抛出 {@link IllegalArgumentException}。
+     *
+     * @param tableName 表名
+     * @return 校验通过的表名
+     * @throws IllegalArgumentException 表名为空或格式非法
+     */
     public static String validTableName(String tableName) {
         Assert.notBlank(tableName, "表名不能为空");
         String[] parts = tableName.split("\\.");
@@ -64,7 +112,15 @@ public abstract class DbaUtil {
 
     private static final String INVALID_FIELD_NAME = "非法的字段名:{}";
 
-    public static String validFieldName(String fieldName) {
+    /**
+     * 校验字段名合法性，支持 {@code field} 和 {@code alias.field} 格式。
+     * <p>
+     * 每段必须为合法 SQL 标识符，否则抛出 {@link IllegalArgumentException}。
+     *
+     * @param fieldName 字段名
+     * @throws IllegalArgumentException 字段名为空或格式非法
+     */
+    public static void validateFieldName(String fieldName) {
         Assert.notBlank(fieldName, "字段名不能为空");
         String[] parts = fieldName.split("\\.");
         // 允许：field / alias.field
@@ -72,9 +128,15 @@ public abstract class DbaUtil {
         for (String part : parts) {
             Assert.isTrue(isIdentifier(part), INVALID_FIELD_NAME, fieldName);
         }
-        return fieldName;
     }
 
+    /**
+     * 获取实体类的主键属性列表。
+     *
+     * @param clazz 实体类，需用 {@code @Id} 标注主键
+     * @return 主键属性列表
+     * @throws IllegalArgumentException 未定义主键时抛出
+     */
     public static List<PropInfo> keyArray(Class<?> clazz) {
         LinkedHashMap<String, PropInfo> propMap = PropInfoCache.get(clazz);
         List<PropInfo> keyArray = propMap.values().stream().filter(p -> p.getId() != null).toList();
@@ -83,10 +145,28 @@ public abstract class DbaUtil {
     }
 
     /**
-     * 检查参数是否是枚举，枚举默认用取值ordinal()，除非它有code()函数
+     * 获取实体类的默认排序字段，以主键字段升序排列。
+     * <p>
+     * 无主键时返回 {@code null}。
      *
-     * @param value 值
-     * @return 检查后的值
+     * @param clazz 实体类
+     * @return 默认排序表达式，如 {@code "ID"}；无主键时返回 {@code null}
+     */
+    public static String defaultOrderBy(Class<?> clazz) {
+        LinkedHashMap<String, PropInfo> propMap = PropInfoCache.get(clazz);
+        List<PropInfo> keyArray = propMap.values().stream().filter(p -> p.getId() != null).toList();
+        if (CollUtil.isNotEmpty(keyArray)) {
+            return keyArray.stream().map(PropInfo::getFieldName)
+                    .collect(Collectors.joining(StrUtil.COMMA));
+        }
+        return null;
+    }
+
+    /**
+     * 枚举值转换：若实现了 {@link CodeEnum} 接口则取 {@code code()}，否则取 {@link Enum#name()}。
+     *
+     * @param value 待转换值，非枚举类型原样返回
+     * @return 转换后的值
      */
     public static Object enumCheck(Object value) {
         if (value == null || !value.getClass().isEnum()) return value;
@@ -95,6 +175,20 @@ public abstract class DbaUtil {
         return ((Enum<?>) value).name();
     }
 
+    /**
+     * 为 {@link PreparedStatement} 设置参数值，处理 null、{@link FieldValue}、日期和大数字等特殊类型。
+     * <p>
+     * null 值通过 {@link #setParameterNull} 设值以确保 JDBC 类型正确。
+     * {@link FieldValue} 由其自身完成设值。
+     * 日期类型按时间戳传入以避免毫秒丢失。
+     * {@link BigInteger} 转为 {@link BigDecimal} 后设值。
+     *
+     * @param ps             PreparedStatement
+     * @param paramIndex     参数位置，从 1 开始
+     * @param inValue        参数值
+     * @param nullTypeCache  null 类型的缓存，批量执行时复用类型推断结果；可为 {@code null}
+     * @throws SQLException 数据库异常
+     */
     public static void setParameterValue(PreparedStatement ps, int paramIndex,
                                          Object inValue,
                                          Map<Integer, Integer> nullTypeCache) throws SQLException {
@@ -143,6 +237,14 @@ public abstract class DbaUtil {
     }
 
 
+    /**
+     * 为 {@link PreparedStatement} 设置 null 参数，通过缓存避免重复推断 SQL 类型。
+     *
+     * @param ps            PreparedStatement
+     * @param paramIndex    参数位置，从 1 开始
+     * @param nullTypeCache null 类型的缓存；为 {@code null} 时不缓存
+     * @throws SQLException 数据库异常
+     */
     private static void setParameterNull(PreparedStatement ps, int paramIndex,
                                          Map<Integer, Integer> nullTypeCache) throws SQLException {
         Integer type = (null == nullTypeCache) ? null : nullTypeCache.get(paramIndex);

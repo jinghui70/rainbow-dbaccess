@@ -1,4 +1,4 @@
-package io.github.jinghui70.rainbow.utils.tree;
+package io.github.jinghui70.rainbow.dbaccess.tree;
 
 import cn.hutool.core.collection.CollUtil;
 
@@ -11,6 +11,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+/**
+ * 树结构工具类，提供树的遍历、转换、过滤、打印等常用操作。
+ */
 public class TreeUtils {
 
     /**
@@ -55,7 +58,7 @@ public class TreeUtils {
     }
 
     /**
-     * 遍历树结构并应用指定操作
+     * 遍历树结构并应用指定操作（前序遍历）。
      *
      * @param <T>    节点类型，必须实现ITreeNode接口
      * @param tree   待遍历的树结构列表
@@ -65,12 +68,30 @@ public class TreeUtils {
         traverse(tree, action, true);
     }
 
+    /**
+     * 遍历树结构并应用指定操作。
+     *
+     * @param <T>        节点类型，必须实现ITreeNode接口
+     * @param tree       待遍历的树结构列表
+     * @param action     对每个节点执行的操作
+     * @param isPreOrder 是否按前序遍历，true表示前序，false表示后序
+     */
     public static <T extends ITreeNode<T>> void traverse(List<T> tree, TreeNodeConsumer<T> action, boolean isPreOrder) {
         for (T node : tree) {
             traverseNode(node, null, 1, action, isPreOrder);
         }
     }
 
+    /**
+     * 递归遍历树节点并应用指定操作。
+     *
+     * @param <T>        节点类型，必须实现ITreeNode接口
+     * @param node       当前遍历的节点
+     * @param parentNode 父节点
+     * @param level      当前节点层级（根节点为1）
+     * @param action     对每个节点执行的操作
+     * @param isPreOrder 是否按前序遍历，true表示前序，false表示后序
+     */
     public static <T extends ITreeNode<T>> void traverseNode(T node, T parentNode, int level, TreeNodeConsumer<T> action, boolean isPreOrder) {
         if (isPreOrder) action.accept(node, parentNode, level);
         if (node.hasChild()) {
@@ -81,11 +102,29 @@ public class TreeUtils {
         if (!isPreOrder) action.accept(node, parentNode, level);
     }
 
+    /**
+     * 将树结构从一种节点类型转换为另一种节点类型。
+     *
+     * @param <F>    源节点类型
+     * @param <T>    目标节点类型
+     * @param list   源树结构列表
+     * @param mapper 节点转换函数
+     * @return 转换后的树结构列表
+     */
     public static <F extends ITreeNode<F>, T extends ITreeNode<T>> List<T> transform(List<F> list, Function<F, T> mapper) {
         if (CollUtil.isEmpty(list)) return Collections.emptyList();
         return list.stream().map(node -> transformNode(node, mapper)).collect(Collectors.toList());
     }
 
+    /**
+     * 递归转换单个节点及其子节点。
+     *
+     * @param <F>          源节点类型
+     * @param <T>          目标节点类型
+     * @param originalNode 源节点
+     * @param mapper       节点转换函数
+     * @return 转换后的节点
+     */
     private static <F extends ITreeNode<F>, T extends ITreeNode<T>> T transformNode(F originalNode, Function<F, T> mapper) {
         T result = mapper.apply(originalNode);
         if (originalNode.hasChild()) {
@@ -128,7 +167,7 @@ public class TreeUtils {
         boolean match = predicate.test(node);
         if (match) {
             if (node.hasChild() && recurseOnMatch) {
-                List<T> children = filter(node.getChildren(), predicate, recurseOnMatch);
+                List<T> children = filter(node.getChildren(), predicate, true);
                 node.setChildren(children.isEmpty() ? null : children);
             }
             return node;

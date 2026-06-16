@@ -8,8 +8,21 @@ import java.util.*;
 
 import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.keyArray;
 
+/**
+ * 删除操作，根据实体 Bean 或数组/集合的主键执行 DELETE。
+ * <p>
+ * 单条对象或数组/集合均以 {@code @Id} 主键生成 WHERE 条件。
+ * 通过 {@link Dba#deleteFrom} 获取 SQL 构建器可实现更灵活的条件拼接。
+ */
 public class DeleteBuilder {
 
+    /**
+     * 执行删除。支持单条 Bean、Bean 数组、Bean 集合三种形态。
+     *
+     * @param dba  数据库访问对象
+     * @param data 实体对象、数组或集合，需用 {@code @Id} 标注主键
+     * @return 受影响行数
+     */
     public static int delete(Dba dba, @NonNull Object data) {
         Class<?> dataClass = data.getClass();
         if (dataClass.isArray()) {
@@ -27,8 +40,9 @@ public class DeleteBuilder {
     }
 
     /**
-     * 批量删除，按主键逐条执行 DELETE
+     * 批量删除，按主键逐条执行 DELETE。
      *
+     * @param dba  数据库访问对象
      * @param data 实体对象列表，需用 {@link io.github.jinghui70.rainbow.dbaccess.annotation.Id} 标注主键
      * @return 受影响行数合计
      */

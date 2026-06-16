@@ -4,7 +4,7 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.dbaccess.object.PropInfo;
 import io.github.jinghui70.rainbow.dbaccess.object.PropInfoCache;
-import io.github.jinghui70.rainbow.utils.StringBuilderX;
+import io.github.jinghui70.rainbow.dbaccess.utils.StringBuilderX;
 import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.lang.NonNull;

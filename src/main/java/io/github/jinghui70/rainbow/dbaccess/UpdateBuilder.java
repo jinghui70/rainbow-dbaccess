@@ -1,20 +1,24 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.lang.hash.Hash;
 import io.github.jinghui70.rainbow.dbaccess.object.PropInfo;
 import io.github.jinghui70.rainbow.dbaccess.object.PropInfoCache;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
- * 更新Bean操作构建器
+ * 更新操作构建器，根据实体 Bean 的主键执行更新。
+ * <p>
+ * 以 {@code @Id} 注解的主键字段自动生成 WHERE 条件，更新所有非主键、非自增字段。
+ * 默认全字段更新；通过 {@link #include} / {@link #exclude} / {@link #excludeNull} 控制参与更新的字段。
+ * <p>
  * 典型用法：
  * <pre>
- *     // Bean 模式
- *     dba.update(User.class).setBean(user).exclude("createTime").execute();
- *     dba.update(User.class).setBean(user).include("name", "age").excludeNull().execute();
+ *     dba.updateOf(bean).execute();                          // 全量更新
+ *     dba.updateOf(bean).include("name", "age").execute();   // 仅更新 name、age
+ *     dba.updateOf(bean).exclude("avatar").execute();        // 排除 avatar，更新其它字段
+ *     dba.updateOf(bean).excludeNull().execute();            // null 字段不更新
  * </pre>
  */
 public class UpdateBuilder {
@@ -22,8 +26,8 @@ public class UpdateBuilder {
     private final Dba dba;
     private final Object bean;
 
-    // 字段过滤方式（仅 Map / Bean 模式）
     private enum FieldFilter {ALL, INCLUDE, EXCLUDE}
+
     private FieldFilter fieldFilter = FieldFilter.ALL;
 
     // 过滤字段，Bean 的属性值
@@ -32,37 +36,73 @@ public class UpdateBuilder {
     // 过滤为空字段
     private boolean excludeNull;
 
+    /**
+     * @param dba  数据库访问对象
+     * @param bean 实体对象，需用 {@code @Id} 标注主键
+     */
     UpdateBuilder(Dba dba, Object bean) {
         this.dba = dba;
         this.bean = bean;
     }
 
+    private void checkFilter(FieldFilter filter) {
+        boolean isOk = fieldFilter == FieldFilter.ALL || fieldFilter == filter;
+        Assert.isTrue(isOk, "不能同时使用 include 和 exclude");
+        this.fieldFilter = filter;
+    }
+
     /**
      * 仅更新指定字段。和 {@link #exclude} 互斥。
-     * <p>Bean 模式：参数为 Java 属性名。
-     * <p>Map 模式：参数为 Map key（列名）。
+     *
+     * @param fields Java 属性名
+     * @return this
      */
     public UpdateBuilder include(String... fields) {
-        Assert.notEquals(fieldFilter, FieldFilter.EXCLUDE, "不能同时使用 include 和 exclude");
-        this.fieldFilter = FieldFilter.INCLUDE;
+        checkFilter(FieldFilter.INCLUDE);
         this.fieldNames = Set.of(fields);
         return this;
     }
 
     /**
-     * 排除指定字段，不参与更新。和 {@link #include} 互斥。
-     * <p>Bean 模式：参数为 Java 属性名。
-     * <p>Map 模式：参数为 Map key（列名）。
+     * 仅更新指定字段。和 {@link #exclude} 互斥。
+     *
+     * @param fields Java 属性名集合
+     * @return this
+     */
+    public UpdateBuilder include(Collection<String> fields) {
+        checkFilter(FieldFilter.INCLUDE);
+        this.fieldNames = new HashSet<>(fields);
+        return this;
+    }
+
+    /**
+     * 排除指定字段不参与更新。和 {@link #include} 互斥。
+     *
+     * @param fields Java 属性名
+     * @return this
      */
     public UpdateBuilder exclude(String... fields) {
-        Assert.notEquals(fieldFilter, FieldFilter.INCLUDE, "不能同时使用 include 和 exclude");
-        this.fieldFilter = FieldFilter.EXCLUDE;
+        checkFilter(FieldFilter.EXCLUDE);
         this.fieldNames = Set.of(fields);
+        return this;
+    }
+
+    /**
+     * 排除指定字段不参与更新。和 {@link #include} 互斥。
+     *
+     * @param fields Java 属性名集合
+     * @return this
+     */
+    public UpdateBuilder exclude(Collection<String> fields) {
+        checkFilter(FieldFilter.EXCLUDE);
+        this.fieldNames = new HashSet<>(fields);
         return this;
     }
 
     /**
      * null 字段不参与 SET。可以和 {@link #include}/{@link #exclude} 叠加。
+     *
+     * @return this
      */
     public UpdateBuilder excludeNull() {
         this.excludeNull = true;
@@ -91,9 +131,7 @@ public class UpdateBuilder {
     }
 
     /**
-     * 执行更新。
-     * <p>Bean 模式：PK 自动生成 WHERE。
-     * <p>SQL/SQL+Map 模式：无 WHERE 将更新全表。
+     * 执行更新。以 {@code @Id} 主键字段自动生成 WHERE 条件。
      *
      * @return 受影响行数
      */

@@ -1,4 +1,4 @@
-package io.github.jinghui70.rainbow.utils;
+package io.github.jinghui70.rainbow.dbaccess.utils;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ArrayUtil;

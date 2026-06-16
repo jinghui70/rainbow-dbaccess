@@ -10,9 +10,9 @@ import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldMapper;
 import io.github.jinghui70.rainbow.dbaccess.rowmapper.MapRowMapper;
 import io.github.jinghui70.rainbow.dbaccess.rowmapper.SingleColumnFieldRowMapper;
 import io.github.jinghui70.rainbow.dbaccess.object.BeanMapper;
-import io.github.jinghui70.rainbow.utils.StringBuilderWrapper;
-import io.github.jinghui70.rainbow.utils.tree.ITreeNode;
-import io.github.jinghui70.rainbow.utils.tree.Tree;
+import io.github.jinghui70.rainbow.dbaccess.utils.StringBuilderWrapper;
+import io.github.jinghui70.rainbow.dbaccess.tree.ITreeNode;
+import io.github.jinghui70.rainbow.dbaccess.tree.Tree;
 import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -118,9 +118,9 @@ public class Sql extends StringBuilderWrapper<Sql> {
     }
 
     /**
-     * 添加参数
+     * 添加参数到参数列表。
      *
-     * @param params 参数
+     * @param params 可变参数数组
      * @return this
      */
     public Sql addParam(Object... params) {
@@ -129,7 +129,7 @@ public class Sql extends StringBuilderWrapper<Sql> {
     }
 
     /**
-     * 添加参数
+     * 添加多个参数到参数列表。
      *
      * @param params 参数列表
      * @return this
@@ -140,9 +140,9 @@ public class Sql extends StringBuilderWrapper<Sql> {
     }
 
     /**
-     * 重置参数
+     * 重置参数列表并设置新的参数。
      *
-     * @param params 参数
+     * @param params 可变参数数组
      * @return this
      */
     public Sql setParam(Object... params) {
@@ -151,7 +151,7 @@ public class Sql extends StringBuilderWrapper<Sql> {
     }
 
     /**
-     * 重置参数
+     * 重置参数列表并设置新的参数。
      *
      * @param params 参数列表
      * @return this

@@ -2,7 +2,7 @@ package io.github.jinghui70.rainbow.dbaccess.model;
 
 import io.github.jinghui70.rainbow.dbaccess.annotation.Table;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Transient;
-import io.github.jinghui70.rainbow.utils.tree.ITreeNode;
+import io.github.jinghui70.rainbow.dbaccess.tree.ITreeNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,4 +50,8 @@ public class OrgNode implements ITreeNode<OrgNode> {
 
     @Override
     public void setChildren(List<OrgNode> children) { this.children = children; }
+
+    public String toString() {
+        return code + " " + name;
+    }
 }

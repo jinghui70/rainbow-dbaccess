@@ -15,7 +15,7 @@ import io.github.jinghui70.rainbow.dbaccess.memory.MemoryDataSource;
 import io.github.jinghui70.rainbow.dbaccess.memory.Table;
 import io.github.jinghui70.rainbow.dbaccess.model.*;
 import io.github.jinghui70.rainbow.dbaccess.object.BeanMapper;
-import io.github.jinghui70.rainbow.utils.StringBuilderX;
+import io.github.jinghui70.rainbow.dbaccess.utils.StringBuilderX;
 import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;

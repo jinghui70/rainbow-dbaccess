@@ -1,4 +1,4 @@
-## [6.2.0](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.1.4..v6.2.0) (2026-06-15)
+## [6.2.1](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.1.4..v6.2.1) (2026-06-15)
 
 ### Breaking Changes
 
@@ -19,6 +19,7 @@
 
 ### Features
 
+- 新增 crud 一个对象相关代码，可用于SpringBoot项目
 - 新增 `InsertBuilder` 构建器，统一处理 Bean/Map、单条/批量、默认表名/指定表名、INSERT/MERGE 等场景
 - 新增 `UpdateBuilder` 构建器，支持 include/exclude/excludeNull 字段过滤
 - 新增 `UpdateSql` 构建器，替代 Sql 的 set 方法，支持条件式 set

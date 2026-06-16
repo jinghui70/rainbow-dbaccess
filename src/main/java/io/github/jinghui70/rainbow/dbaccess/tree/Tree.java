@@ -1,8 +1,13 @@
-package io.github.jinghui70.rainbow.utils.tree;
+package io.github.jinghui70.rainbow.dbaccess.tree;
 
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 树形结构容器，包含根节点列表和节点映射表。
+ *
+ * @param <T> 节点类型
+ */
 public class Tree<T> {
 
     private final List<T> roots;

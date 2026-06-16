@@ -13,15 +13,31 @@ import io.github.jinghui70.rainbow.dbaccess.fieldmapper.*;
 import java.sql.Types;
 import java.util.LinkedHashMap;
 
+/**
+ * Bean属性信息缓存工具类。
+ * 缓存类与属性信息的映射关系，避免重复解析。
+ */
 public class PropInfoCache {
 
     private static final WeakConcurrentMap<Class<?>, LinkedHashMap<String, PropInfo>> cache = new WeakConcurrentMap<>();
 
 
+    /**
+     * 获取指定类的属性信息缓存。
+     *
+     * @param beanClass Bean类
+     * @return 属性信息Map，key为数据库列名，value为PropInfo
+     */
     public static LinkedHashMap<String, PropInfo> get(Class<?> beanClass) {
         return cache.computeIfAbsent(beanClass, (key) -> createPropInfo(beanClass));
     }
 
+    /**
+     * 创建指定类的属性信息。
+     *
+     * @param clazz Bean类
+     * @return 属性信息Map，key为数据库列名，value为PropInfo
+     */
     public static LinkedHashMap<String, PropInfo> createPropInfo(Class<?> clazz) {
         LinkedHashMap<String, PropInfo> result = new LinkedHashMap<>();
         BeanUtil.descForEach(clazz, propDesc -> {
@@ -77,6 +93,12 @@ public class PropInfoCache {
         }
     }
 
+    /**
+     * 根据字段配置，获取 FieldMapper 对象。
+     *
+     * @param fieldClass 字段类型
+     * @return FieldMapper 对象，如果不需要特殊映射则返回null
+     */
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static FieldMapper<?> isEnumOrBooleanMapper(Class<?> fieldClass) {
         if (fieldClass.isEnum()) {

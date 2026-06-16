@@ -15,6 +15,9 @@ public class MemoryDba extends Dba implements Closeable {
 
     private final MemoryConnection conn;
 
+    /**
+     * 构造函数，创建内存数据库访问对象
+     */
     public MemoryDba() {
         try {
             conn = new MemoryConnection();
@@ -25,6 +28,9 @@ public class MemoryDba extends Dba implements Closeable {
         initDataSource(ds, null);
     }
 
+    /**
+     * 关闭内存数据库连接
+     */
     @Override
     public void close() {
         try {
@@ -44,6 +50,12 @@ public class MemoryDba extends Dba implements Closeable {
         sql(table.ddl()).execute();
     }
 
+    /**
+     * 创建一个内存表
+     *
+     * @param tableName 表名
+     * @param fields    字段列表
+     */
     public void createTable(String tableName, Field... fields) {
         Table table = new Table(tableName, fields);
         createTable(table);

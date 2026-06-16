@@ -1,4 +1,4 @@
-package io.github.jinghui70.rainbow.utils.tree;
+package io.github.jinghui70.rainbow.dbaccess.tree;
 
 /**
  * 树节点消费者接口，用于对树节点进行遍历操作。

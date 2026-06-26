@@ -5,8 +5,8 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.dbaccess.DbaUtil;
-import io.github.jinghui70.rainbow.dbaccess.Range;
-import io.github.jinghui70.rainbow.dbaccess.Sql;
+import io.github.jinghui70.rainbow.dbaccess.sql.Range;
+import io.github.jinghui70.rainbow.dbaccess.sql.Sql;
 
 import java.util.*;
 

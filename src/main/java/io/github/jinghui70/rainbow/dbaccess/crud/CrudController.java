@@ -1,7 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess.crud;
 
 import io.github.jinghui70.rainbow.dbaccess.Dba;
-import io.github.jinghui70.rainbow.dbaccess.PageData;
+import io.github.jinghui70.rainbow.dbaccess.sql.PageData;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 

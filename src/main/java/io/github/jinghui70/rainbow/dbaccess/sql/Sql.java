@@ -1,8 +1,9 @@
-package io.github.jinghui70.rainbow.dbaccess;
+package io.github.jinghui70.rainbow.dbaccess.sql;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
+import io.github.jinghui70.rainbow.dbaccess.*;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Cnd;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Op;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.EnumFieldMapper;
@@ -54,7 +55,7 @@ import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.SELECT;
  *     .queryForList(User.class);
  *
  * // 分页查询
- * PageData<User> page = Sql.select().from(User.class).pageQuery(User.class, 1, 10);
+ * PageData<User> page = Sql.select().from(User.class).queryPage(User.class, 1, 10);
  * }</pre>
  *
  * @author lijinghui
@@ -546,7 +547,7 @@ public class Sql extends StringBuilderWrapper<Sql> {
         if (params.isEmpty())
             return dba.getJdbcTemplate().update(getSql());
         else
-            return dba.getJdbcTemplate().update(getSql(), new ArgumentSetter(params));
+            return dba.getJdbcTemplate().update(getSql(), DbaUtil.argumentSetter(params));
     }
 
     /**
@@ -797,7 +798,7 @@ public class Sql extends StringBuilderWrapper<Sql> {
         if (params.isEmpty())
             dba.getJdbcTemplate().query(getSql(), rch);
         else
-            dba.getJdbcTemplate().query(getSql(), new ArgumentSetter(params), rch);
+            dba.getJdbcTemplate().query(getSql(), DbaUtil.argumentSetter(params), rch);
     }
 
     /**
@@ -814,7 +815,7 @@ public class Sql extends StringBuilderWrapper<Sql> {
     private <T> T query(String sql, ResultSetExtractor<T> rse) {
         return (params.isEmpty())
                 ? dba.getJdbcTemplate().query(sql, rse)
-                : dba.getJdbcTemplate().query(sql, new ArgumentSetter(params), rse);
+                : dba.getJdbcTemplate().query(sql, DbaUtil.argumentSetter(params), rse);
     }
 
     private <T> List<T> queryForList(String sql, RowMapper<T> rowMapper) {
@@ -913,7 +914,7 @@ public class Sql extends StringBuilderWrapper<Sql> {
      * @return 分页数据对象
      * @see PageData
      */
-    public <T> PageData<T> pageQuery(RowMapper<T> mapper, int pageNo, int pageSize) {
+    public <T> PageData<T> queryPage(RowMapper<T> mapper, int pageNo, int pageSize) {
         int count = count();
         if (count == 0 || count <= (pageNo - 1) * pageSize)
             return new PageData<>(count);
@@ -930,8 +931,8 @@ public class Sql extends StringBuilderWrapper<Sql> {
      * @param pageSize 每页记录数
      * @return 分页数据对象
      */
-    public PageData<Map<String, Object>> pageQuery(int pageNo, int pageSize) {
-        return pageQuery(MapRowMapper.INSTANCE, pageNo, pageSize);
+    public PageData<Map<String, Object>> queryPage(int pageNo, int pageSize) {
+        return queryPage(MapRowMapper.INSTANCE, pageNo, pageSize);
     }
 
     /**
@@ -944,11 +945,11 @@ public class Sql extends StringBuilderWrapper<Sql> {
      * @param <T>        结果元素类型
      * @return 分页数据对象
      */
-    public <T> PageData<T> pageQuery(Class<T> objectType, int pageNo, int pageSize) {
+    public <T> PageData<T> queryPage(Class<T> objectType, int pageNo, int pageSize) {
         if (BeanUtils.isSimpleValueType(objectType)) {
-            return pageQuery(typeToMapper(objectType), pageNo, pageSize);
+            return queryPage(typeToMapper(objectType), pageNo, pageSize);
         }
-        return pageQuery(BeanMapper.of(objectType), pageNo, pageSize);
+        return queryPage(BeanMapper.of(objectType), pageNo, pageSize);
     }
 
 

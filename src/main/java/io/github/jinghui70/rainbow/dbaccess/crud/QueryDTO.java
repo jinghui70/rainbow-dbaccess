@@ -4,6 +4,9 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.dbaccess.*;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Cnd;
+import io.github.jinghui70.rainbow.dbaccess.sql.OrderBy;
+import io.github.jinghui70.rainbow.dbaccess.sql.PageData;
+import io.github.jinghui70.rainbow.dbaccess.sql.Sql;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.util.LinkedList;
@@ -225,8 +228,8 @@ public class QueryDTO {
      * @param <T>        实体类型
      * @return 分页数据
      */
-    public <T> PageData<T> pageQuery(Dba dba, Class<T> objectType) {
-        return getSql(dba).pageQuery(objectType, pageNo, pageSize);
+    public <T> PageData<T> queryPage(Dba dba, Class<T> objectType) {
+        return getSql(dba).queryPage(objectType, pageNo, pageSize);
     }
 
     /**
@@ -237,8 +240,8 @@ public class QueryDTO {
      * @param <T>    结果类型
      * @return 分页数据
      */
-    public <T> PageData<T> pageQuery(Dba dba, RowMapper<T> mapper) {
-        return getSql(dba).pageQuery(mapper, pageNo, pageSize);
+    public <T> PageData<T> queryPage(Dba dba, RowMapper<T> mapper) {
+        return getSql(dba).queryPage(mapper, pageNo, pageSize);
     }
 
     /**
@@ -247,8 +250,8 @@ public class QueryDTO {
      * @param dba 数据库访问对象
      * @return 分页数据
      */
-    public PageData<Map<String, Object>> pageQuery(Dba dba) {
-        return getSql(dba).pageQuery(pageNo, pageSize);
+    public PageData<Map<String, Object>> queryPage(Dba dba) {
+        return getSql(dba).queryPage(pageNo, pageSize);
     }
 
     /**

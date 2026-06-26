@@ -1,6 +1,7 @@
-package io.github.jinghui70.rainbow.dbaccess;
+package io.github.jinghui70.rainbow.dbaccess.sql;
 
 import cn.hutool.core.util.StrUtil;
+import io.github.jinghui70.rainbow.dbaccess.Dba;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldMapper;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldValue;
 
@@ -28,7 +29,7 @@ public class UpdateSql extends Sql {
      * @param dba   Dba 对象
      * @param table 表名
      */
-    UpdateSql(Dba dba, String table) {
+    public UpdateSql(Dba dba, String table) {
         super(dba);
         append("UPDATE ").append(table).append(" SET ");
     }

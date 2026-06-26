@@ -5,6 +5,8 @@ import io.github.jinghui70.rainbow.dbaccess.cnd.Op;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldMapper;
 import io.github.jinghui70.rainbow.dbaccess.model.OrgNode;
 import io.github.jinghui70.rainbow.dbaccess.model.User;
+import io.github.jinghui70.rainbow.dbaccess.sql.PageData;
+import io.github.jinghui70.rainbow.dbaccess.sql.Sql;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -542,42 +544,42 @@ class SqlCoverageTest extends BaseTest {
         assertTrue(dba.select("NAME").from("T_USER").groupBy("NAME").exist());
     }
 
-    // ===== pageQuery(int, int) Map 版本 =====
+    // ===== queryPage(int, int) Map 版本 =====
 
     @Test
-    void testPageQueryMapVersion() {
+    void testQueryPageMapVersion() {
         setupUsers();
-        PageData<Map<String, Object>> page = dba.select().from("T_USER").orderBy("ID").pageQuery(1, 2);
+        PageData<Map<String, Object>> page = dba.select().from("T_USER").orderBy("ID").queryPage(1, 2);
         assertEquals(3, page.getTotal());
         assertEquals(2, page.getData().size());
     }
 
-    // ===== pageQuery(Class, int, int) simple type branch =====
+    // ===== queryPage(Class, int, int) simple type branch =====
 
     @Test
-    void testPageQuerySimpleType() {
+    void testQueryPageSimpleType() {
         setupUsers();
-        PageData<String> page = dba.select("NAME").from("T_USER").orderBy("NAME").pageQuery(String.class, 1, 2);
+        PageData<String> page = dba.select("NAME").from("T_USER").orderBy("NAME").queryPage(String.class, 1, 2);
         assertEquals(3, page.getTotal());
         assertEquals(2, page.getData().size());
     }
 
-    // ===== pageQuery non-first page =====
+    // ===== queryPage non-first page =====
 
     @Test
-    void testPageQuerySecondPage() {
+    void testQueryPageSecondPage() {
         setupUsers();
-        PageData<User> page = dba.select().from("T_USER").orderBy("ID").pageQuery(User.class, 2, 2);
+        PageData<User> page = dba.select().from("T_USER").orderBy("ID").queryPage(User.class, 2, 2);
         assertEquals(3, page.getTotal());
         assertEquals(1, page.getData().size());
     }
 
-    // ===== pageQuery beyond range =====
+    // ===== queryPage beyond range =====
 
     @Test
-    void testPageQueryBeyondRange() {
+    void testQueryPageBeyondRange() {
         setupUsers();
-        PageData<User> page = dba.select().from("T_USER").orderBy("ID").pageQuery(User.class, 10, 2);
+        PageData<User> page = dba.select().from("T_USER").orderBy("ID").queryPage(User.class, 10, 2);
         assertEquals(3, page.getTotal());
         assertTrue(page.getData().isEmpty());
     }

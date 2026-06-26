@@ -3,8 +3,8 @@ package io.github.jinghui70.rainbow.dbaccess.crud;
 import cn.hutool.core.collection.CollUtil;
 import io.github.jinghui70.rainbow.dbaccess.Dba;
 import io.github.jinghui70.rainbow.dbaccess.DbaUtil;
-import io.github.jinghui70.rainbow.dbaccess.PageData;
-import io.github.jinghui70.rainbow.dbaccess.Sql;
+import io.github.jinghui70.rainbow.dbaccess.sql.PageData;
+import io.github.jinghui70.rainbow.dbaccess.sql.Sql;
 import io.github.jinghui70.rainbow.dbaccess.object.PropInfo;
 import org.springframework.lang.NonNull;
 
@@ -136,7 +136,7 @@ public class CrudService<T> {
      * @return 分页数据
      */
     public PageData<T> queryPage(@NonNull QueryDTO dto) {
-        return dto.setEntity(clazz).pageQuery(dba, clazz);
+        return dto.setEntity(clazz).queryPage(dba, clazz);
     }
 
     /**
@@ -169,7 +169,7 @@ public class CrudService<T> {
      * @return 分页数据
      */
     public <VT> PageData<VT> queryPage(@NonNull QueryDTO dto, Class<VT> voClass) {
-        return dto.setEntity(clazz).pageQuery(dba, voClass);
+        return dto.setEntity(clazz).queryPage(dba, voClass);
     }
 
     /**

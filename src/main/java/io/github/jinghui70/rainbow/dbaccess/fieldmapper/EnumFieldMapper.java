@@ -1,6 +1,6 @@
 package io.github.jinghui70.rainbow.dbaccess.fieldmapper;
 
-import io.github.jinghui70.rainbow.dbaccess.CodeEnum;
+import io.github.jinghui70.rainbow.dbaccess.object.CodeEnum;
 import org.springframework.lang.NonNull;
 
 import java.sql.PreparedStatement;

@@ -7,6 +7,8 @@ import io.github.jinghui70.rainbow.dbaccess.fieldmapper.EnumFieldMapper;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldValue;
 import io.github.jinghui70.rainbow.dbaccess.model.*;
 import io.github.jinghui70.rainbow.dbaccess.object.PropInfoCache;
+import io.github.jinghui70.rainbow.dbaccess.sql.Range;
+import io.github.jinghui70.rainbow.dbaccess.sql.Sql;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;

@@ -1,4 +1,4 @@
-package io.github.jinghui70.rainbow.dbaccess;
+package io.github.jinghui70.rainbow.dbaccess.sql;
 
 import cn.hutool.json.JSONUtil;
 

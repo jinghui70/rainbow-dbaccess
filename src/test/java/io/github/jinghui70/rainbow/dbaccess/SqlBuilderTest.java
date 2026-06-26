@@ -3,6 +3,8 @@ package io.github.jinghui70.rainbow.dbaccess;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Cnd;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Op;
 import io.github.jinghui70.rainbow.dbaccess.model.User;
+import io.github.jinghui70.rainbow.dbaccess.sql.OrderBy;
+import io.github.jinghui70.rainbow.dbaccess.sql.Sql;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;

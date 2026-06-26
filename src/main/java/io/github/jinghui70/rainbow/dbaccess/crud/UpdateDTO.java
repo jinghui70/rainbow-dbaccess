@@ -1,6 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess.crud;
 
 import cn.hutool.core.collection.CollUtil;
+import io.github.jinghui70.rainbow.dbaccess.sql.UpdateBuilder;
 
 import java.util.List;
 
@@ -8,7 +9,7 @@ import java.util.List;
  * 增量更新 DTO，携带待更新记录及变更属性列表。
  * <p>
  * {@code record} 包含主键和变更后的字段值，{@code changedProps} 指定哪些属性参与更新。
- * 与 {@link io.github.jinghui70.rainbow.dbaccess.UpdateBuilder#include} 配合使用。
+ * 与 {@link UpdateBuilder#include} 配合使用。
  *
  * @param <T> 实体类型
  */

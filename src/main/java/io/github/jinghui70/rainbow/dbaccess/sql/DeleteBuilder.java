@@ -1,6 +1,7 @@
-package io.github.jinghui70.rainbow.dbaccess;
+package io.github.jinghui70.rainbow.dbaccess.sql;
 
 import cn.hutool.core.collection.CollUtil;
+import io.github.jinghui70.rainbow.dbaccess.Dba;
 import io.github.jinghui70.rainbow.dbaccess.object.PropInfo;
 import org.springframework.lang.NonNull;
 

@@ -6,6 +6,9 @@ import io.github.jinghui70.rainbow.dbaccess.memory.Table;
 import io.github.jinghui70.rainbow.dbaccess.model.*;
 import io.github.jinghui70.rainbow.dbaccess.object.BeanMapper;
 import io.github.jinghui70.rainbow.dbaccess.object.PropInfoCache;
+import io.github.jinghui70.rainbow.dbaccess.sql.OrderBy;
+import io.github.jinghui70.rainbow.dbaccess.sql.PageData;
+import io.github.jinghui70.rainbow.dbaccess.sql.Range;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;

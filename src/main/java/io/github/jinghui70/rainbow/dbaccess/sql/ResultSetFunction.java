@@ -1,4 +1,4 @@
-package io.github.jinghui70.rainbow.dbaccess;
+package io.github.jinghui70.rainbow.dbaccess.sql;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

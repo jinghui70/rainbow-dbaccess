@@ -1,7 +1,8 @@
-package io.github.jinghui70.rainbow.dbaccess;
+package io.github.jinghui70.rainbow.dbaccess.sql;
 
 import cn.hutool.core.lang.Assert;
-import cn.hutool.core.lang.hash.Hash;
+import io.github.jinghui70.rainbow.dbaccess.Dba;
+import io.github.jinghui70.rainbow.dbaccess.DbaUtil;
 import io.github.jinghui70.rainbow.dbaccess.object.PropInfo;
 import io.github.jinghui70.rainbow.dbaccess.object.PropInfoCache;
 
@@ -40,7 +41,7 @@ public class UpdateBuilder {
      * @param dba  数据库访问对象
      * @param bean 实体对象，需用 {@code @Id} 标注主键
      */
-    UpdateBuilder(Dba dba, Object bean) {
+    public UpdateBuilder(Dba dba, Object bean) {
         this.dba = dba;
         this.bean = bean;
     }

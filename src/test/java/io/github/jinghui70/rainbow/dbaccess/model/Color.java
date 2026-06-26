@@ -1,6 +1,6 @@
 package io.github.jinghui70.rainbow.dbaccess.model;
 
-import io.github.jinghui70.rainbow.dbaccess.CodeEnum;
+import io.github.jinghui70.rainbow.dbaccess.object.CodeEnum;
 
 /**
  * CodeEnum 枚举 — 存 code() 到数据库。

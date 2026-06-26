@@ -1,7 +1,9 @@
-package io.github.jinghui70.rainbow.dbaccess;
+package io.github.jinghui70.rainbow.dbaccess.sql;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import io.github.jinghui70.rainbow.dbaccess.Dba;
+import io.github.jinghui70.rainbow.dbaccess.DbaUtil;
 import io.github.jinghui70.rainbow.dbaccess.object.PropInfo;
 import io.github.jinghui70.rainbow.dbaccess.object.PropInfoCache;
 import io.github.jinghui70.rainbow.dbaccess.utils.StringBuilderX;
@@ -55,7 +57,7 @@ public class InsertBuilder {
 
     private String action = INSERT_INTO;
 
-    InsertBuilder(Dba dba, @NonNull Object data) {
+    public InsertBuilder(Dba dba, @NonNull Object data) {
         this.dba = dba;
 
         Class<?> dataClass = data.getClass();
@@ -109,7 +111,7 @@ public class InsertBuilder {
     /**
      * 切换为 MERGE INTO，行为同 INSERT 但已存在记录会被更新（仅部分数据库支持，如 H2）。
      */
-    InsertBuilder merge() {
+    public InsertBuilder merge() {
         this.action = MERGE_INTO;
         return this;
     }

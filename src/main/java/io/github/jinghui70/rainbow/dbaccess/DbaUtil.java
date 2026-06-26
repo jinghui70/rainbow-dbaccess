@@ -7,13 +7,17 @@ import cn.hutool.db.StatementUtil;
 import cn.hutool.db.sql.SqlUtil;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Table;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldValue;
+import io.github.jinghui70.rainbow.dbaccess.object.CodeEnum;
 import io.github.jinghui70.rainbow.dbaccess.object.PropInfo;
 import io.github.jinghui70.rainbow.dbaccess.object.PropInfoCache;
+import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
+import org.springframework.lang.NonNull;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -257,4 +261,18 @@ public abstract class DbaUtil {
         ps.setNull(paramIndex, type);
     }
 
+    /**
+     * 扩展 Spring 的 {@link ArgumentPreparedStatementSetter}，使用 {@link #setParameterValue} 处理特殊类型参数。
+     * <p>
+     * 主要用于处理枚举、字段映射器等特殊类型的参数绑定，支持 {@link io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldValue} 包装类型。
+     *
+     */
+    public static ArgumentPreparedStatementSetter argumentSetter(Collection<?> args) {
+        return new ArgumentPreparedStatementSetter(args.toArray()) {
+            @Override
+            public void doSetValue(@NonNull PreparedStatement ps, int parameterPosition, Object argValue) throws SQLException {
+                setParameterValue(ps, parameterPosition, argValue, null);
+            }
+        };
+    }
 }

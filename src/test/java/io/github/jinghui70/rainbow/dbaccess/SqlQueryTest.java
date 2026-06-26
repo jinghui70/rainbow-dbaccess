@@ -1,6 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
 import io.github.jinghui70.rainbow.dbaccess.model.*;
+import io.github.jinghui70.rainbow.dbaccess.sql.PageData;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -135,16 +136,16 @@ class SqlQueryTest extends BaseTest {
         assertEquals(2, list.size());
     }
 
-    @Test void testPageQuery() {
+    @Test void testQueryPage() {
         setupUsers();
-        PageData<User> page = dba.select().from("T_USER").orderBy("ID").pageQuery(User.class, 1, 2);
+        PageData<User> page = dba.select().from("T_USER").orderBy("ID").queryPage(User.class, 1, 2);
         assertEquals(3, page.getTotal());
         assertEquals(2, page.getData().size());
     }
 
-    @Test void testPageQueryEmpty() {
+    @Test void testQueryPageEmpty() {
         createUserTable();
-        PageData<User> page = dba.select().from("T_USER").pageQuery(User.class, 1, 10);
+        PageData<User> page = dba.select().from("T_USER").queryPage(User.class, 1, 10);
         assertEquals(0, page.getTotal());
         assertTrue(page.getData().isEmpty());
     }

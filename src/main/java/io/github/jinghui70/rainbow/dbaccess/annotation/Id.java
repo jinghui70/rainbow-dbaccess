@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  * 用于标记实体类中作为数据库主键的属性。
  * </p>
  */
-@Target({ElementType.METHOD, ElementType.FIELD})
+@Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Id {
 

@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
  * 用于自定义字段名、SQL类型、类型转换器等映射配置。
  * </p>
  */
-@Target({ElementType.METHOD, ElementType.FIELD})
+@Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Column {
 

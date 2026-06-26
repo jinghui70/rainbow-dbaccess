@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  * 被标注的属性将被忽略，不参与数据库的读写操作。
  * </p>
  */
-@Target({ElementType.METHOD, ElementType.FIELD})
+@Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Transient {
 }

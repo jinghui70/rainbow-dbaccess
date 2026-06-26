@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
  * 实现，内置 {@code default}（雪花 id）和 {@code now}（当前时间）两种策略，
  * 用户也可注册为 Spring Bean 提供自定义策略。
  */
-@Target({ElementType.METHOD, ElementType.FIELD})
+@Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface GeneratedValue {
 

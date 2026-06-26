@@ -42,13 +42,19 @@ public class InsertBuilder {
 
     private final Dba dba;
 
-    /** 统一存放数据，单条也包装成单元素列表 */
+    /**
+     * 统一存放数据，单条也包装成单元素列表
+     */
     private final List<?> rows;
 
-    /** true: 行数据是 Map；false: 行数据是注解标注的 Bean */
+    /**
+     * true: 行数据是 Map；false: 行数据是注解标注的 Bean
+     */
     private final boolean isMap;
 
-    /** true 表示语义上是单条（影响 execute() 执行路径） */
+    /**
+     * true 表示语义上是单条（影响 execute() 执行路径）
+     */
     private final boolean single;
 
     private String tableName;
@@ -129,6 +135,7 @@ public class InsertBuilder {
 
     /**
      * 构建 Sql
+     *
      * @param binder 数据绑定器
      * @return Sql字符串
      */
@@ -142,7 +149,8 @@ public class InsertBuilder {
 
     /**
      * 单条数据插入执行
-     * @param sql 插入sql
+     *
+     * @param sql    插入sql
      * @param binder 数据绑定器
      */
     private void executeSingle(String sql, RowBinder binder) {
@@ -155,7 +163,8 @@ public class InsertBuilder {
 
     /**
      * 多条数据插入执行
-     * @param sql 插入sql
+     *
+     * @param sql    插入sql
      * @param binder 数据绑定器
      */
     private void executeBatch(String sql, RowBinder binder) {
@@ -208,15 +217,18 @@ public class InsertBuilder {
             public String tableName() {
                 return table;
             }
+
             @Override
             public List<String> columns() {
                 return columns;
             }
+
             @Override
             public void bind(PreparedStatement ps, Object row, Map<Integer, Integer> nullTypeCache) throws SQLException {
                 int i = 1;
                 for (PropInfo p : props) {
-                    DbaUtil.setParameterValue(ps, i++, p.getValue(row), nullTypeCache);
+                    Object value = p.getInsertValue(dba, row);
+                    DbaUtil.setParameterValue(ps, i++, value, nullTypeCache);
                 }
             }
         };

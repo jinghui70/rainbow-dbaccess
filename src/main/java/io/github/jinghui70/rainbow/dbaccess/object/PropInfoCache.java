@@ -6,7 +6,6 @@ import cn.hutool.core.map.WeakConcurrentMap;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Column;
-import io.github.jinghui70.rainbow.dbaccess.annotation.Id;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Transient;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.*;
 
@@ -48,8 +47,7 @@ public class PropInfoCache {
             String fieldName = column == null || StrUtil.isEmpty(column.name()) ?
                     StrUtil.toUnderlineCase(propDesc.getRawFieldName()) : column.name();
             fieldName = fieldName.toLowerCase();
-            Id id = propDesc.getField().getAnnotation(Id.class);
-            result.put(fieldName, new PropInfo(fieldName, propDesc, mapper, id));
+            result.put(fieldName, new PropInfo(fieldName, propDesc, mapper));
         });
         return result;
     }

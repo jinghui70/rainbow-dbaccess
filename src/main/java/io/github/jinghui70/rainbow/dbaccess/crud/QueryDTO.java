@@ -7,11 +7,14 @@ import io.github.jinghui70.rainbow.dbaccess.cnd.Cnd;
 import io.github.jinghui70.rainbow.dbaccess.sql.OrderBy;
 import io.github.jinghui70.rainbow.dbaccess.sql.PageData;
 import io.github.jinghui70.rainbow.dbaccess.sql.Sql;
+import io.github.jinghui70.rainbow.dbaccess.utils.StringBuilderX;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.SELECT;
 
 /**
  * 查询 DTO，封装 SELECT 字段、WHERE 条件、排序和分页参数。
@@ -72,11 +75,15 @@ public class QueryDTO {
     }
 
     public String getFields() {
-        return fields;
+        return (fields == null) ? "*" : fields;
     }
 
-    public QueryDTO setFields(String fields) {
-        this.fields = fields;
+    public QueryDTO setFields(String... fields) {
+        this.fields = switch (fields.length) {
+            case 0 -> null;
+            case 1 -> fields[0];
+            default -> new StringBuilderX().join(fields).toString();
+        };
         return this;
     }
 
@@ -91,7 +98,7 @@ public class QueryDTO {
     }
 
     private void checkCnds(List<Cnd> cnds) {
-        for (Cnd cnd: cnds) {
+        for (Cnd cnd : cnds) {
             if (CollUtil.isNotEmpty(cnd.getChildren())) checkCnds(cnd.getChildren());
             else DbaUtil.validateFieldName(cnd.getField());
         }

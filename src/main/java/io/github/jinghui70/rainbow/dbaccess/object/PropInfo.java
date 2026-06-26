@@ -1,9 +1,14 @@
 package io.github.jinghui70.rainbow.dbaccess.object;
 
 import cn.hutool.core.bean.PropDesc;
+import io.github.jinghui70.rainbow.dbaccess.Dba;
+import io.github.jinghui70.rainbow.dbaccess.annotation.GeneratedValue;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Id;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldMapper;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldValue;
+import io.github.jinghui70.rainbow.dbaccess.valuegen.GenerateContext;
+import io.github.jinghui70.rainbow.dbaccess.valuegen.ValueGenerator;
+import io.github.jinghui70.rainbow.dbaccess.valuegen.ValueGeneratorRegistry;
 import org.springframework.jdbc.support.JdbcUtils;
 
 import java.sql.ResultSet;
@@ -18,7 +23,8 @@ public class PropInfo {
     private final String fieldName;
     private final PropDesc propDesc;
     private final FieldMapper<?> mapper;
-    private Id id;
+    private final Id id;
+    private final GeneratedValue generatedValue;
 
     /**
      * 获取字段名（数据库列名，下划线风格）。
@@ -48,29 +54,18 @@ public class PropInfo {
     }
 
     /**
-     * 构造函数，包含Id注解信息。
-     *
-     * @param fieldName 数据库列名
-     * @param propDesc 属性描述
-     * @param mapper 字段映射器
-     * @param id Id注解
-     */
-    public PropInfo(String fieldName, PropDesc propDesc, FieldMapper<?> mapper, Id id) {
-        this(fieldName, propDesc, mapper);
-        this.id = id;
-    }
-
-    /**
      * 构造函数。
      *
      * @param fieldName 数据库列名
-     * @param propDesc 属性描述
-     * @param mapper 字段映射器
+     * @param propDesc  属性描述
+     * @param mapper    字段映射器
      */
     public PropInfo(String fieldName, PropDesc propDesc, FieldMapper<?> mapper) {
         this.fieldName = fieldName;
         this.propDesc = propDesc;
         this.mapper = mapper;
+        this.id = propDesc.getField().getAnnotation(Id.class);
+        this.generatedValue = propDesc.getField().getAnnotation(GeneratedValue.class);
     }
 
     /**
@@ -125,7 +120,29 @@ public class PropInfo {
      * @return 如果是自增主键返回true，否则返回false
      */
     public boolean isAutoIncrement() {
+        Id id = getId();
         return id != null && id.autoIncrement();
     }
 
+    /**
+     * 返回用于插入语句的属性值。
+     * <p>
+     * 若对象当前值非 {@code null}，直接返回；否则当属性标注了 {@link GeneratedValue} 时，
+     * 调用对应生成器生成值，回填到对象后返回，使插入后即可从入参对象拿到该值。
+     * 既无值也无注解时返回 {@code null}。
+     *
+     * @param dba 数据库访问对象，传递给生成器供其使用
+     * @param row 当前行对象
+     * @return 用于插入的值，可能为 {@code null}
+     */
+    public Object getInsertValue(Dba dba, Object row) {
+        Object value = getValue(row);
+        if (value != null) return value;
+        if (generatedValue == null) return null;
+        ValueGenerator generator = ValueGeneratorRegistry.get(generatedValue.strategy());
+        GenerateContext context = new GenerateContext(dba, row, propDesc.getField(), generatedValue.param());
+        Object result = generator.generate(context);
+        propDesc.setValue(row, result);
+        return mapper == null ? result : new FieldValue(result, mapper);
+    }
 }

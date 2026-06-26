@@ -1,5 +1,9 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
+import io.github.jinghui70.rainbow.dbaccess.valuegen.ValueGenerator;
+import io.github.jinghui70.rainbow.dbaccess.valuegen.ValueGeneratorRegistry;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -25,7 +29,19 @@ import javax.sql.DataSource;
  */
 @AutoConfiguration(after = {JdbcTemplateAutoConfiguration.class, TransactionAutoConfiguration.class})
 @ConditionalOnClass({DataSource.class, JdbcTemplate.class, TransactionTemplate.class})
-public class DbaAutoConfiguration {
+public class DbaAutoConfiguration implements InitializingBean {
+
+    private final ObjectProvider<ValueGenerator> valueGeneratorProvider;
+
+    // 通过构造器注入 ObjectProvider，非常安全
+    public DbaAutoConfiguration(ObjectProvider<ValueGenerator> valueGeneratorProvider) {
+        this.valueGeneratorProvider = valueGeneratorProvider;
+    }
+
+    @Override
+    public void afterPropertiesSet() {
+        valueGeneratorProvider.orderedStream().forEach(ValueGeneratorRegistry::register);
+    }
 
     /**
      * 内部配置类，实际创建 Dba Bean。

@@ -7,5 +7,7 @@ io.github.jinghui70.rainbow.dbaccess.fieldmapper
 io.github.jinghui70.rainbow.dbaccess.memory
 io.github.jinghui70.rainbow.dbaccess.object
 io.github.jinghui70.rainbow.dbaccess.rowmapper
+io.github.jinghui70.rainbow.dbaccess.sql
 io.github.jinghui70.rainbow.dbaccess.tree
 io.github.jinghui70.rainbow.dbaccess.utils
+io.github.jinghui70.rainbow.dbaccess.valuegen

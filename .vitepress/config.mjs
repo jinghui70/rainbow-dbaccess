@@ -20,6 +20,7 @@ export default defineConfig({
       { text: '查询', link: '/query' },
       { text: 'Cnd 条件系统', link: '/cnd' },
       { text: '插入数据', link: '/insert' },
+      { text: '自动生成字段值', link: '/generated-value' },
       { text: '更新数据', link: '/update' },
       { text: '删除数据', link: '/delete' },
       { text: '事务管理', link: '/transaction' },

@@ -162,7 +162,7 @@ public class OrderService extends CrudService<Order> {
            .setFields("O.*, U.NAME AS USER_NAME")
            .defaultOrderBy("O.CREATE_TIME")
            .addCnd(Cnd.where("O.DELETED", false)); // 强制条件，前端绕不过
-        return dto.pageQuery(dba, OrderVO.class);
+        return dto.queryPage(dba, OrderVO.class);
     }
 }
 ```

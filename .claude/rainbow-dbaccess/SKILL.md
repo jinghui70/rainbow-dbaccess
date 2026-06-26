@@ -34,7 +34,7 @@ description: >
 <dependency>
     <groupId>io.github.jinghui70</groupId>
     <artifactId>rainbow-dbaccess</artifactId>
-    <version>6.2.2</version>
+    <version>6.3.0</version>
 </dependency>
 ```
 
@@ -69,6 +69,7 @@ public class UserInfo {       // 默认表名: USER_INFO
 | `@Column(name)` | 自定义列名（默认属性名转 lower_snake_case） |
 | `@Column(mapper)` | 自定义 FieldMapper |
 | `@Column(sqlType)` | 指定 SQL 类型（BLOB/CLOB 自动选映射器） |
+| `@GeneratedValue` | 插入时自动生成字段值（值为 null 才触发，回填到对象） |
 | `@Transient` | 排除字段 |
 
 ---
@@ -90,7 +91,7 @@ dba.select().from("T_USER")
 
 // 分页
 PageData<User> page = dba.select().from("T_USER")
-    .orderBy("ID").pageQuery(User.class, pageNo, pageSize);
+    .orderBy("ID").queryPage(User.class, pageNo, pageSize);
 
 // 计数 / 存在判断
 int total = dba.select().from(User.class).count();
@@ -148,6 +149,26 @@ dba.insertOf(bean).into("OTHER").execute(); // 指定表
 dba.insertOf(map).into("T_USER").execute(); // Map 插入（必须指定表名）
 dba.merge(user);                           // Insert or Update
 ```
+
+### @GeneratedValue —— 插入时自动生成字段值
+
+标注在实体字段上，插入时若该字段为 `null` 则自动生成并**回填到对象**（仅 Bean 插入生效，Map 不处理）。批量插入逐行生成。
+
+```java
+public class GenEntity {
+    @Id @GeneratedValue(param = "PRE_")                   // 雪花 id，String 带前缀；long/Long 则为数字 id
+    private String id;
+    @GeneratedValue(strategy = "now")                     // 当前 LocalDateTime（Timestamp/Date 同理）
+    private LocalDateTime createTime;
+    @GeneratedValue(strategy = "now", param = "yyyyMMdd") // String 按 param 格式，缺省 yyyy-MM-dd HH:mm:ss
+    private String createDate;
+}
+dba.insert(entity);   // 三个字段自动生成并回填
+```
+
+内置策略：`default`（默认，雪花 id；workerId/datacenterId 取 `-D` 参数→环境变量 `SNOWFLAKE_WORKER_ID`/`SNOWFLAKE_DATACENTER_ID`→0）、`now`（当前时间）。
+
+自定义策略：实现 `ValueGenerator`（`getName()` + `generate(GenerateContext)`，`GenerateContext` 含 `dba`/`data`/`field`/`param`）。Spring 下在类上标 `@Component` 自动注册；否则 `ValueGeneratorRegistry.register(gen)`。
 
 ---
 
@@ -284,7 +305,7 @@ try (MemoryDba mem = new MemoryDba()) {
 }
 ```
 
-**Field DSL：** `createKeyString/KeyInt/String/Int/Double/Numeric/Money/Date/Timestamp(name)`
+**Field DSL（`Field.` 静态工厂）：** 单参 `(name)`：`createKeyString`/`createKeyInt`/`createKeyDate`/`createString`/`createInt`/`createDouble`/`createMoney`/`createDate`/`createTimestamp`；带长度：`createKeyString(name, length)`/`createString(name, length)`；带精度：`createNumeric(name, scale)`；BLOB/CLOB：`create(name).setType(DataType.BLOB/CLOB)`。
 
 ---
 
@@ -328,7 +349,7 @@ dto.setEntity("T_ORDER O JOIN T_USER U ON O.USER_ID=U.ID")
    .setFields("O.*, U.NAME AS USER_NAME")
    .defaultOrderBy("O.CREATE_TIME")
    .addCnd(Cnd.where("O.DELETED", false)); // 强制条件，前端绕不过
-return dto.pageQuery(dba, OrderVO.class);
+return dto.queryPage(dba, OrderVO.class);
 
 // 写法二：继承 QueryDTO 加属性，复写 getSql()（继承后别用链式——会丢子类类型）
 public class OrderQueryDTO extends QueryDTO {
@@ -443,7 +464,7 @@ public class UserController extends CrudController<User> {
 | `query(RowCallbackHandler)` / `query(ResultSetExtractor<T>)` | `void` / `T` | 直接操作 `ResultSet` |
 | `count()` | `int` | 总记录数 |
 | `exist()` | `boolean` | 是否存在记录 |
-| `pageQuery(Class/RowMapper/无参, pageNo, pageSize)` | `PageData<T>` | 分页 |
+| `queryPage(Class/RowMapper/无参, pageNo, pageSize)` | `PageData<T>` | 分页 |
 | `queryForTree(Class/RowMapper)` | `Tree<T>` | 树形（结果需含 ID、PID） |
 | `execute()` | `int` | 执行 DML |
 | `batchUpdate(List<Object[]>)` / `batchUpdate(list, batchSize)` | `int[]` / `int[][]` | 批量执行 |

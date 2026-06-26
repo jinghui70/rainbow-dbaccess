@@ -168,7 +168,7 @@ List<User> users = dba.select().from("T_USER").query(rs -> {
 |------|---------|------|
 | `count()` | `int` | 总记录数 |
 | `exist()` | `boolean` | 是否存在记录 |
-| `pageQuery(Class, pageNo, pageSize)` | `PageData<T>` | 分页查询 |
+| `queryPage(Class, pageNo, pageSize)` | `PageData<T>` | 分页查询 |
 | `queryForTree(Class)` | `Tree<T>` | 树形结构 |
 
 ## 分页查询
@@ -176,7 +176,7 @@ List<User> users = dba.select().from("T_USER").query(rs -> {
 ```java
 PageData<User> page = dba.select().from("T_USER")
     .orderBy("ID")
-    .pageQuery(User.class, pageNo, pageSize);
+    .queryPage(User.class, pageNo, pageSize);
 int total = page.getTotal();
 List<User> data = page.getData();
 ```

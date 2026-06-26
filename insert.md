@@ -32,6 +32,10 @@ dba.insertOf(map).into("T_USER").execute();
 因为 Map 没有类信息来推导表名，`dba.insert(Map)` 会抛异常，必须用 `dba.insertOf(map).into("TABLE").execute()`。
 :::
 
+::: tip 主键、创建时间等可自动生成
+在实体字段上标注 `@GeneratedValue`，插入时会为值为 `null` 的字段自动生成值并回填到对象。详见[自动生成字段值](/generated-value)。
+:::
+
 ## MERGE（Insert Or Update）
 
 ```java

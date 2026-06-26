@@ -1,3 +1,17 @@
+## [6.3.0](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.2.2..v6.3.0) (2026-06-26)
+
+### Breaking Changes
+
+- **包结构调整**，以下类从顶层包移入子包，需更新 import：`Sql`、`UpdateSql`、`InsertBuilder`、`UpdateBuilder`、`DeleteBuilder`、`OrderBy`、`PageData`、`Range`、`ResultSetFunction` 移至 `io.github.jinghui70.rainbow.dbaccess.sql`；`CodeEnum` 移至 `io.github.jinghui70.rainbow.dbaccess.object`
+- **`Sql.pageQuery()`** 重命名为 `queryPage()`，含 `(RowMapper, pageNo, pageSize)`、`(pageNo, pageSize)`、`(Class, pageNo, pageSize)` 三个重载；`QueryDTO` 同名方法一并改为 `queryPage`
+
+### Features
+
+- 新增 **`@GeneratedValue`** 注解：插入时为值为 `null` 的字段按策略自动生成并回填到入参对象，已有值不覆盖，批量插入逐行回填
+- 内置两种生成策略：`default`（雪花 id，`long`/`Long` 返回数字，`String` 返回 36 进制大写且 `param` 作前缀）、`now`（当前时间，支持 `LocalDateTime`/`Timestamp`/`Date`，`String` 按 `param` 格式化）
+- 支持自定义 `ValueGenerator`：注册为 Spring Bean 即由 `DbaAutoConfiguration` 自动注册，非 Spring 环境可用 `ValueGeneratorRegistry.register()`
+- **`QueryDTO.setFields()`** 改为可变参数，`getFields()` 未设置时默认返回 `*`
+
 ## [6.2.2](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.1.4..v6.2.2) (2026-06-15)
 
 ### Breaking Changes

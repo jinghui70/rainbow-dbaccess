@@ -119,6 +119,22 @@ public class ValueGenTest extends BaseTest {
     }
 
     @Test
+    void testDefaultGeneratorStringPrefix() throws NoSuchFieldException {
+        ValueGenerator g = ValueGeneratorRegistry.get("default");
+        // id 是 String 字段，param 作为前缀。
+        // 前缀用下划线——它不属于 36 进制 id 的字符集 [0-9A-Z]，
+        // 故 startsWith 只可能来自前缀，排除 id 碰巧同字符开头的误判。
+        java.lang.reflect.Field f = GenEntity.class.getDeclaredField("id");
+        String s = assertInstanceOf(String.class,
+                g.generate(new GenerateContext(null, null, f, "PRE_")));
+        assertTrue(s.startsWith("PRE_"));
+        String id = s.substring("PRE_".length());
+        assertFalse(id.isEmpty(), "前缀后应有生成的 id");
+        assertTrue(id.chars().allMatch(c -> Character.isDigit(c) || (c >= 'A' && c <= 'Z')),
+                "id 部分应为 36 进制大写：" + id);
+    }
+
+    @Test
     void testBuiltinStrategiesLazyLoaded() {
         assertEquals("default", ValueGeneratorRegistry.get("default").getName());
         assertEquals("now", ValueGeneratorRegistry.get("now").getName());

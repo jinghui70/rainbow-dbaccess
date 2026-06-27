@@ -17,6 +17,8 @@ public class ValueGeneratorRegistry {
 
     private static final Map<String, ValueGenerator> map = new ConcurrentHashMap<>();
 
+    public static SnowflakeGenerator snowflakeGenerator = new SnowflakeGenerator();
+
     /**
      * 获取指定策略的生成器。内置策略首次访问时惰性创建。
      *
@@ -26,7 +28,7 @@ public class ValueGeneratorRegistry {
      */
     public static ValueGenerator get(String strategy) {
         ValueGenerator result = map.computeIfAbsent(strategy, key -> switch (key) {
-            case "default" -> new DefaultGenerator();
+            case "default" -> snowflakeGenerator;
             case "now" -> new NowGenerator();
             default -> null; // 找不到匹配的，返回 null（ConcurrentHashMap 不会缓存 null）
         });

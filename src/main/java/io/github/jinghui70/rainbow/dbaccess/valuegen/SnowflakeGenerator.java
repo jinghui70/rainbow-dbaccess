@@ -3,6 +3,7 @@ package io.github.jinghui70.rainbow.dbaccess.valuegen;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.Snowflake;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
 
 /**
  * 默认的 id 生成器，策略名 {@code default}，基于雪花算法。
@@ -12,10 +13,11 @@ import cn.hutool.core.util.IdUtil;
  * {@code -D} 参数，其次系统环境变量（{@code SNOWFLAKE_WORKER_ID}/{@code SNOWFLAKE_DATACENTER_ID}），
  * 都没有则为 0。
  */
-public class DefaultGenerator implements ValueGenerator {
+public class SnowflakeGenerator implements ValueGenerator {
 
     private static final String WORKER_ID_KEY = "SNOWFLAKE_WORKER_ID";
     private static final String DATACENTER_ID_KEY = "SNOWFLAKE_DATACENTER_ID";
+    public static final String NAME = "snowflake";
 
     // 优先读取 JVM -D 参数，如果没有则读取系统环境变量，如果都没有则使用默认值 0L
     private static final long WORKER_ID = Convert.toLong(
@@ -32,7 +34,7 @@ public class DefaultGenerator implements ValueGenerator {
 
     @Override
     public String getName() {
-        return "default";
+        return NAME;
     }
 
     /**
@@ -46,7 +48,7 @@ public class DefaultGenerator implements ValueGenerator {
     public Object generate(GenerateContext context) {
         Class<?> fieldType = context.field().getType();
         if (fieldType == String.class) {
-            return context.param() + Long.toString(snowflake.nextId(), 36).toUpperCase();
+            return nextString(context.param());
         } else if (fieldType == Long.class || fieldType == long.class) {
             return snowflake.nextId();
         } else {
@@ -54,4 +56,16 @@ public class DefaultGenerator implements ValueGenerator {
         }
     }
 
+    public long nextId() {
+        return snowflake.nextId();
+    }
+
+    public String nextString() {
+        return Long.toString(snowflake.nextId(), 36).toUpperCase();
+    }
+
+    public String nextString(String prefix) {
+        String value = Long.toString(snowflake.nextId(), 36).toUpperCase();
+        return StrUtil.isEmpty(prefix) ? value : prefix + value;
+    }
 }

@@ -17,9 +17,11 @@ import java.util.Date;
  */
 public class NowGenerator implements ValueGenerator {
 
+    public static final String NAME = "now";
+
     @Override
     public String getName() {
-        return "now";
+        return NAME;
     }
 
     /**

@@ -139,7 +139,7 @@ public class ValueGenTest extends BaseTest {
 
     @Test
     void testBuiltinStrategiesLazyLoaded() {
-        assertEquals("default", ValueGeneratorRegistry.get("default").getName());
+        assertEquals("snowflake", ValueGeneratorRegistry.get("default").getName());
         assertEquals("now", ValueGeneratorRegistry.get("now").getName());
     }
 

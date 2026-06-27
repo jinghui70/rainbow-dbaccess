@@ -12,6 +12,8 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.LocalDateTime;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -41,6 +43,7 @@ public class ValueGenTest extends BaseTest {
                 Field.createTimestamp("CREATE_TIME"),
                 Field.createString("CREATE_DATE"),
                 Field.createString("CODE"),
+                Field.createTimestamp("UPDATE_TIME"),
                 Field.createString("NAME"));
     }
 
@@ -153,6 +156,79 @@ public class ValueGenTest extends BaseTest {
         ValueGenerator g = ValueGeneratorRegistry.get("spring-gen");
         assertNotNull(g);
         assertEquals("SPRING", g.generate(new GenerateContext(null, null, null, "")));
+    }
+
+    /**
+     * 测试 INSERT_UPDATE 策略：插入时生成值。
+     */
+    @Test
+    void testInsertUpdateGeneratedOnInsert() {
+        createGenTable();
+        GenEntity e = new GenEntity("Dave");
+        dba.insert(e);
+
+        // INSERT_UPDATE 字段在插入时应被生成
+        assertNotNull(e.getUpdateTime());
+        GenEntity r = dba.selectByKey(GenEntity.class, e.getId());
+        assertNotNull(r.getUpdateTime());
+    }
+
+    /**
+     * 测试 INSERT_UPDATE 策略：更新时强制重新生成值。
+     */
+    @Test
+    void testInsertUpdateRegeneratedOnUpdate() throws InterruptedException {
+        createGenTable();
+        GenEntity e = new GenEntity("Eve");
+        dba.insert(e);
+
+        LocalDateTime insertUpdateTime = e.getUpdateTime();
+        assertNotNull(insertUpdateTime);
+
+        // 等待至少 1ms 确保时间戳不同
+        Thread.sleep(2);
+
+        // 更新记录
+        e.setName("Eve Updated");
+        dba.update(e);
+
+        // INSERT_UPDATE 字段应被强制重新生成，即使对象中有旧值
+        LocalDateTime newUpdateTime = e.getUpdateTime();
+        assertNotNull(newUpdateTime);
+        assertTrue(newUpdateTime.isAfter(insertUpdateTime),
+                "更新时间应被更新：插入时=" + insertUpdateTime + ", 更新后=" + newUpdateTime);
+
+        // 验证数据库中的值与对象中回填的值一致
+        GenEntity r = dba.selectByKey(GenEntity.class, e.getId());
+        assertEquals(newUpdateTime, r.getUpdateTime());
+        assertEquals("Eve Updated", r.getName());
+    }
+
+    /**
+     * 测试 INSERT_UPDATE 策略：即使手动设置值也会被生成器覆盖。
+     */
+    @Test
+    void testInsertUpdateOverwritesManualValue() throws InterruptedException {
+        createGenTable();
+        GenEntity e = new GenEntity("Frank");
+        dba.insert(e);
+
+        LocalDateTime originalUpdateTime = e.getUpdateTime();
+        Thread.sleep(2);
+
+        // 手动设置一个未来时间
+        LocalDateTime manualTime = LocalDateTime.now().plusDays(1);
+        e.setUpdateTime(manualTime);
+        e.setName("Frank Updated");
+
+        dba.update(e);
+
+        // INSERT_UPDATE 策略会忽略手动设置的值，强制重新生成
+        assertNotEquals(manualTime, e.getUpdateTime(),
+                "INSERT_UPDATE 字段应忽略手动设置的值");
+        assertTrue(e.getUpdateTime().isAfter(originalUpdateTime));
+        // 生成的值应该是当前时间附近，不是未来的 manualTime
+        assertTrue(e.getUpdateTime().isBefore(LocalDateTime.now().plusSeconds(1)));
     }
 
     @Configuration

@@ -206,4 +206,13 @@ public class CrudService<T> {
     public int delete(Object object) {
         return dba.delete(object);
     }
+
+    /**
+     * 按主键值查询。
+     *
+     * @param keys 主键值，多主键时按声明顺序传入
+     */
+    public void deleteByKey(Object... keys) {
+        dba.deleteByKey(clazz, keys);
+    }
 }

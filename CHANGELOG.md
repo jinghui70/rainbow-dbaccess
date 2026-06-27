@@ -8,6 +8,7 @@
 ### Features
 
 - 新增 **`@GeneratedValue`** 注解：插入时为值为 `null` 的字段按策略自动生成并回填到入参对象，已有值不覆盖，批量插入逐行回填
+- 新增 **`GenerationTiming.INSERT_UPDATE`** 策略：支持在更新时也自动生成值。插入时同 `INSERT` 行为（仅当字段为 `null` 时生成），更新时强制重新生成并覆盖原有值，适用于更新时间、版本号等场景
 - 内置两种生成策略：`default`（雪花 id，`long`/`Long` 返回数字，`String` 返回 36 进制大写且 `param` 作前缀）、`now`（当前时间，支持 `LocalDateTime`/`Timestamp`/`Date`，`String` 按 `param` 格式化）
 - 支持自定义 `ValueGenerator`：注册为 Spring Bean 即由 `DbaAutoConfiguration` 自动注册，非 Spring 环境可用 `ValueGeneratorRegistry.register()`
 - **`QueryDTO.setFields()`** 改为可变参数，`getFields()` 未设置时默认返回 `*`

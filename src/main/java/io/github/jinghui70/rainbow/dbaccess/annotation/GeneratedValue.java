@@ -32,4 +32,11 @@ public @interface GeneratedValue {
      * @return 参数，默认空字符串
      */
     String param() default StrUtil.EMPTY;
+
+    /**
+     * 自动生成的时机。
+     *
+     * @return 默认仅在插入时生成
+     */
+    GenerationTiming timing() default GenerationTiming.INSERT;
 }

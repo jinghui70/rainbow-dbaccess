@@ -3,6 +3,7 @@ package io.github.jinghui70.rainbow.dbaccess.object;
 import cn.hutool.core.bean.PropDesc;
 import io.github.jinghui70.rainbow.dbaccess.Dba;
 import io.github.jinghui70.rainbow.dbaccess.annotation.GeneratedValue;
+import io.github.jinghui70.rainbow.dbaccess.annotation.GenerationTiming;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Id;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldMapper;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldValue;
@@ -125,24 +126,72 @@ public class PropInfo {
     }
 
     /**
-     * 返回用于插入语句的属性值。
+     * 获取用于插入语句的属性值。
      * <p>
-     * 若对象当前值非 {@code null}，直接返回；否则当属性标注了 {@link GeneratedValue} 时，
-     * 调用对应生成器生成值，回填到对象后返回，使插入后即可从入参对象拿到该值。
-     * 既无值也无注解时返回 {@code null}。
+     * 处理逻辑如下：
+     * <ol>
+     *   <li>若对象当前值非 {@code null}，直接返回（用户手动赋值优先）。</li>
+     *   <li>若当前值为 {@code null} 且存在 {@link GeneratedValue} 注解，调用生成器生成新值。</li>
+     *   <li>生成后，会将新值回填到入参对象（{@code row}）中，以便插入后获取该值。</li>
+     *   <li>若既无值也无注解，返回 {@code null}。</li>
+     * </ol>
      *
      * @param dba 数据库访问对象，传递给生成器供其使用
      * @param row 当前行对象
-     * @return 用于插入的值，可能为 {@code null}
+     * @return 用于插入的值
      */
     public Object getInsertValue(Dba dba, Object row) {
         Object value = getValue(row);
+        // 1. 用户已设值，直接使用，不进行自动生成
         if (value != null) return value;
+
+        // 2. 无注解且无值，返回 null
         if (generatedValue == null) return null;
+
+        // 3. 执行生成逻辑
         ValueGenerator generator = ValueGeneratorRegistry.get(generatedValue.strategy());
         GenerateContext context = new GenerateContext(dba, row, propDesc.getField(), generatedValue.param());
         Object result = generator.generate(context);
+
+        // 4. 回填对象，确保插入后 entity 中有值
         propDesc.setValue(row, result);
+
+        // 5. 处理类型映射转换
         return mapper == null ? result : new FieldValue(result, mapper);
     }
+
+    /**
+     * 获取用于更新语句的属性值。
+     * <p>
+     * 处理逻辑如下：
+     * <ol>
+     *   <li>若未标注 {@link GeneratedValue} 或注解策略为 {@link GenerationTiming#INSERT}，则直接返回对象当前值。</li>
+     *   <li>若注解策略为 {@link GenerationTiming#INSERT_UPDATE}，则忽略对象当前值，强制调用生成器生成新值。</li>
+     *   <li>生成后，会将新值回填到入参对象（{@code row}）中。</li>
+     * </ol>
+     * <p>
+     * <b>注意：</b> 对于 {@link GenerationTiming#INSERT_UPDATE} 的字段（如更新时间），更新操作会强制覆盖原有值，
+     * 即使在 Java 对象中手动修改了该字段，也会被生成器的新值替代。
+     *
+     * @param dba 数据库访问对象，传递给生成器供其使用
+     * @param row 当前行对象
+     * @return 用于更新的值
+     */
+    public Object getUpdateValue(Dba dba, Object row) {
+        // 只有 INSERT_UPDATE 策略才在更新时触发生成
+        if (generatedValue == null || generatedValue.timing() != GenerationTiming.INSERT_UPDATE) {
+            return getValue(row);
+        }
+
+        // 强制生成并覆盖
+        ValueGenerator generator = ValueGeneratorRegistry.get(generatedValue.strategy());
+        GenerateContext context = new GenerateContext(dba, row, propDesc.getField(), generatedValue.param());
+        Object result = generator.generate(context);
+
+        // 回填对象
+        propDesc.setValue(row, result);
+
+        return mapper == null ? result : new FieldValue(result, mapper);
+    }
+
 }

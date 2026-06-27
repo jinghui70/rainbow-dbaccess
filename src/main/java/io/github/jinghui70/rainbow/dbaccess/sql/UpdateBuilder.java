@@ -118,7 +118,7 @@ public class UpdateBuilder {
         List<PropInfo> keyArray = propMap.values().stream().filter(p -> p.getId() != null).toList();
         for (PropInfo p : propMap.values()) {
             if (p.getId() != null || p.isAutoIncrement()) continue;
-            Object value = p.getValue(bean);
+            Object value = p.getUpdateValue(dba, bean);
             if (excludeNull && value == null) continue;
             if (fieldFilter == FieldFilter.INCLUDE && !fieldNames.contains(p.getName())) continue;
             if (fieldFilter == FieldFilter.EXCLUDE && fieldNames.contains(p.getName())) continue;

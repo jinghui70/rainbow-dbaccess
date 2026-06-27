@@ -1,6 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess.sql;
 
 import io.github.jinghui70.rainbow.dbaccess.utils.StringBuilderX;
+import org.springframework.lang.NonNull;
 
 /**
  * 排序信息类，封装排序字段和排序方式（升序/降序）。
@@ -14,7 +15,7 @@ public class OrderBy {
 
     private String field;
     private boolean desc;
-
+    public static final String DESC = " DESC";
     /**
      * 默认构造函数。
      */
@@ -75,6 +76,18 @@ public class OrderBy {
      */
     @Override
     public String toString() {
-        return new StringBuilderX(field).append(desc, " DESC").toString();
+        return new StringBuilderX(field).append(desc, DESC).toString();
+    }
+
+    /**
+     * 快速生成指定字段的降序排序字符串。
+     * <p>
+     * 例如：传入字段名 "create_time"，将返回 "create_time DESC"。
+     *
+     * @param field 排序字段名（不能为 null）
+     * @return 拼接好的降序排序字符串
+     */
+    public static String Desc(@NonNull String field) {
+        return field + DESC;
     }
 }

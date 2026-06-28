@@ -58,6 +58,7 @@ public class CrudService<T> {
      * @param objects 实体对象集合
      */
     public void insert(Collection<T> objects) {
+        if (CollUtil.isEmpty(objects)) return;
         objects.forEach(this::beforeInsert);
         dba.insert(objects);
     }

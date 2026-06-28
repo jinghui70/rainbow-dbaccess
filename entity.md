@@ -10,7 +10,7 @@
 | `@Column(name)` | 自定义列名 | 属性名转 lower_snake_case（如 `userName` → `user_name`） |
 | `@Column(sqlType)` | 指定 SQL 类型 | BLOB/CLOB 类型自动选择映射器 |
 | `@Column(mapper)` | 自定义 FieldMapper | 无注解时按类型自动推导 |
-| `@GeneratedValue` | 插入时自动生成字段值（值为 null 才触发） | 雪花 id，详见[自动生成字段值](/generated-value) |
+| `@GeneratedValue` | 插入或更新时自动生成字段值（可配置 timing） | 雪花 id，详见[自动生成字段值](/generated-value) |
 | `@Transient` | 排除字段 | 不参与任何数据库交互 |
 
 ## 最简实体
@@ -55,27 +55,30 @@ public class AutoEntity {
 
 ## 插入时自动生成字段值
 
-主键 id、创建时间这类值由程序生成而非业务录入。在字段上标注 `@GeneratedValue`，插入时若该字段为 `null` 就自动生成并**回填到对象本身**，不必在每个 Service 里手写赋值：
+主键 id、创建时间、更新时间这类值由程序生成而非业务录入。在字段上标注 `@GeneratedValue`，插入或更新时自动生成并**回填到对象本身**，不必在每个 Service 里手写赋值：
 
 ```java
-public class GenEntity {
+public class User {
     @Id
-    @GeneratedValue(param = "PRE_")                       // 雪花 id 主键，String 带前缀
+    @GeneratedValue(param = "USR_")                       // 雪花 id 主键，String 带前缀
     private String id;
 
-    @GeneratedValue(strategy = "now")                     // 当前 LocalDateTime
+    @GeneratedValue(strategy = "now")                     // 插入时记录创建时间
     private LocalDateTime createTime;
 
-    @GeneratedValue(strategy = "now", param = "yyyyMMdd")  // 格式化的当前日期字符串
-    private String createDate;
+    @GeneratedValue(strategy = "now", timing = GenerationTiming.INSERT_UPDATE)
+    private LocalDateTime updateTime;                     // 插入和更新时都自动刷新
 }
 
-GenEntity entity = new GenEntity();
-dba.insert(entity);
-String id = entity.getId();  // 已回填，如 "PRE_2J9K7X..."
+User user = new User();
+dba.insert(user);
+String id = user.getId();  // 已回填，如 "USR_2J9K7X..."
+
+user.setName("Updated");
+dba.update(user);          // updateTime 自动刷新为当前时间
 ```
 
-内置 `default`（雪花 id）和 `now`（当前时间）两种策略，也可实现 `ValueGenerator` 自定义。完整说明见[自动生成字段值](/generated-value)。
+内置 `default`（雪花 id）和 `now`（当前时间）两种策略，也可实现 `ValueGenerator` 自定义。`timing` 参数控制生成时机：默认 `INSERT` 仅插入时生成，`INSERT_UPDATE` 在更新时也强制重新生成（适用于 updateTime、版本号等）。完整说明见[自动生成字段值](/generated-value)。
 
 ## 查询结果可映射为任意对象
 

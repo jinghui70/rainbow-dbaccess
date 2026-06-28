@@ -69,7 +69,7 @@ public class UserInfo {       // 默认表名: USER_INFO
 | `@Column(name)` | 自定义列名（默认属性名转 lower_snake_case） |
 | `@Column(mapper)` | 自定义 FieldMapper |
 | `@Column(sqlType)` | 指定 SQL 类型（BLOB/CLOB 自动选映射器） |
-| `@GeneratedValue` | 插入时自动生成字段值（值为 null 才触发，回填到对象） |
+| `@GeneratedValue` | 插入或更新时自动生成字段值（可配置 timing，回填到对象） |
 | `@Transient` | 排除字段 |
 
 ---
@@ -150,21 +150,28 @@ dba.insertOf(map).into("T_USER").execute(); // Map 插入（必须指定表名�
 dba.merge(user);                           // Insert or Update
 ```
 
-### @GeneratedValue —— 插入时自动生成字段值
+### @GeneratedValue —— 插入或更新时自动生成字段值
 
-标注在实体字段上，插入时若该字段为 `null` 则自动生成并**回填到对象**（仅 Bean 插入生效，Map 不处理）。批量插入逐行生成。
+标注在实体字段上，根据 `timing` 配置在插入和/或更新时自动生成并**回填到对象**（仅 Bean 操作生效，Map 不处理）。批量操作逐行生成。
 
 ```java
-public class GenEntity {
-    @Id @GeneratedValue(param = "PRE_")                   // 雪花 id，String 带前缀；long/Long 则为数字 id
+public class User {
+    @Id @GeneratedValue(param = "USR_")                   // 雪花 id，String 带前缀；long/Long 则为数字 id
     private String id;
-    @GeneratedValue(strategy = "now")                     // 当前 LocalDateTime（Timestamp/Date 同理）
+    
+    @GeneratedValue(strategy = "now")                     // 默认 timing=INSERT，仅插入时生成
     private LocalDateTime createTime;
-    @GeneratedValue(strategy = "now", param = "yyyyMMdd") // String 按 param 格式，缺省 yyyy-MM-dd HH:mm:ss
-    private String createDate;
+    
+    @GeneratedValue(strategy = "now", timing = GenerationTiming.INSERT_UPDATE)
+    private LocalDateTime updateTime;                     // 插入和更新时都生成
 }
-dba.insert(entity);   // 三个字段自动生成并回填
+dba.insert(user);   // id, createTime, updateTime 都被生成并回填
+dba.update(user);   // 仅 updateTime 重新生成（强制覆盖，即使手动设置也会被替换）
 ```
+
+**timing 参数**（`GenerationTiming` 枚举）：
+- `INSERT`（默认）：仅插入时生成（字段为 null 才生成，已有值不覆盖）。适用于主键 id、创建时间 createTime、创建人 createBy。
+- `INSERT_UPDATE`：插入时生成（字段为 null 才生成），**更新时强制重新生成并覆盖对象当前值**。适用于更新时间 updateTime、更新人 updateBy、版本号 version。
 
 内置策略：`default`（默认，雪花 id；workerId/datacenterId 取 `-D` 参数→环境变量 `SNOWFLAKE_WORKER_ID`/`SNOWFLAKE_DATACENTER_ID`→0）、`now`（当前时间）。
 

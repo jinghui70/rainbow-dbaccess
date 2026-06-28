@@ -1,27 +1,36 @@
 # 自动生成字段值：@GeneratedValue
 
-很多字段在插入时才需要值，且值由程序生成而非业务录入——主键 id、创建时间、流水号等。`@GeneratedValue` 把这类逻辑声明在实体字段上，插入时自动生成并回填，不必在每个 Service 里手写赋值。
+很多字段的值由程序生成而非业务录入——主键 id、创建时间、更新时间、流水号等。`@GeneratedValue` 把这类逻辑声明在实体字段上，插入或更新时自动生成并回填，不必在每个 Service 里手写赋值。
 
 ```java
 @Table
-public class GenEntity {
+public class User {
     @Id
-    @GeneratedValue(param = "PRE_")                       // 雪花 id 主键，生成 PRE_ 开头的字符串
+    @GeneratedValue(param = "USR_")                       // 雪花 id 主键，生成 USR_ 开头的字符串
     private String id;
 
-    @GeneratedValue(strategy = "now")                     // 当前 LocalDateTime
+    @GeneratedValue(strategy = "now")                     // 插入时记录创建时间
     private LocalDateTime createTime;
 
-    @GeneratedValue(strategy = "now", param = "yyyyMMdd")  // 格式化后的当前日期字符串
-    private String createDate;
+    @GeneratedValue(strategy = "now", timing = GenerationTiming.INSERT_UPDATE)
+    private LocalDateTime updateTime;                     // 插入和更新时都自动刷新
 
+    private String name;
     // getter / setter ...
 }
 
-GenEntity entity = new GenEntity();
-dba.insert(entity);
-// 三个字段在插入时自动生成，并回填到 entity 本身
-String id = entity.getId();  // 如 "PRE_2J9K7X..."
+User user = new User();
+user.setName("Alice");
+dba.insert(user);
+// 三个字段在插入时自动生成，并回填到 user 本身
+String id = user.getId();              // 如 "USR_2J9K7X..."
+LocalDateTime created = user.getCreateTime();   // 插入时的当前时间
+LocalDateTime updated = user.getUpdateTime();   // 同 createTime
+
+// 更新时，updateTime 会自动刷新为当前时间
+user.setName("Alice Updated");
+dba.update(user);
+LocalDateTime newUpdateTime = user.getUpdateTime();  // 更新后的最新时间
 ```
 
 ## 注解与触发规则
@@ -30,21 +39,35 @@ String id = entity.getId();  // 如 "PRE_2J9K7X..."
 
 ```java
 import io.github.jinghui70.rainbow.dbaccess.annotation.GeneratedValue;
+import io.github.jinghui70.rainbow.dbaccess.annotation.GenerationTiming;
 
-@GeneratedValue(strategy = "default", param = "")
+@GeneratedValue(strategy = "default", param = "", timing = GenerationTiming.INSERT)
 ```
 
 | 属性 | 说明 | 默认值 |
 |------|------|--------|
 | `strategy` | 生成策略名，对应已注册的 `ValueGenerator` | `default` |
 | `param` | 传给生成器的参数，含义由策略决定 | 空字符串 |
+| `timing` | 生成时机，控制在插入和/或更新时是否生成 | `GenerationTiming.INSERT` |
+
+### 生成时机（timing）
+
+`timing` 参数决定字段值在何时自动生成：
+
+| timing 值 | 插入时行为 | 更新时行为 | 典型场景 |
+|-----------|-----------|-----------|----------|
+| `INSERT`（默认） | 字段为 `null` 时生成，已有值不覆盖 | 不触发生成，使用对象当前值 | 主键 id、创建时间 createTime |
+| `INSERT_UPDATE` | 字段为 `null` 时生成，已有值不覆盖 | **强制生成新值，覆盖对象当前值** | 更新时间 updateTime、版本号、更新人 |
+
+**INSERT_UPDATE 的强制覆盖行为**：当 `timing = INSERT_UPDATE` 时，更新操作会**无条件重新生成字段值并回填到对象**，即使你在代码中手动设置了该字段的值也会被覆盖。这是设计行为，确保更新时间等字段始终反映最新操作时刻。
 
 行为约定：
 
-- **仅当字段值为 `null` 时才生成**——已有非 null 值不会被覆盖，业务可显式指定值绕过生成。
-- **生成的值回填到入参对象本身**——`insert` 之后即可直接从对象拿到（如主键）。
-- **批量插入时逐行生成、逐行回填**。
-- **仅对 Bean 插入生效**——`Map` 插入不处理 `@GeneratedValue`。
+- **插入时：仅当字段值为 `null` 时才生成**（对 `INSERT` 和 `INSERT_UPDATE` 都成立）——已有非 null 值不会被覆盖，业务可显式指定值绕过生成。
+- **更新时：`INSERT` 不生成，`INSERT_UPDATE` 强制生成**——后者会覆盖对象中的现有值。
+- **生成的值回填到入参对象本身**——`insert` / `update` 之后即可直接从对象拿到。
+- **批量操作时逐行生成、逐行回填**。
+- **仅对 Bean 操作生效**——`Map` 插入/更新不处理 `@GeneratedValue`。
 
 ## 内置策略
 
@@ -147,3 +170,122 @@ private Long id;
 ```
 
 生成器实现应是无状态、线程安全的。
+
+## 典型场景：创建时间与更新时间
+
+最常见的使用场景是为实体自动维护创建时间和更新时间：
+
+```java
+@Table(name = "T_ORDER")
+public class Order {
+    @Id
+    @GeneratedValue
+    private String id;
+
+    @GeneratedValue(strategy = "now")  // 默认 timing = INSERT，仅插入时生成
+    private LocalDateTime createTime;
+
+    @GeneratedValue(strategy = "now", timing = GenerationTiming.INSERT_UPDATE)
+    private LocalDateTime updateTime;  // 插入和更新时都生成
+
+    private String orderNo;
+    private BigDecimal amount;
+    // getter / setter ...
+}
+```
+
+**使用时的行为**：
+
+```java
+// 插入
+Order order = new Order();
+order.setOrderNo("ORD001");
+order.setAmount(new BigDecimal("100.00"));
+dba.insert(order);
+
+// createTime 和 updateTime 都被自动生成
+System.out.println(order.getCreateTime());  // 如 2024-03-15 10:30:00
+System.out.println(order.getUpdateTime());  // 如 2024-03-15 10:30:00
+
+// 更新
+Thread.sleep(1000);
+order.setAmount(new BigDecimal("200.00"));
+dba.update(order);
+
+// createTime 保持不变，updateTime 自动刷新
+System.out.println(order.getCreateTime());  // 仍为 2024-03-15 10:30:00
+System.out.println(order.getUpdateTime());  // 如 2024-03-15 10:30:01
+```
+
+**注意**：如果你在更新前手动设置了 `updateTime`，该值会被生成器覆盖——这是 `INSERT_UPDATE` 的设计行为，确保更新时间始终反映真实操作时刻，避免业务代码误传旧值或错误时间。
+
+## 最佳实践
+
+### 字段生成策略选择
+
+| 字段类型 | 推荐 timing | 原因 |
+|---------|------------|------|
+| 主键 id | `INSERT`（默认） | 主键仅在创建时生成一次，更新时保持不变 |
+| 创建时间 createTime | `INSERT`（默认） | 记录首次创建时刻，永不改变 |
+| 更新时间 updateTime | `INSERT_UPDATE` | 每次更新都应刷新为当前时间 |
+| 创建人 createBy | `INSERT`（默认） | 记录首次创建者，不应改变 |
+| 更新人 updateBy | `INSERT_UPDATE` | 配合自定义生成器从上下文获取当前用户 |
+| 版本号 version | `INSERT_UPDATE` | 配合自定义生成器实现乐观锁，每次更新递增 |
+
+### 更新人字段的自定义生成器
+
+配合 `INSERT_UPDATE` 可以实现自动维护更新人：
+
+```java
+@Component
+public class CurrentUserGenerator implements ValueGenerator {
+    @Override
+    public String getName() {
+        return "current-user";
+    }
+
+    @Override
+    public Object generate(GenerateContext context) {
+        // 从 Spring Security 或其他上下文获取当前用户
+        return SecurityContextHolder.getContext()
+            .getAuthentication()
+            .getName();
+    }
+}
+
+// 实体字段
+@GeneratedValue(strategy = "current-user", timing = GenerationTiming.INSERT_UPDATE)
+private String updateBy;
+```
+
+### 版本号乐观锁
+
+```java
+@Component
+public class VersionGenerator implements ValueGenerator {
+    @Override
+    public String getName() {
+        return "version";
+    }
+
+    @Override
+    public Object generate(GenerateContext context) {
+        Object data = context.data();
+        if (data == null) return 1;  // 插入时初始版本
+        
+        // 更新时递增
+        try {
+            java.lang.reflect.Field field = context.field();
+            field.setAccessible(true);
+            Integer current = (Integer) field.get(data);
+            return current == null ? 1 : current + 1;
+        } catch (Exception e) {
+            return 1;
+        }
+    }
+}
+
+// 实体字段
+@GeneratedValue(strategy = "version", timing = GenerationTiming.INSERT_UPDATE)
+private Integer version;
+```

@@ -20,6 +20,7 @@ import java.util.*;
  *     dba.updateOf(bean).include("name", "age").execute();   // 仅更新 name、age
  *     dba.updateOf(bean).exclude("avatar").execute();        // 排除 avatar，更新其它字段
  *     dba.updateOf(bean).excludeNull().execute();            // null 字段不更新
+ *     dba.updateOf(bean).into("T_ORDER_2024").execute();     // 更新同结构的另一张表
  * </pre>
  */
 public class UpdateBuilder {
@@ -36,6 +37,9 @@ public class UpdateBuilder {
 
     // 过滤为空字段
     private boolean excludeNull;
+
+    // 指定更新的表名，为 null 时用 Bean 类对应的表名
+    private String tableName;
 
     /**
      * @param dba  数据库访问对象
@@ -110,10 +114,22 @@ public class UpdateBuilder {
         return this;
     }
 
+    /**
+     * 指定更新的表名，用于更新与 Bean 结构相同的另一张表。不调用则用 Bean 类对应的表名。
+     *
+     * @param tableName 表名，支持 {@code table}/{@code schema.table}/{@code catalog.schema.table}
+     * @return this
+     */
+    public UpdateBuilder into(String tableName) {
+        this.tableName = DbaUtil.validTableName(tableName);
+        return this;
+    }
+
     // 构建 UPDATE SQL 并返回 Sql 实例，供后续链式调用。
     private Sql buildSql() {
         Class<?> clazz = bean.getClass();
-        Sql sql = dba.sql("UPDATE ").append(DbaUtil.tableName(clazz)).append(" SET ");
+        String table = tableName != null ? tableName : DbaUtil.tableName(clazz);
+        Sql sql = dba.sql("UPDATE ").append(table).append(" SET ");
         LinkedHashMap<String, PropInfo> propMap = PropInfoCache.get(clazz);
         List<PropInfo> keyArray = propMap.values().stream().filter(p -> p.getId() != null).toList();
         for (PropInfo p : propMap.values()) {

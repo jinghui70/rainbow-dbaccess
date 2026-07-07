@@ -1,3 +1,9 @@
+## [6.3.1](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.3.0..v6.3.1) (2026-07-07)
+
+### Features
+
+- **`UpdateBuilder.into(String)`**：指定更新的表名，用于更新与 Bean 结构相同的另一张表（如分表场景）；不调用时仍用 Bean 类对应的表名
+
 ## [6.3.0](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.2.2..v6.3.0) (2026-06-26)
 
 ### Breaking Changes

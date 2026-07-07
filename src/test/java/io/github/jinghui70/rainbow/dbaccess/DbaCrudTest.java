@@ -1,6 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
 import cn.hutool.core.collection.ListUtil;
+import io.github.jinghui70.rainbow.dbaccess.memory.Field;
 import io.github.jinghui70.rainbow.dbaccess.model.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -170,6 +171,34 @@ class DbaCrudTest extends BaseTest {
         User u = dba.selectByKey(User.class, "u1");
         assertEquals("NewName", u.getName());
         assertEquals(10, u.getAge());
+    }
+
+    // ===== update 到同结构的另一张表 =====
+
+    @Test
+    void testUpdateIntoCustomTable() {
+        createUserTable();
+        // 同结构的副本表
+        dba.createTable("T_USER_COPY",
+                Field.createKeyString("ID"),
+                Field.createString("NAME"),
+                Field.createInt("AGE"),
+                Field.createDouble("SCORE"));
+        // 两张表都插入同主键初始行
+        dba.insert(new User("u1", "Old", 10, 50.0));
+        dba.insertOf(new User("u1", "Old", 10, 50.0)).into("T_USER_COPY").execute();
+        // 用 User bean 更新到副本表，而非 Bean 默认的 T_USER
+        int rows = dba.updateOf(new User("u1", "New", 20, 100.0)).into("T_USER_COPY").execute();
+        assertEquals(1, rows);
+        // 副本表被更新
+        User copy = dba.select().from("T_USER_COPY").where("ID", "u1").queryForObject(User.class);
+        assertEquals("New", copy.getName());
+        assertEquals(20, copy.getAge());
+        assertEquals(100.0, copy.getScore());
+        // 原表不受影响
+        User origin = dba.selectByKey(User.class, "u1");
+        assertEquals("Old", origin.getName());
+        assertEquals(10, origin.getAge());
     }
 
     @Test

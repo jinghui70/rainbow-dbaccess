@@ -109,6 +109,19 @@ Cnd.where("NAME", Op.IN, Arrays.asList("Alice", null))
 
 IN 中的 null 会额外生成 `OR IS NULL` 条件。NOT IN 中的 null 被忽略（因为 `NOT IN NULL` 没有实际意义）。
 
+## IN 列表自动拆分
+
+Oracle 等数据库对 IN 列表元素数量有上限（ORA-01795，1000 个）。当 IN/NOT IN 的参数超过 1000 时，Cnd 会自动拆分为多组子表达式连接而成，无需手动处理：
+
+- `IN` 拆分后用 `OR` 连接，`NOT IN` 拆分后用 `AND` 连接，两者语义都与原条件等价
+- 参数不超过 1000 时行为不变
+
+```java
+// 1001 个 ID 自动拆成 2 组（1000 + 1）用 OR 连接：
+// WHERE (ID IN (?,?,...) OR ID IN (?))
+dba.select().from("T_USER").where("ID", Op.IN, ids).queryForList(User.class);
+```
+
 ## 子查询作为条件值
 
 条件值也可以是子查询 Sql 对象：

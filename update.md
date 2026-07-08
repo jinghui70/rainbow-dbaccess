@@ -30,6 +30,13 @@ dba.updateOf(partial).excludeNull().execute();
 
 `include`/`exclude` 互斥，同时只能使用一个，但是可以和`excludeNull()`一起使用。
 
+`into(String)` 指定更新的表名，用于更新与 Bean 结构相同的另一张表（如分表场景）；不调用时用 Bean 类对应的表名，可与上面的字段过滤方法组合使用：
+
+```java
+User user = new User("u1", "New", 20, 100.0);
+dba.updateOf(user).into("T_USER_2024").execute();
+```
+
 部分更新用 UpdateBuilder，避免覆盖其他字段的值，特别是在并发场景下，只更新变化的字段更安全。
 
 ### 3. UpdateSql——手动指定 SET

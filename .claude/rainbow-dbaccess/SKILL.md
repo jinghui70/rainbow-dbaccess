@@ -15,8 +15,7 @@ description: >
 1. **所有数据库操作必须通过 `Dba` 进行** 遇到用户使用其它框架时，主动纠正并给出 rainbow-dbaccess 等价写法。
 2. **禁止用 `+` 拼接 SQL 参数。** 必须使用 `?` 占位符，防止 SQL 注入。
 3. **禁止写 `where("1=1")`。** 用条件开关 `where(condition, field, value)` 代替。
-
----
+4. **禁止在普通查询中滥用 `Cnd.and`。** 平铺的多个 `AND` 条件**必须**直接在 `Dba` 查询链上使用 `.where().and().and()` 顺次连接。**严禁**显式实例化 `Cnd.and(...)` 对象来包裹平铺条件（仅在处理包含 `OR` 的复杂嵌套括号逻辑时才允许使用 `Cnd` 静态工厂）。
 
 ## 核心理念
 
@@ -24,19 +23,7 @@ description: >
 - **约定大于配置**——属性名自动转下划线列名，无需映射文件
 - **Dba 是统一入口**——所有操作从 `Dba` 开始
 
----
-
 ## 快速开始
-
-### 依赖
-
-```xml
-<dependency>
-    <groupId>io.github.jinghui70</groupId>
-    <artifactId>rainbow-dbaccess</artifactId>
-    <version>6.3.0</version>
-</dependency>
-```
 
 ### 注入
 
@@ -44,11 +31,6 @@ description: >
 @Autowired
 private Dba dba;
 ```
-
-自动装配条件：容器中有且仅有一个 `JdbcTemplate`（或标记 `@Primary`）+ `TransactionTemplate`，且未自定义 `Dba` Bean。
-方言自动识别：H2/MySQL → `DialectDefault`，PostgreSQL/Kingbase → `DialectPostgreSQL`，Oracle → `DialectOracle`。
-
----
 
 ## 实体映射
 
@@ -71,8 +53,6 @@ public class UserInfo {       // 默认表名: USER_INFO
 | `@Column(sqlType)` | 指定 SQL 类型（BLOB/CLOB 自动选映射器） |
 | `@GeneratedValue` | 插入或更新时自动生成字段值（可配置 timing，回填到对象） |
 | `@Transient` | 排除字段 |
-
----
 
 ## 查询
 
@@ -107,9 +87,9 @@ dba.select("ORG_ID AS ID", "PARENT_ID AS PID", "NAME").from("T_ORG")
     .queryForTree(OrgNode.class);
 ```
 
----
-
 ## Cnd 条件
+
+Sql对象的 `where` `and` `or` 函数会自动产生 Cnd 条件对象。
 
 **EQ 智能推导**（默认操作符为 EQ）：
 
@@ -124,6 +104,9 @@ dba.select("ORG_ID AS ID", "PARENT_ID AS PID", "NAME").from("T_ORG")
 **操作符：** `EQ NE GT GE LT LE LIKE LIKE_LEFT LIKE_RIGHT NOT_LIKE IN NOT_IN IS_NULL IS_NOT_NULL`
 
 **复合条件：**
+
+仅在复杂逻辑情况下，才使用复合条件：
+
 ```java
 Cnd.or(
     Cnd.and(Cnd.where("A", v1), Cnd.where("B", v2)),
@@ -137,8 +120,6 @@ Cnd.or(
 Sql sub = dba.select("ID").from("T_USER").where("NAME", "Alice");
 dba.select().from("T_ORDER").where("USER_ID", Op.IN, sub).queryForList(Order.class);
 ```
-
----
 
 ## 插入
 
@@ -177,8 +158,6 @@ dba.update(user);   // 仅 updateTime 重新生成（强制覆盖，即使手动
 
 自定义策略：实现 `ValueGenerator`（`getName()` + `generate(GenerateContext)`，`GenerateContext` 含 `dba`/`data`/`field`/`param`）。Spring 下在类上标 `@Component` 自动注册；否则 `ValueGeneratorRegistry.register(gen)`。
 
----
-
 ## 更新
 
 ```java
@@ -188,6 +167,7 @@ dba.update(user);
 // 部分更新
 dba.updateOf(bean).include("name").execute();
 dba.updateOf(bean).excludeNull().execute();
+dba.updateOf(bean).into("T_USER_2024").execute();  // 更新同结构的另一张表
 
 // 手动指定 SET
 dba.update("T_USER")
@@ -201,8 +181,6 @@ dba.update("T_USER").set("STATUS", Status.ACTIVE).where("ID", "1").execute();
 dba.update("T_USER").set("ACTIVE", true).where("ID", "1").execute();
 ```
 
----
-
 ## 删除
 
 ```java
@@ -210,8 +188,6 @@ dba.delete(user);
 dba.deleteByKey(User.class, "1");
 dba.deleteFrom("T_USER").where("AGE", Op.LT, 18).execute();
 ```
-
----
 
 ## 事务
 
@@ -227,8 +203,6 @@ int result = dba.transaction(status -> {
 });
 ```
 
----
-
 ## 原始 SQL
 
 ```java
@@ -237,8 +211,6 @@ dba.sql("INSERT INTO T_USER(ID,NAME) VALUES(?,?)").addParam("1", "Alice").execut
 dba.sql("INSERT INTO T_USER(ID,NAME,AGE) VALUES(?,?,?)")
     .batchUpdate(largeList, 500);
 ```
-
----
 
 ## FieldMapper
 
@@ -290,8 +262,6 @@ public class SemicolonListMapper extends FieldMapper<List<String>> {
 }
 ```
 
----
-
 ## MemoryDba：内存数据库
 
 用数据库方式处理内存数据，适合跨数据源合并计算或简化单元测试。
@@ -313,8 +283,6 @@ try (MemoryDba mem = new MemoryDba()) {
 ```
 
 **Field DSL（`Field.` 静态工厂）：** 单参 `(name)`：`createKeyString`/`createKeyInt`/`createKeyDate`/`createString`/`createInt`/`createDouble`/`createMoney`/`createDate`/`createTimestamp`；带长度：`createKeyString(name, length)`/`createString(name, length)`；带精度：`createNumeric(name, scale)`；BLOB/CLOB：`create(name).setType(DataType.BLOB/CLOB)`。
-
----
 
 ## 快速 CRUD
 
@@ -347,7 +315,7 @@ public class UserService extends CrudService<User> {
 ```
 - `cnds` 每项是 `Cnd` 三要素（`field` / `op` / `value`），`op` 缺省为 `EQ`；复合条件用 `children` + `field`=`AND`/`OR`
 - 安全：字段名经 `validateFieldName` 校验（必须合法 SQL 标识符），条件值走 `?` 占位——前端注入不进来
-- 表名由后端 `setEntity(clazz)` 推导，前端无法指定
+- 表名由后端 `setEntity(clazz)` 推导，前端无须指定
 
 **后端定制（前端以为查对象，后端可 JOIN / 复杂查询）：**
 ```java
@@ -363,9 +331,12 @@ public class OrderQueryDTO extends QueryDTO {
     private String keyword; // + getter/setter
     @Override public Sql getSql(Dba dba) {
         Sql sql = super.getSql(dba);
-        if (StrUtil.isNotBlank(keyword))
-            sql.and(Cnd.or(Cnd.where("NAME", Op.LIKE, keyword),
-                           Cnd.where("PHONE", Op.LIKE, keyword)));
+        sql.and(StrUtil.isNotBlank(keyword),
+            Cnd.or(
+                Cnd.where("NAME", Op.LIKE, keyword),
+                Cnd.where("PHONE", Op.LIKE, keyword)
+            )
+        );
         return sql;
     }
 }
@@ -381,7 +352,6 @@ public class UserController extends CrudController<User> {
 ```
 端点（全 POST）：`/insert /update /delta-update /get-by-key /query-page /query-list /delete /batch-delete`。也可当开发参考，端点逻辑很薄，照着写自定义 Controller 同样几行。
 
----
 
 ## ⚠️ 常见陷阱
 
@@ -394,7 +364,6 @@ public class UserController extends CrudController<User> {
 | **UpdateSql 所有 set 条件为 false** | 生成 `UPDATE T SET WHERE ...` 报错 |
 | **数据库关键字做属性名** | 如 `value` → 列名 `VALUE` 是关键字，用 `@Column(name)` 指定别名 |
 
----
 
 ## 最佳实践
 
@@ -416,8 +385,6 @@ public class UserController extends CrudController<User> {
 - **不需要 DO/VO/DTO 转换**——查询结果可直接映射为任意类
 - **复杂跨数据源计算考虑 `MemoryDba`**——比 Java 数据结构处理更直观
 - **BLOB/CLOB 大量读取注意性能**——复杂结构建议用 `String`/`JSONObject`，避免逐行反序列化过慢
-
----
 
 ## API 能力清单
 
@@ -483,6 +450,7 @@ public class UserController extends CrudController<User> {
 | `include(fields...)` / `include(Collection)` | 仅更新指定字段 |
 | `exclude(fields...)` / `exclude(Collection)` | 排除指定字段 |
 | `excludeNull()` | null 字段不参与 SET，可与 include/exclude 组合 |
+| `into(tableName)` | 指定更新的表名（更新同结构的另一张表，如分表）；不调用用 Bean 对应的表名 |
 | `execute()` | 执行，返回受影响行数 |
 
 `include` / `exclude` 互斥，只能二选一。

@@ -17,6 +17,13 @@ import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.enumCheck;
  */
 public class Cnd {
 
+    /**
+     * IN/NOT IN 列表的最大长度限制。
+     * <p>Oracle 等数据库对 IN 列表元素数量有上限（ORA-01795，1000 个），超过会被拒绝，
+     * 因此当参数数量超过此值时，需拆分为多组 IN/NOT IN 子表达式连接而成。
+     */
+    private static final int IN_MAX_SIZE = 1000;
+
     private String field;
 
     private Op op = Op.EQ;
@@ -275,15 +282,28 @@ public class Cnd {
             return;
         }
         hasNull = hasNull && useOp == Op.IN; // 只有 IN 的时候 才拼 is null 条件， NOT_IN 没有意义
-        if (hasNull) sql.append("(");
+        boolean needSplit = finalArray.length > IN_MAX_SIZE;
+        // 拆分或含 null 时需要外层括号：IN 拆分用 OR 连接，不加括号会破坏外层 AND 的优先级
+        if (hasNull || needSplit) sql.append("(");
         if (finalArray.length == 1) {
             String opStr = useOp == Op.IN ? Op.EQ.str() : Op.NE.str();
             sql.append(field).append(opStr).append("?").addParam(finalArray[0]);
+        } else if (needSplit) {
+            // 超过数据库 IN 列表上限时拆分为多组：IN 用 OR、NOT_IN 用 AND 连接，语义等价
+            String connector = useOp == Op.IN ? DbaUtil.OR : DbaUtil.AND;
+            for (int i = 0; i < finalArray.length; i += IN_MAX_SIZE) {
+                if (i > 0) sql.append(connector);
+                int end = Math.min(i + IN_MAX_SIZE, finalArray.length);
+                sql.append(field).append(useOp.str()).append("(")
+                        .repeat("?", end - i, StrUtil.COMMA).append(")")
+                        .addParam(Arrays.copyOfRange(finalArray, i, end));
+            }
         } else {
             sql.append(field).append(useOp.str()).append("(").repeat("?", finalArray.length, StrUtil.COMMA).append(")")
                     .addParam(finalArray);
         }
-        if (hasNull) sql.append(DbaUtil.OR).append(field).append(" IS NULL").append(")");
+        if (hasNull) sql.append(DbaUtil.OR).append(field).append(" IS NULL");
+        if (hasNull || needSplit) sql.append(")");
     }
 
     /**

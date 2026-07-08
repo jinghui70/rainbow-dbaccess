@@ -8,6 +8,7 @@ import io.github.jinghui70.rainbow.dbaccess.sql.Range;
 import io.github.jinghui70.rainbow.dbaccess.sql.Sql;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -155,6 +156,76 @@ class CndTest extends BaseTest {
         assertThrows(IllegalArgumentException.class,
                 () -> dba.select().from("T_USER")
                         .where("NAME", Op.IN, array));
+    }
+
+    @Test
+    void testInSplitOverLimit() {
+        setupUsers();
+        List<String> ids = new ArrayList<>();
+        for (int i = 0; i < 1001; i++) ids.add(String.valueOf(i)); // 含 "1","2","3"
+        Sql sql = dba.select().from("T_USER").where("ID", Op.IN, ids);
+        String s = sql.getSql();
+        // 超过 1000 拆成 2 组（1000 + 1），用 OR 连接，外层加括号
+        assertTrue(s.startsWith("SELECT * FROM T_USER WHERE (ID IN ("));
+        assertEquals(1, s.split(" OR ID IN \\(", -1).length - 1);
+        assertEquals(1001, sql.getParams().size());
+        List<User> list = sql.queryForList(User.class);
+        assertEquals(3, list.size());
+    }
+
+    @Test
+    void testInSplitMultipleGroups() {
+        setupUsers();
+        List<String> ids = new ArrayList<>();
+        for (int i = 0; i < 2001; i++) ids.add(String.valueOf(i));
+        Sql sql = dba.select().from("T_USER").where("ID", Op.IN, ids);
+        String s = sql.getSql();
+        // 2001 拆成 3 组（1000 + 1000 + 1），2 个 OR 连接符
+        assertEquals(2, s.split(" OR ID IN \\(", -1).length - 1);
+        assertEquals(2001, sql.getParams().size());
+    }
+
+    @Test
+    void testNotInSplitOverLimit() {
+        setupUsers();
+        List<String> ids = new ArrayList<>();
+        for (int i = 0; i < 1001; i++) ids.add(String.valueOf(i));
+        Sql sql = dba.select().from("T_USER").where("ID", Op.NOT_IN, ids);
+        String s = sql.getSql();
+        // NOT_IN 拆分用 AND 连接（语义等价）
+        assertTrue(s.startsWith("SELECT * FROM T_USER WHERE (ID NOT IN ("));
+        assertEquals(1, s.split(" AND ID NOT IN \\(", -1).length - 1);
+        assertEquals(1001, sql.getParams().size());
+        List<User> list = sql.queryForList(User.class);
+        assertTrue(list.isEmpty());
+    }
+
+    @Test
+    void testInAtLimitNoSplit() {
+        setupUsers();
+        List<String> ids = new ArrayList<>();
+        for (int i = 0; i < 1000; i++) ids.add(String.valueOf(i));
+        Sql sql = dba.select().from("T_USER").where("ID", Op.IN, ids);
+        String s = sql.getSql();
+        // 正好 1000 不拆分，无 OR 连接
+        assertFalse(s.contains(" OR ID IN ("));
+        assertEquals(1000, sql.getParams().size());
+    }
+
+    @Test
+    void testInSplitWithNull() {
+        setupUsers();
+        List<String> ids = new ArrayList<>();
+        for (int i = 0; i < 1001; i++) ids.add(String.valueOf(i));
+        ids.add(null);
+        Sql sql = dba.select().from("T_USER").where("NAME", Op.IN, ids);
+        String s = sql.getSql();
+        // 拆分与 IS NULL 共存：(... OR NAME IN (...) OR NAME IS NULL)
+        assertTrue(s.contains(" OR NAME IS NULL"));
+        assertEquals(1001, sql.getParams().size());
+        List<User> list = sql.queryForList(User.class);
+        assertEquals(1, list.size());
+        assertNull(list.get(0).getName());
     }
 
     @Test

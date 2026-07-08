@@ -3,6 +3,7 @@
 ### Features
 
 - **`UpdateBuilder.into(String)`**：指定更新的表名，用于更新与 Bean 结构相同的另一张表（如分表场景）；不调用时仍用 Bean 类对应的表名
+- **`Cnd`**：IN/NOT IN 条件值超过 1000 时自动拆分为多组连接（IN 用 OR、NOT IN 用 AND），规避 Oracle IN 列表 1000 上限（ORA-01795）；参数不超过 1000 时行为不变
 
 ## [6.3.0](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.2.2..v6.3.0) (2026-06-26)
 

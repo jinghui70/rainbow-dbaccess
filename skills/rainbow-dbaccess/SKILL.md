@@ -1,21 +1,22 @@
 ---
 name: rainbow-dbaccess
 description: >
-  Rainbow-dbaccess is the ONLY approved database access library for this project. 
-  Invoke this skill for ANY code that touches the database: CRUD, queries, 
-  pagination, transactions, entity mapping, Service layers, or any mention of 
-  JdbcTemplate, MyBatis, JPA, Hibernate, or SQL. Always redirect to 
-  rainbow-dbaccess and never use other frameworks.
+  Use for any database access code -- CRUD, queries, pagination, transactions,
+  entity mapping, SQL. All database operations go through Dba.
 ---
 
 # Rainbow DBAccess 使用指南
 
-## ⛔ 强制规则（最高优先级）
+## 使用流程
 
-1. **所有数据库操作必须通过 `Dba` 进行** 遇到用户使用其它框架时，主动纠正并给出 rainbow-dbaccess 等价写法。
+写或改任何数据库代码前，先过一遍下方强制规则；写完对照"常见陷阱"表。
+
+## 强制规则（最高优先级）
+
+1. **所有数据库操作必须通过 `Dba` 进行** 见到非 `Dba` 的数据库写法，主动给出 `Dba` 等价实现。
 2. **禁止用 `+` 拼接 SQL 参数。** 必须使用 `?` 占位符，防止 SQL 注入。
 3. **禁止写 `where("1=1")`。** 用条件开关 `where(condition, field, value)` 代替。
-4. **禁止在普通查询中滥用 `Cnd.and`。** 平铺的多个 `AND` 条件**必须**直接在 `Dba` 查询链上使用 `.where().and().and()` 顺次连接。**严禁**显式实例化 `Cnd.and(...)` 对象来包裹平铺条件（仅在处理包含 `OR` 的复杂嵌套括号逻辑时才允许使用 `Cnd` 静态工厂）。
+4. **平铺 `AND` 条件走链式。** 多个平铺 `AND` 在 `Dba` 查询链上 `.where().and().and()` 顺次连接；`Cnd.and(...)` 复合条件仅用于含 `OR` 的嵌套逻辑（详见 [Cnd 条件](#cnd-条件)）。
 
 ## 核心理念
 
@@ -353,7 +354,7 @@ public class UserController extends CrudController<User> {
 端点（全 POST）：`/insert /update /delta-update /get-by-key /query-page /query-list /delete /batch-delete`。也可当开发参考，端点逻辑很薄，照着写自定义 Controller 同样几行。
 
 
-## ⚠️ 常见陷阱
+## 常见陷阱
 
 | 陷阱 | 说明 |
 |------|------|
@@ -409,7 +410,7 @@ public class UserController extends CrudController<User> {
 | `transaction(Runnable)` / `transaction(TransactionCallback<T>)` | `void` / `T` | 事务 |
 | `exist(tableName)` | `boolean` | 表是否存在 |
 | `dropTable(tableName)` | `void` | 删除表 |
-| `getJdbcTemplate()` / `getTransactionTemplate()` / `getDialect()` | — | 取底层组件 |
+| `getJdbcTemplate()` / `getTransactionTemplate()` / `getDialect()` | - | 取底层组件 |
 
 ### Sql —— 构建（返回 `Sql`，可链式）
 

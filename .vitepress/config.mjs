@@ -4,6 +4,7 @@ export default defineConfig({
   base: '/rainbow-dbaccess/',
   title: 'Rainbow DBAccess',
   description: '基于 Spring JDBC 的轻量级数据库访问工具',
+  srcExclude: ['skills/**', 'CLAUDE.md'],
   themeConfig: {
     nav: [
       { text: '指南', link: '/concept' },
@@ -15,6 +16,7 @@ export default defineConfig({
     sidebar: [
       { text: '简介', link: '/concept' },
       { text: '快速开始', link: '/getting-started' },
+      { text: 'AI 辅助开发', link: '/ai' },
       { text: '实体映射', link: '/entity' },
       { text: 'FieldMapper', link: '/fieldmapper' },
       { text: '查询', link: '/query' },

@@ -32,6 +32,19 @@ class FieldMapperCrudTest extends BaseTest {
     }
 
     @Test
+    void testCodeEnumUnmatchedCodeReadsNull() {
+        createEnumTable();
+        dba.insert(new EnumEntity("e1", Status.ACTIVE, Color.RED));
+
+        // 写入无对应枚举的 code：CodeEnum 读取静默返回 null（普通枚举才会抛异常）
+        dba.sql("UPDATE T_ENUM SET COLOR='X' WHERE ID=?").addParam("e1").execute();
+
+        EnumEntity e = dba.selectByKey(EnumEntity.class, "e1");
+        assertEquals(Status.ACTIVE, e.getStatus());
+        assertNull(e.getColor());
+    }
+
+    @Test
     void testUpdateBool() {
         createBoolTable();
         BoolEntity e = new BoolEntity("b1", true, false);

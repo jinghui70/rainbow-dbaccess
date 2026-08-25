@@ -165,6 +165,26 @@ class SqlQueryTest extends BaseTest {
         assertNotNull(map.get("1"));
     }
 
+    @Test void testQueryToMapDuplicateKeyOverwrittenByLaterRow() {
+        createUserTable();
+        dba.insert(new User[]{
+                new User("1", "A", 25, 90.0),
+                new User("2", "B", 25, 80.0) // 年龄与 user1 相同
+        });
+        Map<Integer, User> map = dba.select().from("T_USER").orderBy("ID")
+                .queryToMap(rs -> rs.getInt("AGE"), User.class);
+        assertEquals(1, map.size());
+        assertEquals("B", map.get(25).getName()); // 重复 key：后行覆盖前行（Map.put 语义）
+    }
+
+    @Test void testColumnAliasCaseInsensitive() {
+        setupUsers();
+        // 列名匹配按去空格转小写比对，别名大小写不同仍能映射
+        User u = dba.select("NAME AS Name").from("T_USER").where("ID", "1").queryForObject(User.class);
+        assertNotNull(u);
+        assertEquals("Alice", u.getName());
+    }
+
     @Test void testQueryToGroup() {
         setupUsers();
         Map<Integer, List<User>> groups = dba.select().from("T_USER")

@@ -1,5 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess.annotation;
 
+import org.springframework.core.annotation.AliasFor;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -23,5 +25,9 @@ public @interface Table {
      *
      * @return 数据库表名
      */
+    @AliasFor("value")
     String name() default "";
+
+    @AliasFor("name")
+    String value() default "";
 }

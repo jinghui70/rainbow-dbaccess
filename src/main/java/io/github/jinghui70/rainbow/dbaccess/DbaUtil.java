@@ -10,6 +10,7 @@ import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldValue;
 import io.github.jinghui70.rainbow.dbaccess.object.CodeEnum;
 import io.github.jinghui70.rainbow.dbaccess.object.PropInfo;
 import io.github.jinghui70.rainbow.dbaccess.object.PropInfoCache;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
 import org.springframework.lang.NonNull;
 
@@ -77,7 +78,7 @@ public abstract class DbaUtil {
      * @return 表名
      */
     public static String tableName(Class<?> clazz) {
-        Table entityAnnotation = clazz.getAnnotation(Table.class);
+        Table entityAnnotation = AnnotatedElementUtils.findMergedAnnotation(clazz, Table.class);
         return entityAnnotation == null ? StrUtil.toUnderlineCase(clazz.getSimpleName()).toUpperCase() :
                 entityAnnotation.name();
     }

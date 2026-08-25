@@ -6,7 +6,7 @@ import io.github.jinghui70.rainbow.dbaccess.annotation.Table;
 /**
  * 简单用户实体，测试基本 CRUD。
  */
-@Table(name = "T_USER")
+@Table("T_USER")
 public class User {
 
     @Id

@@ -10,8 +10,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * {@link ValueGenerator} 全局注册表。
  * <p>
  * 内置 {@code default} 和 {@code now} 两种策略，首次使用时按需创建并缓存；
- * 用户自定义生成器通过 {@link #register} 注册（Spring 环境下由
- * {@link io.github.jinghui70.rainbow.dbaccess.DbaAutoConfiguration} 自动完成）。
+ * 用户自定义生成器通过 {@link #register} 注册（Spring 环境下生成器 Bean
+ * 初始化时由 {@link ValueGenerator#afterPropertiesSet()} 自动完成）。
  */
 public class ValueGeneratorRegistry {
 

@@ -144,18 +144,19 @@ public class ValueGenTest extends BaseTest {
     }
 
     /**
-     * 验证用户自定义 ValueGenerator 通过 Spring 容器被 DbaAutoConfiguration 自动注册。
+     * 验证用户自定义 ValueGenerator 注册为 Spring Bean 后，
+     * 由容器在初始化阶段自动注册到 {@link ValueGeneratorRegistry}，
+     * 不依赖任何自动配置类。
      */
     @Test
     void testSpringAutoRegister() {
         try (AnnotationConfigApplicationContext ctx =
                      new AnnotationConfigApplicationContext(SpringGenConfig.class)) {
-            // 模拟 DbaAutoConfiguration 启动时从容器拉取所有 ValueGenerator 注册
-            new DbaAutoConfiguration(ctx.getBeanProvider(ValueGenerator.class)).afterPropertiesSet();
+            // context refresh 过程中 bean 初始化即自注册，无需手动触发
+            ValueGenerator g = ValueGeneratorRegistry.get("spring-gen");
+            assertNotNull(g);
+            assertEquals("SPRING", g.generate(new GenerateContext(null, null, null, "")));
         }
-        ValueGenerator g = ValueGeneratorRegistry.get("spring-gen");
-        assertNotNull(g);
-        assertEquals("SPRING", g.generate(new GenerateContext(null, null, null, "")));
     }
 
     /**

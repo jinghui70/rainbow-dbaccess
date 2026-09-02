@@ -1,3 +1,14 @@
+## [6.3.3](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.3.1..v6.3.3) (2026-09-01)
+
+- ** `@Table` 增加value
+- ValueGenerator 自动注册
+- update sql fix set boolean
+
+### Breaking Changes
+
+- 去掉冗余的OrderBy.Desc
+- PageData 去掉 isEmpty
+
 ## [6.3.1](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.3.0..v6.3.1) (2026-07-07)
 
 ### Features

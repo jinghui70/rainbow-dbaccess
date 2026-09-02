@@ -50,6 +50,9 @@ public abstract class DbaUtil {
     /** ORDER BY 关键字 */
     public static final String ORDER_BY = " ORDER BY ";
 
+    /** 排序方向 */
+    public static final String DESC = " DESC";
+
     /** GROUP BY 关键字 */
     public static final String GROUP_BY = " GROUP BY ";
 
@@ -66,7 +69,7 @@ public abstract class DbaUtil {
      * @return {@code field DESC}
      */
     public static String desc(String field) {
-        return field + " DESC";
+        return field + DESC;
     }
 
     /**

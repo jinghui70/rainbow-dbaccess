@@ -74,15 +74,6 @@ public class PageData<T> {
     }
 
     /**
-     * 判断当前分页数据是否为空
-     *
-     * @return 如果结果列表为空或 null 则返回 true，否则返回 false
-     */
-    public boolean isEmpty() {
-        return CollUtil.isEmpty(data);
-    }
-
-    /**
      * 将当前对象转换为 JSON 格式的字符串
      * (重写自 Object 类的 toString 方法)
      *

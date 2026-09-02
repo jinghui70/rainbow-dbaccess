@@ -2,6 +2,7 @@ package io.github.jinghui70.rainbow.dbaccess.sql;
 
 import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.dbaccess.Dba;
+import io.github.jinghui70.rainbow.dbaccess.fieldmapper.BoolFieldMapper;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldMapper;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldValue;
 
@@ -54,6 +55,8 @@ public class UpdateSql extends Sql {
      * @return 返回自己
      */
     public UpdateSql set(String field, Object value) {
+        if (value instanceof Boolean)
+            return set(field, BoolFieldMapper.INSTANCE, value);
         set();
         append(field).append("=?").addParam(enumCheck(value));
         return this;

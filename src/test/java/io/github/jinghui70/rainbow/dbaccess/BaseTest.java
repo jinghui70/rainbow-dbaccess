@@ -1,5 +1,6 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
+import io.github.jinghui70.rainbow.dbaccess.memory.DataType;
 import io.github.jinghui70.rainbow.dbaccess.memory.Field;
 import io.github.jinghui70.rainbow.dbaccess.memory.MemoryDba;
 import org.junit.jupiter.api.AfterEach;
@@ -49,12 +50,20 @@ public abstract class BaseTest {
                 Field.createString("COLOR"));
     }
 
-    /** 快捷建表：布尔字段 */
+    /** 快捷建表：布尔字段（INT 存储） */
     protected void createBoolTable() {
         dba.createTable("T_BOOL",
                 Field.createKeyString("ID"),
                 Field.createInt("ACTIVE"),
                 Field.createInt("FLAG"));
+    }
+
+    /** 快捷建表：布尔字段（VARCHAR(1) 存储，如 '1'/'0'） */
+    protected void createBoolVarcharTable() {
+        dba.createTable("T_BOOL_VARCHAR",
+                Field.createKeyString("ID"),
+                Field.create("ACTIVE").setType(DataType.VARCHAR).setLength(1),
+                Field.create("FLAG").setType(DataType.VARCHAR).setLength(1));
     }
 
     /** 快捷建表：产品表（默认表名推导） */

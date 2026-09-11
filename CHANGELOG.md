@@ -1,3 +1,7 @@
+## [6.3.3](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.3.3..v6.3.4) (2026-09-11)
+ 
+- 恢复 TreeObject，与 queryForWrapTree
+
 ## [6.3.3](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.3.1..v6.3.3) (2026-09-01)
 
 - ** `@Table` 增加value

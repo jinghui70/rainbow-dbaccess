@@ -1,6 +1,5 @@
 package io.github.jinghui70.rainbow.dbaccess.model;
 
-import io.github.jinghui70.rainbow.dbaccess.annotation.Column;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Id;
 import io.github.jinghui70.rainbow.dbaccess.annotation.Table;
 

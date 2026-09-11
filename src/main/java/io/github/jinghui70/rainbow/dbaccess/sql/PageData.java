@@ -1,6 +1,5 @@
 package io.github.jinghui70.rainbow.dbaccess.sql;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.json.JSONUtil;
 
 import java.util.Collections;

@@ -14,8 +14,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.SELECT;
-
 /**
  * 查询 DTO，封装 SELECT 字段、WHERE 条件、排序和分页参数。
  * <p>

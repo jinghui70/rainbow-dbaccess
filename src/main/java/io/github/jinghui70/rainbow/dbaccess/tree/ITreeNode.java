@@ -2,6 +2,7 @@ package io.github.jinghui70.rainbow.dbaccess.tree;
 
 import cn.hutool.core.collection.CollUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -30,7 +31,14 @@ public interface ITreeNode<T extends ITreeNode<T>> {
      *
      * @param child 要添加的子节点
      */
-    void addChild(T child);
+    default void addChild(T child) {
+        List<T> children = getChildren();
+        if (getChildren() == null) {
+            children = new ArrayList<>();
+            setChildren(children);
+        }
+        children.add(child);
+    }
 
     /**
      * 判断是否有子节点。

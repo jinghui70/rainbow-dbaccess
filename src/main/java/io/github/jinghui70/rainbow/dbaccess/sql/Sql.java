@@ -11,6 +11,7 @@ import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldMapper;
 import io.github.jinghui70.rainbow.dbaccess.rowmapper.MapRowMapper;
 import io.github.jinghui70.rainbow.dbaccess.rowmapper.SingleColumnFieldRowMapper;
 import io.github.jinghui70.rainbow.dbaccess.object.BeanMapper;
+import io.github.jinghui70.rainbow.dbaccess.tree.TreeObject;
 import io.github.jinghui70.rainbow.dbaccess.utils.StringBuilderWrapper;
 import io.github.jinghui70.rainbow.dbaccess.tree.ITreeNode;
 import io.github.jinghui70.rainbow.dbaccess.tree.Tree;
@@ -1161,6 +1162,25 @@ public class Sql extends StringBuilderWrapper<Sql> {
                 parent.addChild(item);
         }
         return new Tree<>(result, itemMap);
+    }
+
+    /**
+     * 查询树形结构数据，结果集需包含 ID 和 PID 列。
+     * <p>使用实体类进行行映射，并包裹为TreeObject对象
+     *
+     * @param objectType 树节点实体类型
+     * @param <T>        对象类型
+     * @return 树形结构对象
+     * @see Tree
+     * @see ITreeNode
+     * @see TreeObject
+     */
+    public <T> Tree<TreeObject<T>> queryForWrapTree(Class<T> objectType) {
+        BeanMapper<T> mapper = BeanMapper.of(objectType);
+        return queryForTree((rs,i)->{
+            T data = mapper.mapRow(rs, i);
+            return new TreeObject<>(data);
+        });
     }
 
     /**

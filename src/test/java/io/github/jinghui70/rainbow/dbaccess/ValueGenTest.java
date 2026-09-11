@@ -129,7 +129,7 @@ public class ValueGenTest extends BaseTest {
         // 故 startsWith 只可能来自前缀，排除 id 碰巧同字符开头的误判。
         java.lang.reflect.Field f = GenEntity.class.getDeclaredField("id");
         String s = assertInstanceOf(String.class,
-                g.generate(new GenerateContext(null, null, f, "PRE_")));
+                g.generate(new GenerateContext(null, null, f, "PRE_", true)));
         assertTrue(s.startsWith("PRE_"));
         String id = s.substring("PRE_".length());
         assertFalse(id.isEmpty(), "前缀后应有生成的 id");
@@ -155,7 +155,7 @@ public class ValueGenTest extends BaseTest {
             // context refresh 过程中 bean 初始化即自注册，无需手动触发
             ValueGenerator g = ValueGeneratorRegistry.get("spring-gen");
             assertNotNull(g);
-            assertEquals("SPRING", g.generate(new GenerateContext(null, null, null, "")));
+            assertEquals("SPRING", g.generate(new GenerateContext(null, null, null, "", true)));
         }
     }
 

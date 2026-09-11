@@ -20,6 +20,7 @@ export default defineConfig({
       { text: '实体映射', link: '/entity' },
       { text: 'FieldMapper', link: '/fieldmapper' },
       { text: '查询', link: '/query' },
+      { text: '树结构', link: '/tree' },
       { text: 'Cnd 条件系统', link: '/cnd' },
       { text: '插入数据', link: '/insert' },
       { text: '自动生成字段值', link: '/generated-value' },

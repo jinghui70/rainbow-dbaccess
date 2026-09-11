@@ -192,38 +192,15 @@ dba.select().from("T_USER").range(1, 10).queryForList(User.class);
 
 ## 树查询
 
-查询结果必须包含 ID 和 PID 字段，如果实际列名不同，可以用别名 `AS`：
+`queryForTree` / `queryForWrapTree` 把平铺的 ID/PID 结果集自动组装为树形结构：
 
 ```java
-dba.select("ORG_ID AS ID", "PARENT_ID AS PID", "NAME").from("T_ORG")
-    .queryForTree(OrgNode.class);
-```
-
-实体实现 `ITreeNode` 接口即可：
-
-```java
-public class OrgNode implements ITreeNode<OrgNode> {
-    private String id;
-    private String name;
-    @Transient
-    private List<OrgNode> children = new ArrayList<>();
-    // 实现 getChildren(), addChild(), setChildren() 或者直接继承 TreeNode 类
-}
-
-Tree<OrgNode> tree = dba.select().from("T_ORG").queryForTree(OrgNode.class);
+Tree<OrgNode> tree = dba.select().from("T_ORG").orderBy("ID").queryForTree(OrgNode.class);
 List<OrgNode> roots = tree.getRoots();
 OrgNode node = tree.getNode("2"); // 通过 ID 快速查找任意节点
 ```
 
-**TreeUtils 工具方法：**
-
-```java
-TreeUtils.traverse(roots, node -> { ... });
-TreeUtils.traverse(roots, (node, parent, level) -> { ... }, true);
-List<T> filtered = TreeUtils.filter(roots, node -> node.isActive(), true);
-List<T> transformed = TreeUtils.transform(roots, node -> newDto(node));
-String print = TreeUtils.printTree(roots, OrgNode::getName);
-```
+树的组装规则、`TreeObject` 包裹模式及 `TreeUtils` 工具方法详见[树结构](./tree)。
 
 ## RowMapper：结果映射的扩展点
 

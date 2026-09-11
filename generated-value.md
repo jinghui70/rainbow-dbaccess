@@ -117,7 +117,7 @@ private String createDate;
 
 ## 自定义策略
 
-实现 `ValueGenerator` 接口即可扩展自己的生成逻辑——例如取数据库序列、按当前最大值递增、生成业务流水号。Spring 环境下直接把它标为组件，`DbaAutoConfiguration` 会自动收集并注册：
+实现 `ValueGenerator` 接口即可扩展自己的生成逻辑——例如取数据库序列、按当前最大值递增、生成业务流水号。Spring 环境下直接把它标为组件，容器初始化该 Bean 时会自动完成注册：
 
 ```java
 import io.github.jinghui70.rainbow.dbaccess.valuegen.ValueGenerator;
@@ -153,7 +153,9 @@ public class SeqGenerator implements ValueGenerator {
 
 ### 注册生成器
 
-- **Spring 环境**：如上在生成器类上标 `@Component`（或声明为任意 Bean）即可，`DbaAutoConfiguration` 通过 `ObjectProvider<ValueGenerator>` 自动收集注册。
+`ValueGenerator` 接口继承 `InitializingBean` 并提供了默认的 `afterPropertiesSet()` 实现——把自己注册到全局注册表 `ValueGeneratorRegistry`：
+
+- **Spring 环境**：如上在生成器类上标 `@Component`（或声明为任意 Bean）即可，容器初始化该 Bean 时自动调用 `afterPropertiesSet()` 完成注册。
 - **非 Spring 环境**：手动注册到全局注册表：
 
   ```java
@@ -270,17 +272,14 @@ public class VersionGenerator implements ValueGenerator {
 
     @Override
     public Object generate(GenerateContext context) {
-        Object data = context.data();
-        if (data == null) return 1;  // 插入时初始版本
-        
-        // 更新时递增
+        if (context.insert()) return 1;  // 插入时初始版本
+
+        // 更新时基于当前值递增（INSERT_UPDATE 强制生成，data 中是旧版本号）
         try {
-            java.lang.reflect.Field field = context.field();
-            field.setAccessible(true);
-            Integer current = (Integer) field.get(data);
+            Integer current = (Integer) context.field().get(context.data());
             return current == null ? 1 : current + 1;
-        } catch (Exception e) {
-            return 1;
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException("生成版本号失败", e);
         }
     }
 }

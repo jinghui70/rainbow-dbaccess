@@ -19,6 +19,36 @@ description: >
 2. **禁止用 `+` 拼接 SQL 参数。** 必须使用 `?` 占位符，防止 SQL 注入。
 3. **禁止写 `where("1=1")`。** 用条件开关 `where(condition, field, value)` 代替。
 4. **平铺 `AND` 条件走链式。** 多个平铺 `AND` 在 `Dba` 查询链上 `.where().and().and()` 顺次连接；`Cnd.and(...)` 复合条件仅用于含 `OR` 的嵌套逻辑（详见 [Cnd 条件](#cnd-条件)）。
+5. **`@Id` / `@Table` / `@Column` 一律来自 `io.github.jinghui70.rainbow.dbaccess.annotation`。** 这三个注解与 JPA 同名，**禁止 import `jakarta.persistence.*` 或 `javax.persistence.*`**。所有类的包路径见下方[包路径与 import](#包路径与-import)，不要凭记忆猜。
+6. **子句一律用专用方法，禁止 `append` 拼接。** `ORDER BY` 用 `orderBy(...)`、`GROUP BY` 用 `groupBy(...)`、`WHERE` 用 `where(...)`、`SET` 用 `set(...)`。`append` **只用于**没有专用方法的原始片段（如 `UNION`、窗口函数、特殊 JOIN 写法）。见[排序](#排序)。
+
+## 包路径与 import
+
+根包 `io.github.jinghui70.rainbow.dbaccess`（下表简写为 `…`）。写 import 时只查这张表。
+
+| 包                    | 类                                                                                                                                                        |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `…`                   | `Dba` `DbaUtil`                                                                                                                                           |
+| `….sql`               | `Sql` `PageData` `Range` `OrderBy` `UpdateSql` `InsertBuilder` `UpdateBuilder` `DeleteBuilder` `ResultSetFunction`                                         |
+| `….cnd`               | `Cnd` `Op`                                                                                                                                                |
+| `….annotation`        | `Id` `Table` `Column` `GeneratedValue` `GenerationTiming` `Transient`                                                                                     |
+| `….crud`              | `CrudService` `CrudController` `QueryDTO` `UpdateDTO` `CommonObject`                                                                                       |
+| `….fieldmapper`       | `FieldMapper` `ObjectFieldMapper` `BlobObjectFieldMapper` `BlobStringFieldMapper` `BlobByteArrayFieldMapper` `BoolFieldMapper` `BoolYN` `EnumFieldMapper` |
+| `….rowmapper`         | `MapRowMapper` `CamelCaseMapMapper` `SingleColumnFieldRowMapper` `ObjectArrayRowMapper` `StringArrayRowMapper`                                            |
+| `….object`            | `CodeEnum` `BeanMapper`                                                                                                                                   |
+| `….tree`              | `Tree` `TreeNode` `ITreeNode` `TreeUtils`                                                                                                                 |
+| `….memory`            | `MemoryDba` `Field` `Table` `DataType`                                                                                                                    |
+| `….valuegen`          | `ValueGenerator` `ValueGeneratorRegistry` `GenerateContext` `SnowflakeGenerator` `NowGenerator`                                                            |
+
+**同名类冲突，import 时必须确认是哪一个：**
+
+| 裸类名  | 两个来源                                                                | 怎么分                                                       |
+| ------- | ----------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `Table` | `….annotation.Table`（实体注解） / `….memory.Table`（MemoryDba 表常量） | 标在类上是注解；`Table.DEFAULT_NAME` 是 memory 的            |
+| `Field` | `….memory.Field`（建表 DSL） / `java.lang.reflect.Field`                | `Field.createString(...)` 是 memory 的                       |
+| `Id` `Column` | dbaccess 的 / JPA 的                                              | **本库只有 dbaccess 版**，出现 `jakarta.persistence` 即为错误 |
+
+**文档示例中出现的外部类：** `StrUtil` = `cn.hutool.core.util.StrUtil`，`TypeReference` = `cn.hutool.core.lang.TypeReference`（Hutool 5）。
 
 ## 核心理念
 
@@ -40,6 +70,10 @@ private Dba dba;
 ## 实体映射
 
 ```java
+import io.github.jinghui70.rainbow.dbaccess.annotation.Id;
+import io.github.jinghui70.rainbow.dbaccess.annotation.Column;
+// 注意：不是 jakarta.persistence.Id / javax.persistence.Id
+
 public class UserInfo {       // 默认表名: USER_INFO
     @Id
     private String id;
@@ -78,6 +112,19 @@ public enum Status implements CodeEnum {
 
 ## 查询
 
+**默认 `select()` 不带参（`SELECT *`），不要罗列全部字段。** 只有确实只要少数几列（如只取 `ID`、`NAME`）或需要别名/聚合列时才写 `select(fields...)`。把实体字段一个个列出来是反模式：字段增减会漏改，且与 `SELECT *` 等价纯属噪音。
+
+```java
+// ✅ 默认
+dba.select().from(User.class).queryForList(User.class);
+
+// ✅ 只要少数列 / 需要别名时才列字段
+dba.select("ID", "NAME").from(User.class).queryForList(User.class);
+
+// ❌ 反模式：罗列全部字段
+dba.select("ID", "NAME", "AGE", "CREATE_TIME", "UPDATE_TIME").from(User.class).queryForList(User.class);
+```
+
 ```java
 // 单条
 dba.select().from("T_USER").where("ID", "1").queryForObject(User.class);
@@ -111,6 +158,33 @@ dba.select().from("T_LOG").orderBy("ID").limit(100).queryForList(Log.class);
 **count/exist/queryPage 自动优化**：SQL 不含 DISTINCT/GROUP BY/UNION 时，`count()` 去掉 SELECT 列和 ORDER BY 生成 `SELECT COUNT(*) FROM ...`，`exist()` 走 `SELECT 1 ... LIMIT 1`；含上述关键字时自动包子查询计数。`disableCountOptimization()` 可强制关闭。`queryPage` 在 count=0 或页码超范围时直接返回空数据（带 total），不再查列表。
 
 **queryForMap()**：单行 Map，无数据返回**空 Map**（非 null）。
+
+### 排序
+
+**`orderBy` 直接接受带方向的字段串，不要用 `append` 拼 ORDER BY：**
+
+```java
+// ✅ 字符串字面量，最简单
+dba.select().from("T_USER").orderBy("CREATE_TIME DESC").queryForList(User.class);
+
+// ✅ 字段名是常量时，用 DbaUtil.desc 拼出 "CREATE_TIME DESC"
+dba.select().from("T_USER").orderBy(DbaUtil.desc(CREATE_TIME)).queryForList(User.class);
+
+// ✅ 多字段，混合升降序
+dba.select().from("T_USER").orderBy("DEPT_ID", DbaUtil.desc(CREATE_TIME), "NAME");
+
+// ✅ 排序规则来自前端/运行时
+List<OrderBy> orders = List.of(new OrderBy("CREATE_TIME", true), new OrderBy("NAME", false));
+dba.select().from("T_USER").orderBy(orders).queryForList(User.class);
+
+// ❌ 禁止：手工拼接
+sql.append(" ORDER BY ").append(CREATE_TIME).append(" DESC");
+```
+
+- `orderBy(String...)` 的每个字段串**可自带 ` ASC` / ` DESC`**，多字段自动用 `,` 连接
+- `DbaUtil.desc(field)`（`io.github.jinghui70.rainbow.dbaccess.DbaUtil`）返回 `field + " DESC"`；字段名是变量/常量时用它，避免手拼字符串
+- `orderBy()` 传空数组或空 List **不生成 ORDER BY**，可安全传入可能为空的排序条件
+- `groupBy(fields...)` 同理，不要 append 拼 `GROUP BY`
 
 ### 结果转 Map / 分组
 
@@ -515,10 +589,12 @@ public class UserController extends CrudController<User> {
 
 | 陷阱                                | 说明                                                                                            |
 | ----------------------------------- | ----------------------------------------------------------------------------------------------- |
+| **import 成 JPA 注解**              | `@Id`/`@Table`/`@Column` 必须来自 `….dbaccess.annotation`，不是 `jakarta.persistence`            |
+| **`Table` / `Field` 同名类**        | 注解 `Table` 在 `annotation` 包，`Table.DEFAULT_NAME` 在 `memory` 包；`Field` 是 `memory.Field` |
 | **Map 插入必须指定表名**            | `dba.insert(Map)` 会抛异常                                                                      |
 | **忘记调用 `execute()`**            | `deleteFrom`、`update(table)` 等返回构建器，不调用不执行                                        |
 | **空集合作为 IN 值**                | `Op.IN, Collections.emptyList()` 会报错，使用前判断                                             |
-| **`append` 开头忘加空格**           | `append("LEFT JOIN")` 会拼成 `...T_USERLEFT JOIN...`                                            |
+| **`append` 拼子句**                  | ORDER BY/GROUP BY/WHERE/SET 都有专用方法，别用 append；append 仅限无专用方法的原始片段，且开头记得加空格 |
 | **UpdateSql 所有 set 条件为 false** | 生成 `UPDATE T SET WHERE ...` 报错                                                              |
 | **数据库关键字做属性名**            | 如 `value` -> 列名 `VALUE` 是关键字，用 `@Column(name)` 指定别名                                |
 | **include/exclude 是属性名**        | `updateOf(bean).include(...)` 传 Java 属性名（驼峰）；`update(table).set(...)` 传列名，两者别混 |
@@ -541,6 +617,7 @@ public class UserController extends CrudController<User> {
       """).addParam(Status.ACTIVE, 18).queryForList(UserVO.class);
   ```
 - **优先用 `from(Class)` 而非字符串表名**--重构时自动同步
+- **`select()` 默认不带参**--映射整个实体时用 `SELECT *`，别罗列全部字段；只有要少数列或别名时才列字段
 - **状态字段定义为 Enum**--查询直接写 `where("STATUS", Status.ACTIVE)`；要存数字/自定义码就实现 `CodeEnum`
 - **Boolean 字段用 `Boolean` 类型**--自动走 `BoolFieldMapper`，无需手动转换
 - **部分更新首选 `updateOf(bean).excludeNull()`**
@@ -603,7 +680,8 @@ public class UserController extends CrudController<User> {
 | `count()`                                                      | `int`                   | 总记录数（自动优化，见上文）                                                                                                                                                                                                                                        |
 | `exist()`                                                      | `boolean`               | 是否存在记录（SELECT 1 + LIMIT 1）                                                                                                                                                                                                                                  |
 | `queryPage(Class/RowMapper/无参, pageNo, pageSize)`            | `PageData<T>`           | 分页；count=0 或页码超范围返回空数据带 total                                                                                                                                                                                                                        |
-| `queryForTree(Class/RowMapper)`                                | `Tree<T>`               | 树形；实体实现 ITreeNode，列必须为 ID、PID（详见[树形数据](#树形数据)）                                                                                                                                                                                             |
+| `queryForTree(Class/RowMapper)`                                | `Tree<T>`               | 树形；实体实现 ITreeNode，列必须为 ID、PID（详见[树形数据](#树形数据)）                                                                                                                                      |
+| `queryForWrapTree(Class)`                                      | `Tree<TreeObject<T>>`   | 包裹树形；实体无需实现 ITreeNode，节点为 `TreeObject`（`getData()` 取实体、`getParent()` 回溯；禁止直接序列化给前端）                                                                                        |
 | `execute()`                                                    | `int`                   | 执行 DML                                                                                                                                                                                                                                                            |
 | `batchUpdate(List<Object[]>)` / `batchUpdate(list, batchSize)` | `int[]` / `int[][]`     | 批量执行                                                                                                                                                                                                                                                            |
 

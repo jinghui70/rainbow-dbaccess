@@ -150,7 +150,7 @@ public class PropInfo {
 
         // 3. 执行生成逻辑
         ValueGenerator generator = ValueGeneratorRegistry.get(generatedValue.strategy());
-        GenerateContext context = new GenerateContext(dba, row, propDesc.getField(), generatedValue.param());
+        GenerateContext context = new GenerateContext(dba, row, propDesc.getField(), generatedValue.param(), true);
         Object result = generator.generate(context);
 
         // 4. 回填对象，确保插入后 entity 中有值
@@ -185,7 +185,7 @@ public class PropInfo {
 
         // 强制生成并覆盖
         ValueGenerator generator = ValueGeneratorRegistry.get(generatedValue.strategy());
-        GenerateContext context = new GenerateContext(dba, row, propDesc.getField(), generatedValue.param());
+        GenerateContext context = new GenerateContext(dba, row, propDesc.getField(), generatedValue.param(), false);
         Object result = generator.generate(context);
 
         // 回填对象

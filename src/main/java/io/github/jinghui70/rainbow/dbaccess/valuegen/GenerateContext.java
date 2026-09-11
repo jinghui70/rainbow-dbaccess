@@ -14,6 +14,7 @@ import java.lang.reflect.Field;
  * @param field 目标字段，可据其类型决定返回值类型
  * @param param {@link io.github.jinghui70.rainbow.dbaccess.annotation.GeneratedValue#param()} 的值，
  *              含义由具体策略约定
+ * @param insert 生成的时机是否是insert
  */
-public record GenerateContext(Dba dba, Object data, Field field, String param) {
+public record GenerateContext(Dba dba, Object data, Field field, String param, boolean insert) {
 }

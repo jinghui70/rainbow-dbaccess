@@ -19,25 +19,25 @@ public class TreeUtils {
     /**
      * Traverse a tree structure and apply a consumer to each node in pre-order.
      *
-     * @param tree   the root nodes to traverse
+     * @param treeNodes   the root nodes to traverse
      * @param action the consumer to apply to each node
      * @param <T>    the type of the node
      */
-    public static <T extends ITreeNode<T>> void traverse(List<T> tree, Consumer<T> action) {
-        traverse(tree, action, true);
+    public static <T extends ITreeNode<T>> void traverse(List<T> treeNodes, Consumer<T> action) {
+        traverse(treeNodes, action, true);
     }
 
     /**
      * Recursively traverse a tree structure and apply a consumer to each node.
      *
-     * @param tree       the root nodes to traverse
+     * @param treeNodes       the root nodes to traverse
      * @param consumer   the consumer to apply to each node
      * @param isPreOrder true: traverse in pre-order; false: traverse in post-order
      * @param <T>        the type of the node
      */
-    public static <T extends ITreeNode<T>> void traverse(List<T> tree, Consumer<T> consumer, boolean isPreOrder) {
-        if (CollUtil.isEmpty(tree)) return;
-        for (T node : tree) {
+    public static <T extends ITreeNode<T>> void traverse(List<T> treeNodes, Consumer<T> consumer, boolean isPreOrder) {
+        if (CollUtil.isEmpty(treeNodes)) return;
+        for (T node : treeNodes) {
             traverse(node, consumer, isPreOrder);
         }
     }
@@ -64,8 +64,8 @@ public class TreeUtils {
      * @param tree   待遍历的树结构列表
      * @param action 对每个节点执行的操作
      */
-    public static <T extends ITreeNode<T>> void traverse(List<T> tree, TreeNodeConsumer<T> action) {
-        traverse(tree, action, true);
+    public static <T extends ITreeNode<T>> void traverse(List<T> treeNodes, TreeNodeConsumer<T> action) {
+        traverse(treeNodes, action, true);
     }
 
     /**
@@ -76,8 +76,8 @@ public class TreeUtils {
      * @param action     对每个节点执行的操作
      * @param isPreOrder 是否按前序遍历，true表示前序，false表示后序
      */
-    public static <T extends ITreeNode<T>> void traverse(List<T> tree, TreeNodeConsumer<T> action, boolean isPreOrder) {
-        for (T node : tree) {
+    public static <T extends ITreeNode<T>> void traverse(List<T> treeNodes, TreeNodeConsumer<T> action, boolean isPreOrder) {
+        for (T node : treeNodes) {
             traverseNode(node, null, 1, action, isPreOrder);
         }
     }

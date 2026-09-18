@@ -47,9 +47,10 @@ public class CrudService<T> {
      *
      * @param object 实体对象
      */
-    public void insert(T object) {
+    public T insert(T object) {
         beforeInsert(object);
         dba.insert(object);
+        return object;
     }
 
     /**

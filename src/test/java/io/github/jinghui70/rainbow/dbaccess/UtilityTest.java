@@ -94,6 +94,32 @@ class UtilityTest extends BaseTest {
         assertFalse(o.toString().contains("DESC"));
     }
 
+    @Test void testOrderByParse() {
+        assertEquals("NAME", OrderBy.parse("NAME").getField());
+        assertFalse(OrderBy.parse("NAME").isDesc());
+
+        assertEquals("NAME", OrderBy.parse("NAME DESC").getField());
+        assertTrue(OrderBy.parse("NAME DESC").isDesc());
+
+        // 大小写不敏感，多余空白容忍
+        assertTrue(OrderBy.parse("  NAME   desc  ").isDesc());
+        assertEquals("NAME", OrderBy.parse("  NAME   desc  ").getField());
+
+        // ASC 和无法识别的后缀都按升序
+        assertFalse(OrderBy.parse("NAME ASC").isDesc());
+        assertFalse(OrderBy.parse("NAME 乱写").isDesc());
+
+        // 带别名前缀
+        assertEquals("O.CREATE_TIME", OrderBy.parse("O.CREATE_TIME DESC").getField());
+    }
+
+    @Test void testOrderByParseRoundTrip() {
+        // parse 是 toString 的逆运算
+        for (String text : List.of("NAME", "NAME DESC", "O.CREATE_TIME", "O.ID DESC")) {
+            assertEquals(text, OrderBy.parse(text).toString());
+        }
+    }
+
     // ===== PageData =====
 
     @Test void testPageData() {

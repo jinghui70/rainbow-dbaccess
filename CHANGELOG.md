@@ -6,8 +6,16 @@
 - **移除 `TreeUtils.traverse` 的两个便捷重载**：`traverse(List, Consumer)` 和 `traverse(List, TreeNodeConsumer)` 不再提供，调用方需显式传入遍历顺序。原行为等价于传 `PRE_ORDER`
 - **`TreeUtils` 过滤参数改为枚举**：新增 `FilterMode`（`FILTER_SUBTREE` / `KEEP_SUBTREE`），`filter`、`filterNode` 的 `boolean recurseOnMatch` 参数替换为 `FilterMode`。原 `true` 对应 `FILTER_SUBTREE`（匹配节点继续过滤子树），`false` 对应 `KEEP_SUBTREE`（匹配节点整棵子树原样保留）
 - **生成的 SQL 列名改为大写**：`PropInfo.getFieldName()` 及 `PropInfoCache` 属性缓存的 key 从小写改为大写，`SELECT * FROM T_USER WHERE id=?` 变为 `... WHERE ID=?`，与一贯大写的表名一致，也与文档描述一致。`@Column(name)` 指定的列名同样会转大写。未加引号的标识符在各数据库都不区分大小写（PostgreSQL 折叠为小写、Oracle 折叠为大写），**SQL 语义不变**；但如果你的测试断言了生成的 SQL 文本，或有工具按小写列名解析日志，需要相应调整
+- **`QueryDTO` 排序总会带上主键**：原来只在前端没传 `orderBys` 时才按主键排序，现在无论前端传没传，都把实体主键列追加到 ORDER BY 末尾（按列名去重，大小写不敏感）。按非唯一列排序时数据库对并列行的返回顺序没有保证，OFFSET 分页会出现某行重复出现或整页丢失，追加主键让排序成为全序。前端已经排过主键时不重复追加
+- **`QueryDTO.setEntity(String)` 会清掉主键排序兜底**：裸表名无从得知主键，且原实体的主键列在 JOIN 中可能有歧义。`setEntity(clazz)` 之后再改成 JOIN 片段的场景（派生 Service 定制查询）要用 `defaultOrderBy("O.CREATE_TIME", "O.ID")` 自己带上有前缀的唯一列
+- **`QueryDTO.setEntity(Class)` 不再填充 `defaultOrderBys`**：主键改存到新的 `keyOrderBys` 字段，`defaultOrderBys` 只表示"前端没传时用什么排序"这一件事，不会再被 `setEntity` 覆盖
+- **`QueryDTO.defaultOrderBys` 字段类型变更**：`protected String` 改为 `protected List<OrderBy>`，直接读写该字段的子类需要调整
 
 ### Features
+
+- **`QueryDTO.setOrderBys()` 校验字段名**：与 `setCnds` 一致，每个 `OrderBy.field` 都经 `DbaUtil.validateFieldName` 校验。此前排序字段名从 `@RequestBody` 原样拼进 SQL，存在注入风险
+- **新增 `OrderBy.parse(String)`**：`toString()` 的逆运算，把 `"NAME"` / `"NAME DESC"` 解析回 `OrderBy`，方向后缀大小写不敏感，不写或无法识别都按升序
+- **新增 `QueryDTO.defaultOrderBy(OrderBy...)`** 重载，可直接传对象，不必走字符串解析
 
 - **`TreeUtils` 空值处理统一**：`traverse`、`traverseNode`、`filter`、`filterNode` 入参为 `null` 时不再抛 `NullPointerException`，与 `transform`、`printTree` 行为一致
 - **`TreeUtils.filter()`、`transform()`** 入参为空时返回可修改的空列表，调用方可直接往返回值里添加节点

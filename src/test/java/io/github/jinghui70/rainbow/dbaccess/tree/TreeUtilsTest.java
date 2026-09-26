@@ -8,6 +8,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static io.github.jinghui70.rainbow.dbaccess.tree.FilterMode.FILTER_SUBTREE;
+import static io.github.jinghui70.rainbow.dbaccess.tree.FilterMode.KEEP_SUBTREE;
+import static io.github.jinghui70.rainbow.dbaccess.tree.TraverseOrder.POST_ORDER;
+import static io.github.jinghui70.rainbow.dbaccess.tree.TraverseOrder.PRE_ORDER;
 import static org.junit.jupiter.api.Assertions.*;
 
 class TreeUtilsTest {
@@ -45,14 +49,14 @@ class TreeUtilsTest {
     @Test
     void traversePreOrder() {
         List<String> names = new ArrayList<>();
-        TreeUtils.traverse(tree, node -> names.add(node.getName()));
+        TreeUtils.traverse(tree, node -> names.add(node.getName()), PRE_ORDER);
         assertEquals(List.of("Root", "Child1", "Grandchild1", "Grandchild2", "Child2"), names);
     }
 
     @Test
     void traversePostOrder() {
         List<String> names = new ArrayList<>();
-        TreeUtils.traverse(tree, node -> names.add(node.getName()), false);
+        TreeUtils.traverse(tree, node -> names.add(node.getName()), POST_ORDER);
         assertEquals(List.of("Grandchild1", "Grandchild2", "Child1", "Child2", "Root"), names);
     }
 
@@ -60,14 +64,14 @@ class TreeUtilsTest {
     void traverseEmptyList() {
         List<String> names = new ArrayList<>();
         List<OrgNode> emptyList = Collections.emptyList();
-        TreeUtils.traverse(emptyList, node -> names.add(node.getName()));
+        TreeUtils.traverse(emptyList, node -> names.add(node.getName()), PRE_ORDER);
         assertTrue(names.isEmpty());
     }
 
     @Test
     void traverseNullNode() {
         List<String> names = new ArrayList<>();
-        TreeUtils.traverse((OrgNode) null, node -> names.add(node.getName()), true);
+        TreeUtils.traverse((OrgNode) null, node -> names.add(node.getName()), PRE_ORDER);
         assertTrue(names.isEmpty());
     }
 
@@ -75,7 +79,7 @@ class TreeUtilsTest {
     void traverseSingleNodePreOrder() {
         OrgNode single = new OrgNode("1", null, "Single", "S001");
         List<String> names = new ArrayList<>();
-        TreeUtils.traverse(single, node -> names.add(node.getName()), true);
+        TreeUtils.traverse(single, node -> names.add(node.getName()), PRE_ORDER);
         assertEquals(List.of("Single"), names);
     }
 
@@ -83,14 +87,14 @@ class TreeUtilsTest {
     void traverseSingleNodePostOrder() {
         OrgNode single = new OrgNode("1", null, "Single", "S001");
         List<String> names = new ArrayList<>();
-        TreeUtils.traverse(single, node -> names.add(node.getName()), false);
+        TreeUtils.traverse(single, node -> names.add(node.getName()), POST_ORDER);
         assertEquals(List.of("Single"), names);
     }
 
     @Test
     void traverseMultiRootPreOrder() {
         List<String> names = new ArrayList<>();
-        TreeUtils.traverse(buildMultiRootTree(), node -> names.add(node.getName()));
+        TreeUtils.traverse(buildMultiRootTree(), node -> names.add(node.getName()), PRE_ORDER);
         assertEquals(List.of("Root1", "Child1", "Root2", "Child2"), names);
     }
 
@@ -101,7 +105,7 @@ class TreeUtilsTest {
         TreeUtils.traverse(tree, (node, parent, level) -> {
             names.add(node.getName());
             levels.add(level);
-        });
+        }, PRE_ORDER);
         assertEquals(List.of("Root", "Child1", "Grandchild1", "Grandchild2", "Child2"), names);
         assertEquals(List.of(1, 2, 3, 3, 2), levels);
     }
@@ -109,7 +113,7 @@ class TreeUtilsTest {
     @Test
     void traverseWithTreeNodeConsumerPostOrder() {
         List<String> names = new ArrayList<>();
-        TreeUtils.traverse(tree, (node, parent, level) -> names.add(node.getName()), false);
+        TreeUtils.traverse(tree, (node, parent, level) -> names.add(node.getName()), POST_ORDER);
         assertEquals(List.of("Grandchild1", "Grandchild2", "Child1", "Child2", "Root"), names);
     }
 
@@ -120,7 +124,7 @@ class TreeUtilsTest {
         TreeUtils.traverse(tree, (node, parent, level) -> {
             parentNames.add(parent == null ? "null" : parent.getName());
             levels.add(level);
-        });
+        }, PRE_ORDER);
         assertEquals(List.of("null", "Root", "Child1", "Child1", "Root"), parentNames);
         assertEquals(List.of(1, 2, 3, 3, 2), levels);
     }
@@ -130,7 +134,7 @@ class TreeUtilsTest {
         OrgNode root = tree.get(0);
         List<String> names = new ArrayList<>();
         TreeUtils.traverseNode(root, null, 1,
-                (node, parent, level) -> names.add(node.getName()), true);
+                (node, parent, level) -> names.add(node.getName()), PRE_ORDER);
         assertEquals(List.of("Root", "Child1", "Grandchild1", "Grandchild2", "Child2"), names);
     }
 
@@ -138,8 +142,34 @@ class TreeUtilsTest {
     void traverseNodePostOrder() {
         OrgNode root = tree.get(0);
         List<String> names = new ArrayList<>();
-        TreeUtils.traverseNode(root, null, 1, (node, parent, level) -> names.add(node.getName()), false);
+        TreeUtils.traverseNode(root, null, 1, (node, parent, level) -> names.add(node.getName()), POST_ORDER);
         assertEquals(List.of("Grandchild1", "Grandchild2", "Child1", "Child2", "Root"), names);
+    }
+
+    @Test
+    void traverseNodeNull() {
+        List<String> names = new ArrayList<>();
+        TreeUtils.<OrgNode>traverseNode(null, null, 1,
+                (node, parent, level) -> names.add(node.getName()), PRE_ORDER);
+        assertTrue(names.isEmpty());
+    }
+
+    @Test
+    void traverseNullList() {
+        List<String> names = new ArrayList<>();
+        TreeUtils.traverse((List<OrgNode>) null, node -> names.add(node.getName()), PRE_ORDER);
+        TreeUtils.traverse((List<OrgNode>) null,
+                (node, parent, level) -> names.add(node.getName()), PRE_ORDER);
+        assertTrue(names.isEmpty());
+    }
+
+    @Test
+    void filterNullList() {
+        List<OrgNode> result = TreeUtils.filter(null, node -> true, FILTER_SUBTREE);
+        assertTrue(result.isEmpty());
+        // 返回的空列表必须可修改，调用方可以直接往里加节点
+        result.add(new OrgNode("1", null, "Added", "A001"));
+        assertEquals(1, result.size());
     }
 
     @Test
@@ -164,6 +194,14 @@ class TreeUtilsTest {
         List<OrgNode> emptyOrgList = Collections.emptyList();
         List<SimpleNode> result = TreeUtils.transform(emptyOrgList, org -> new SimpleNode());
         assertTrue(result.isEmpty());
+        // 返回的空列表必须可修改，与 filter 保持一致
+        result.add(new SimpleNode());
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void filterNodeNull() {
+        assertNull(TreeUtils.<OrgNode>filterNode(null, node -> true, FILTER_SUBTREE));
     }
 
     @Test
@@ -182,9 +220,9 @@ class TreeUtilsTest {
     }
 
     @Test
-    void filterRecurseOnMatch() {
+    void filterMatchedSubtreeIsFiltered() {
         List<OrgNode> result = TreeUtils.filter(tree,
-                node -> node.getName().contains("Child1"), true);
+                node -> node.getName().contains("Child1"), FILTER_SUBTREE);
         assertEquals(1, result.size());
         assertEquals("Root", result.get(0).getName());
         OrgNode filteredChild1 = result.get(0).getChildren().get(0);
@@ -193,9 +231,9 @@ class TreeUtilsTest {
     }
 
     @Test
-    void filterNoRecurseOnMatch() {
+    void filterMatchedSubtreeIsKept() {
         List<OrgNode> result = TreeUtils.filter(tree,
-                node -> node.getName().contains("Child1"), false);
+                node -> node.getName().contains("Child1"), KEEP_SUBTREE);
         assertEquals(1, result.size());
         assertEquals("Root", result.get(0).getName());
         OrgNode filteredChild1 = result.get(0).getChildren().get(0);
@@ -206,13 +244,13 @@ class TreeUtilsTest {
     @Test
     void filterNoMatch() {
         List<OrgNode> result = TreeUtils.filter(tree,
-                node -> node.getName().equals("NonExistent"), true);
+                node -> node.getName().equals("NonExistent"), FILTER_SUBTREE);
         assertTrue(result.isEmpty());
     }
 
     @Test
     void filterAllMatch() {
-        List<OrgNode> result = TreeUtils.filter(tree, node -> true, true);
+        List<OrgNode> result = TreeUtils.filter(tree, node -> true, FILTER_SUBTREE);
         assertEquals(1, result.size());
         assertEquals("Root", result.get(0).getName());
         assertEquals(2, result.get(0).getChildren().size());
@@ -221,7 +259,7 @@ class TreeUtilsTest {
     @Test
     void filterKeepsAncestorOfMatchingNode() {
         List<OrgNode> result = TreeUtils.filter(tree,
-                node -> node.getName().equals("Grandchild1"), true);
+                node -> node.getName().equals("Grandchild1"), FILTER_SUBTREE);
         assertEquals(1, result.size());
         assertEquals("Root", result.get(0).getName());
         assertEquals(1, result.get(0).getChildren().size());
@@ -233,14 +271,14 @@ class TreeUtilsTest {
     @Test
     void filterEmptyList() {
         List<OrgNode> emptyFilterList = Collections.emptyList();
-        List<OrgNode> result = TreeUtils.filter(emptyFilterList, node -> true, false);
+        List<OrgNode> result = TreeUtils.filter(emptyFilterList, node -> true, KEEP_SUBTREE);
         assertTrue(result.isEmpty());
     }
 
     @Test
     void filterNodeMatching() {
         OrgNode root = tree.get(0);
-        OrgNode result = TreeUtils.filterNode(root, node -> node.getName().equals("Root"), true);
+        OrgNode result = TreeUtils.filterNode(root, node -> node.getName().equals("Root"), FILTER_SUBTREE);
         assertNotNull(result);
         assertEquals("Root", result.getName());
         assertNull(result.getChildren());
@@ -249,14 +287,14 @@ class TreeUtilsTest {
     @Test
     void filterNodeNoMatch() {
         OrgNode root = tree.get(0);
-        OrgNode result = TreeUtils.filterNode(root, node -> false, true);
+        OrgNode result = TreeUtils.filterNode(root, node -> false, FILTER_SUBTREE);
         assertNull(result);
     }
 
     @Test
     void filterNodeDescendantMatch() {
         OrgNode root = tree.get(0);
-        OrgNode result = TreeUtils.filterNode(root, node -> node.getName().equals("Grandchild1"), true);
+        OrgNode result = TreeUtils.filterNode(root, node -> node.getName().equals("Grandchild1"), FILTER_SUBTREE);
         assertNotNull(result);
         assertEquals("Root", result.getName());
     }
@@ -264,22 +302,22 @@ class TreeUtilsTest {
     @Test
     void filterLeafNodeNoMatch() {
         OrgNode leaf = new OrgNode("1", null, "Leaf", "L001");
-        OrgNode result = TreeUtils.filterNode(leaf, node -> false, true);
+        OrgNode result = TreeUtils.filterNode(leaf, node -> false, FILTER_SUBTREE);
         assertNull(result);
     }
 
     @Test
     void filterLeafNodeMatch() {
         OrgNode leaf = new OrgNode("1", null, "Leaf", "L001");
-        OrgNode result = TreeUtils.filterNode(leaf, node -> true, true);
+        OrgNode result = TreeUtils.filterNode(leaf, node -> true, FILTER_SUBTREE);
         assertNotNull(result);
         assertEquals("Leaf", result.getName());
     }
 
     @Test
-    void filterNodeRecurseOnMatchFalse() {
+    void filterNodeMatchedSubtreeIsKept() {
         OrgNode root = tree.get(0);
-        OrgNode result = TreeUtils.filterNode(root, node -> node.getName().equals("Root"), false);
+        OrgNode result = TreeUtils.filterNode(root, node -> node.getName().equals("Root"), KEEP_SUBTREE);
         assertNotNull(result);
         assertEquals("Root", result.getName());
         assertEquals(2, result.getChildren().size());

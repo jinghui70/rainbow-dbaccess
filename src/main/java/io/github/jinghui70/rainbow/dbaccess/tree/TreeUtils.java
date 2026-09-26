@@ -3,7 +3,6 @@ package io.github.jinghui70.rainbow.dbaccess.tree;
 import cn.hutool.core.collection.CollUtil;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -17,68 +16,47 @@ import java.util.stream.Collectors;
 public class TreeUtils {
 
     /**
-     * Traverse a tree structure and apply a consumer to each node in pre-order.
+     * 遍历树结构并对每个节点执行指定操作。
      *
-     * @param treeNodes   the root nodes to traverse
-     * @param action the consumer to apply to each node
-     * @param <T>    the type of the node
+     * @param <T>       节点类型，必须实现ITreeNode接口
+     * @param treeNodes 待遍历的树结构列表，为空时不做任何处理
+     * @param action    对每个节点执行的操作
+     * @param order     遍历顺序
      */
-    public static <T extends ITreeNode<T>> void traverse(List<T> treeNodes, Consumer<T> action) {
-        traverse(treeNodes, action, true);
-    }
-
-    /**
-     * Recursively traverse a tree structure and apply a consumer to each node.
-     *
-     * @param treeNodes       the root nodes to traverse
-     * @param consumer   the consumer to apply to each node
-     * @param isPreOrder true: traverse in pre-order; false: traverse in post-order
-     * @param <T>        the type of the node
-     */
-    public static <T extends ITreeNode<T>> void traverse(List<T> treeNodes, Consumer<T> consumer, boolean isPreOrder) {
+    public static <T extends ITreeNode<T>> void traverse(List<T> treeNodes, Consumer<T> action, TraverseOrder order) {
         if (CollUtil.isEmpty(treeNodes)) return;
         for (T node : treeNodes) {
-            traverse(node, consumer, isPreOrder);
+            traverse(node, action, order);
         }
     }
 
     /**
-     * 遍历树节点，并对每个节点执行指定的操作。
+     * 遍历单个树节点及其子孙节点，并对每个节点执行指定操作。
      *
-     * @param <T>        节点类型，必须是 ITreeNode 接口的实现类
-     * @param treeNode   要遍历的树节点
-     * @param action     对每个节点执行的操作，参数为当前遍历到的节点
-     * @param isPreOrder 是否按前序遍历的顺序执行操作
+     * @param <T>      节点类型，必须实现ITreeNode接口
+     * @param treeNode 待遍历的树节点，为null时不做任何处理
+     * @param action   对每个节点执行的操作，参数为当前遍历到的节点
+     * @param order    遍历顺序
      */
-    public static <T extends ITreeNode<T>> void traverse(T treeNode, Consumer<T> action, boolean isPreOrder) {
+    public static <T extends ITreeNode<T>> void traverse(T treeNode, Consumer<T> action, TraverseOrder order) {
         if (treeNode == null) return;
-        if (isPreOrder) action.accept(treeNode);
-        traverse(treeNode.getChildren(), action, isPreOrder);
-        if (!isPreOrder) action.accept(treeNode);
+        if (order == TraverseOrder.PRE_ORDER) action.accept(treeNode);
+        traverse(treeNode.getChildren(), action, order);
+        if (order == TraverseOrder.POST_ORDER) action.accept(treeNode);
     }
 
     /**
-     * 遍历树结构并应用指定操作（前序遍历）。
+     * 遍历树结构并对每个节点执行指定操作，操作可以获得父节点和层级。
      *
-     * @param <T>    节点类型，必须实现ITreeNode接口
-     * @param tree   待遍历的树结构列表
-     * @param action 对每个节点执行的操作
+     * @param <T>       节点类型，必须实现ITreeNode接口
+     * @param treeNodes 待遍历的树结构列表，为空时不做任何处理
+     * @param action    对每个节点执行的操作
+     * @param order     遍历顺序
      */
-    public static <T extends ITreeNode<T>> void traverse(List<T> treeNodes, TreeNodeConsumer<T> action) {
-        traverse(treeNodes, action, true);
-    }
-
-    /**
-     * 遍历树结构并应用指定操作。
-     *
-     * @param <T>        节点类型，必须实现ITreeNode接口
-     * @param tree       待遍历的树结构列表
-     * @param action     对每个节点执行的操作
-     * @param isPreOrder 是否按前序遍历，true表示前序，false表示后序
-     */
-    public static <T extends ITreeNode<T>> void traverse(List<T> treeNodes, TreeNodeConsumer<T> action, boolean isPreOrder) {
+    public static <T extends ITreeNode<T>> void traverse(List<T> treeNodes, TreeNodeConsumer<T> action, TraverseOrder order) {
+        if (CollUtil.isEmpty(treeNodes)) return;
         for (T node : treeNodes) {
-            traverseNode(node, null, 1, action, isPreOrder);
+            traverseNode(node, null, 1, action, order);
         }
     }
 
@@ -86,20 +64,21 @@ public class TreeUtils {
      * 递归遍历树节点并应用指定操作。
      *
      * @param <T>        节点类型，必须实现ITreeNode接口
-     * @param node       当前遍历的节点
+     * @param node       当前遍历的节点，为null时不做任何处理
      * @param parentNode 父节点
      * @param level      当前节点层级（根节点为1）
      * @param action     对每个节点执行的操作
-     * @param isPreOrder 是否按前序遍历，true表示前序，false表示后序
+     * @param order      遍历顺序
      */
-    public static <T extends ITreeNode<T>> void traverseNode(T node, T parentNode, int level, TreeNodeConsumer<T> action, boolean isPreOrder) {
-        if (isPreOrder) action.accept(node, parentNode, level);
+    public static <T extends ITreeNode<T>> void traverseNode(T node, T parentNode, int level, TreeNodeConsumer<T> action, TraverseOrder order) {
+        if (node == null) return;
+        if (order == TraverseOrder.PRE_ORDER) action.accept(node, parentNode, level);
         if (node.hasChild()) {
             for (T child : node.getChildren()) {
-                traverseNode(child, node, level + 1, action, isPreOrder);
+                traverseNode(child, node, level + 1, action, order);
             }
         }
-        if (!isPreOrder) action.accept(node, parentNode, level);
+        if (order == TraverseOrder.POST_ORDER) action.accept(node, parentNode, level);
     }
 
     /**
@@ -107,12 +86,12 @@ public class TreeUtils {
      *
      * @param <F>    源节点类型
      * @param <T>    目标节点类型
-     * @param list   源树结构列表
+     * @param list   源树结构列表，为空时返回空列表
      * @param mapper 节点转换函数
-     * @return 转换后的树结构列表
+     * @return 转换后的树结构列表，可修改
      */
     public static <F extends ITreeNode<F>, T extends ITreeNode<T>> List<T> transform(List<F> list, Function<F, T> mapper) {
-        if (CollUtil.isEmpty(list)) return Collections.emptyList();
+        if (CollUtil.isEmpty(list)) return new ArrayList<>();
         return list.stream().map(node -> transformNode(node, mapper)).collect(Collectors.toList());
     }
 
@@ -137,16 +116,17 @@ public class TreeUtils {
     /**
      * 根据给定的条件过滤节点列表。注意，过滤会修改已有节点的children对象，原来的树结构会被破坏。如果要保留原有树结构，请使用TreeNode参数的树。。
      *
-     * @param <T>            节点类型，必须实现ITreeNode接口
-     * @param nodes          要过滤的节点列表
-     * @param predicate      用于筛选节点的条件
-     * @param recurseOnMatch 当节点匹配条件时是否递归过滤其子节点
-     * @return 过滤后的节点列表
+     * @param <T>       节点类型，必须实现ITreeNode接口
+     * @param nodes     要过滤的节点列表，为空时返回空列表
+     * @param predicate 用于筛选节点的条件
+     * @param mode      匹配节点的子树如何处理
+     * @return 过滤后的节点列表，可修改
      */
-    public static <T extends ITreeNode<T>> List<T> filter(List<T> nodes, Predicate<T> predicate, boolean recurseOnMatch) {
+    public static <T extends ITreeNode<T>> List<T> filter(List<T> nodes, Predicate<T> predicate, FilterMode mode) {
+        if (CollUtil.isEmpty(nodes)) return new ArrayList<>();
         List<T> result = new ArrayList<>(nodes.size());
         for (T node : nodes) {
-            T filtered = filterNode(node, predicate, recurseOnMatch);
+            T filtered = filterNode(node, predicate, mode);
             if (Objects.nonNull(filtered)) {
                 result.add(filtered);
             }
@@ -157,23 +137,24 @@ public class TreeUtils {
     /**
      * 过滤树节点
      *
-     * @param <T>            树节点的类型，必须继承自ITreeNode&lt;T&gt;接口
-     * @param node           待过滤的树节点
-     * @param predicate      用于判断节点是否符合条件的谓词
-     * @param recurseOnMatch 当节点符合条件时是否递归过滤其子节点
+     * @param <T>       树节点的类型，必须继承自ITreeNode&lt;T&gt;接口
+     * @param node      待过滤的树节点，为null时返回null
+     * @param predicate 用于判断节点是否符合条件的谓词
+     * @param mode      匹配节点的子树如何处理
      * @return 如果节点符合条件，或其后代节点中有符合的，则放回该节点；否则返回null
      */
-    public static <T extends ITreeNode<T>> T filterNode(T node, Predicate<T> predicate, boolean recurseOnMatch) {
+    public static <T extends ITreeNode<T>> T filterNode(T node, Predicate<T> predicate, FilterMode mode) {
+        if (node == null) return null;
         boolean match = predicate.test(node);
         if (match) {
-            if (node.hasChild() && recurseOnMatch) {
-                List<T> children = filter(node.getChildren(), predicate, true);
+            if (node.hasChild() && mode == FilterMode.FILTER_SUBTREE) {
+                List<T> children = filter(node.getChildren(), predicate, FilterMode.FILTER_SUBTREE);
                 node.setChildren(children.isEmpty() ? null : children);
             }
             return node;
         }
         if (node.hasChild()) {
-            List<T> children = filter(node.getChildren(), predicate, recurseOnMatch);
+            List<T> children = filter(node.getChildren(), predicate, mode);
             if (CollUtil.isNotEmpty(children)) {
                 node.setChildren(children);
                 return node;

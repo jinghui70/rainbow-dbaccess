@@ -1,4 +1,17 @@
-## [6.3.3](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.3.3..v6.3.5) (2026-09-11)
+## [6.4.0](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.3.5..v6.4.0) (2026-09-26)
+
+### Breaking Changes
+
+- **`TreeUtils` 遍历顺序参数改为枚举**：新增 `TraverseOrder`（`PRE_ORDER` / `POST_ORDER`），`traverse`、`traverseNode` 的 `boolean isPreOrder` 参数全部替换为 `TraverseOrder`。原 `true` 对应 `PRE_ORDER`，`false` 对应 `POST_ORDER`
+- **移除 `TreeUtils.traverse` 的两个便捷重载**：`traverse(List, Consumer)` 和 `traverse(List, TreeNodeConsumer)` 不再提供，调用方需显式传入遍历顺序。原行为等价于传 `PRE_ORDER`
+- **`TreeUtils` 过滤参数改为枚举**：新增 `FilterMode`（`FILTER_SUBTREE` / `KEEP_SUBTREE`），`filter`、`filterNode` 的 `boolean recurseOnMatch` 参数替换为 `FilterMode`。原 `true` 对应 `FILTER_SUBTREE`（匹配节点继续过滤子树），`false` 对应 `KEEP_SUBTREE`（匹配节点整棵子树原样保留）
+
+### Features
+
+- **`TreeUtils` 空值处理统一**：`traverse`、`traverseNode`、`filter`、`filterNode` 入参为 `null` 时不再抛 `NullPointerException`，与 `transform`、`printTree` 行为一致
+- **`TreeUtils.filter()`、`transform()`** 入参为空时返回可修改的空列表，调用方可直接往返回值里添加节点
+
+## [6.3.5](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.3.3..v6.3.5) (2026-09-11)
  
 - 恢复 TreeObject，与 queryForWrapTree
 - crudService insert 返回对象

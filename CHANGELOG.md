@@ -5,6 +5,7 @@
 - **`TreeUtils` 遍历顺序参数改为枚举**：新增 `TraverseOrder`（`PRE_ORDER` / `POST_ORDER`），`traverse`、`traverseNode` 的 `boolean isPreOrder` 参数全部替换为 `TraverseOrder`。原 `true` 对应 `PRE_ORDER`，`false` 对应 `POST_ORDER`
 - **移除 `TreeUtils.traverse` 的两个便捷重载**：`traverse(List, Consumer)` 和 `traverse(List, TreeNodeConsumer)` 不再提供，调用方需显式传入遍历顺序。原行为等价于传 `PRE_ORDER`
 - **`TreeUtils` 过滤参数改为枚举**：新增 `FilterMode`（`FILTER_SUBTREE` / `KEEP_SUBTREE`），`filter`、`filterNode` 的 `boolean recurseOnMatch` 参数替换为 `FilterMode`。原 `true` 对应 `FILTER_SUBTREE`（匹配节点继续过滤子树），`false` 对应 `KEEP_SUBTREE`（匹配节点整棵子树原样保留）
+- **生成的 SQL 列名改为大写**：`PropInfo.getFieldName()` 及 `PropInfoCache` 属性缓存的 key 从小写改为大写，`SELECT * FROM T_USER WHERE id=?` 变为 `... WHERE ID=?`，与一贯大写的表名一致，也与文档描述一致。`@Column(name)` 指定的列名同样会转大写。未加引号的标识符在各数据库都不区分大小写（PostgreSQL 折叠为小写、Oracle 折叠为大写），**SQL 语义不变**；但如果你的测试断言了生成的 SQL 文本，或有工具按小写列名解析日志，需要相应调整
 
 ### Features
 

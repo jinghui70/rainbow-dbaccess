@@ -71,7 +71,8 @@ public class BeanMapper<T> implements RowMapper<T> {
 
         for (int index = 1; index <= columnCount; index++) {
             String column = JdbcUtils.lookupColumnName(metaData, index);
-            String field = StringUtils.delete(column, " ").toLowerCase();
+            // 必须与 PropInfoCache 的列名归一化保持一致，否则整表映射静默返回 null
+            String field = StringUtils.delete(column, " ").toUpperCase();
             PropInfo propInfo = propMap.get(field);
             if (propInfo != null) {
                 Object value = propInfo.getValue(rs, index);

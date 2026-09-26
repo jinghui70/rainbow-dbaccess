@@ -128,7 +128,23 @@ class UtilityTest extends BaseTest {
     @Test void testKeyArray() {
         List<io.github.jinghui70.rainbow.dbaccess.object.PropInfo> keys = DbaUtil.keyArray(User.class);
         assertEquals(1, keys.size());
-        assertEquals("id", keys.get(0).getFieldName()); // @Id String id → 列名 "ID"
+        assertEquals("ID", keys.get(0).getFieldName()); // @Id String id → 列名 "ID"
+    }
+
+    /**
+     * 列名归一化的两侧必须一致：PropInfoCache 生成 propMap 的 key，
+     * BeanMapper 用结果集列名去查这个 map。只改一侧会让整表映射静默返回 null 字段。
+     */
+    @Test void testColumnNameNormalizationIsUpperCase() {
+        PropInfoCache.get(User.class).keySet()
+                .forEach(key -> assertEquals(key.toUpperCase(), key, "propMap 的 key 必须是大写列名"));
+        // 结果集列名无论什么大小写都要能映射上
+        createUserTable();
+        dba.insertOf(new User("U1", "Alice", 30, 1.5)).execute();
+        assertEquals("Alice", dba.sql("SELECT ID, NAME, AGE, SCORE FROM T_USER")
+                .queryForObject(User.class).getName());
+        assertEquals("Alice", dba.sql("SELECT id AS ID, name AS name FROM T_USER")
+                .queryForObject(User.class).getName());
     }
 
     @Test void testKeyArrayComplex() {

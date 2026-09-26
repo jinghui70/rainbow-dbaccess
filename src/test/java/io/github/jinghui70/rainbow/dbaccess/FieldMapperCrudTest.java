@@ -136,8 +136,8 @@ class FieldMapperCrudTest extends BaseTest {
      */
     @Test
     void testUpdateBuilderBooleanPropMapper() {
-        assertSame(BoolFieldMapper.INSTANCE, PropInfoCache.get(BoolEntity.class).get("active").getMapper());
-        assertSame(BoolFieldMapper.INSTANCE, PropInfoCache.get(BoolEntity.class).get("flag").getMapper());
+        assertSame(BoolFieldMapper.INSTANCE, PropInfoCache.get(BoolEntity.class).get("ACTIVE").getMapper());
+        assertSame(BoolFieldMapper.INSTANCE, PropInfoCache.get(BoolEntity.class).get("FLAG").getMapper());
     }
 
     /**

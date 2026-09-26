@@ -46,7 +46,7 @@ public class PropInfoCache {
             FieldMapper<?> mapper = getMapper(column, propDesc);
             String fieldName = column == null || StrUtil.isEmpty(column.name()) ?
                     StrUtil.toUnderlineCase(propDesc.getRawFieldName()) : column.name();
-            fieldName = fieldName.toLowerCase();
+            fieldName = fieldName.toUpperCase();
             result.put(fieldName, new PropInfo(fieldName, propDesc, mapper));
         });
         return result;

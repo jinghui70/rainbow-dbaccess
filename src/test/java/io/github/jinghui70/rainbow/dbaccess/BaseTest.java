@@ -102,7 +102,6 @@ public abstract class BaseTest {
 
     /** 快捷建表：复合主键 */
     protected void createComplexKeyTable() {
-        // VALUE 是 H2 保留字，需用引号转义
-        dba.sql("CREATE TABLE T_COMPLEX_KEY (KEY_A VARCHAR(32), KEY_B VARCHAR(32), \"VALUE\" VARCHAR(32), PRIMARY KEY(KEY_A, KEY_B))").execute();
+        dba.sql("CREATE TABLE T_COMPLEX_KEY (KEY_A VARCHAR(32), KEY_B VARCHAR(32), REMARK VARCHAR(32), PRIMARY KEY(KEY_A, KEY_B))").execute();
     }
 }

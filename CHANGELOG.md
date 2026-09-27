@@ -20,6 +20,18 @@
 - **`TreeUtils` 空值处理统一**：`traverse`、`traverseNode`、`filter`、`filterNode` 入参为 `null` 时不再抛 `NullPointerException`，与 `transform`、`printTree` 行为一致
 - **`TreeUtils.filter()`、`transform()`** 入参为空时返回可修改的空列表，调用方可直接往返回值里添加节点
 
+### Bug Fixes
+
+- **修正 `Sql` 类文档里无法运行的示例**：类级 Javadoc 的 3 个示例都写成 `Sql.select()...queryForList(...)`，而静态工厂 `Sql.select()` 不关联 `Dba`（`dba.select()` 实际是 `Sql.select().setDba(this)`），照抄必抛 `NullPointerException`。已改为 `dba.select()`，并在 `Sql.select(String...)` 的文档上注明它只用于拼 SQL 文本（如构造子查询）
+- **修正 `Sql` 类文档示例的语法错误**：`Cnd.or(...)` 的参数列表末尾有多余逗号，示例代码无法编译
+- **修正 `Dba.update(String)` 文档中指向具体重载的误导链接**，以及 `Dba.selectByKey` 示例里不存在的类名
+
+### Docs
+
+- **补齐 Javadoc**：`InsertBuilder`（构造器、`into`、`batchSize`、`merge`）、`PageData`、`Range`、`DataType`、`TreeObject`、`CodeEnum`、`StringBuilderWrapper`、`SnowflakeGenerator`、`@Table` 等处缺失的说明与 `@param`/`@return` 全部补全，doclint 非构造器告警从 68 条降为 0
+- **开启 Javadoc 结构性检查**：`maven-javadoc-plugin` 的 `doclint` 从 `none` 改为 `reference,syntax,html`，坏链接和坏 HTML 以后会在构建中暴露（暂不开 `missing`）
+- **新增 `JavadocExampleTest`**：把 Javadoc 里的示例代码当真实代码跑一遍。doclint 不检查 `{@code}` 块，上面两个示例 bug 正是这样漏掉的；改文档示例时需同步改该测试
+
 ## [6.3.5](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.3.3..v6.3.5) (2026-09-11)
  
 - 恢复 TreeObject，与 queryForWrapTree

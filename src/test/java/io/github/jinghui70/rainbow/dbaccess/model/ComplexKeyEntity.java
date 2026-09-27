@@ -15,21 +15,21 @@ public class ComplexKeyEntity {
     @Id
     private String keyB;
 
-    private String value;
+    private String remark;
 
     public ComplexKeyEntity() {
     }
 
-    public ComplexKeyEntity(String keyA, String keyB, String value) {
+    public ComplexKeyEntity(String keyA, String keyB, String remark) {
         this.keyA = keyA;
         this.keyB = keyB;
-        this.value = value;
+        this.remark = remark;
     }
 
     public String getKeyA() { return keyA; }
     public void setKeyA(String keyA) { this.keyA = keyA; }
     public String getKeyB() { return keyB; }
     public void setKeyB(String keyB) { this.keyB = keyB; }
-    public String getValue() { return value; }
-    public void setValue(String value) { this.value = value; }
+    public String getRemark() { return remark; }
+    public void setRemark(String remark) { this.remark = remark; }
 }

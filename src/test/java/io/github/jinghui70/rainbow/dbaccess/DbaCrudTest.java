@@ -311,12 +311,21 @@ class DbaCrudTest extends BaseTest {
     @Test
     void testComplexKeyCRUD() {
         createComplexKeyTable();
-        // 手动插入绕过列名 "VALUE" 与 PropInfo 的映射问题
-        dba.sql("INSERT INTO T_COMPLEX_KEY(KEY_A, KEY_B, \"VALUE\") VALUES(?,?,?)")
-                .addParam("A").addParam("B").addParam("val1").execute();
+
+        // C：走 dba.insert，不要用裸 SQL 绕过——绕过等于这条路径没被测到
+        dba.insert(new ComplexKeyEntity("A", "B", "val1"));
+
+        // R
         ComplexKeyEntity result = dba.selectByKey(ComplexKeyEntity.class, "A", "B");
         assertNotNull(result);
-        assertEquals("val1", result.getValue());
+        assertEquals("val1", result.getRemark());
+
+        // U：按复合主键定位，非主键字段整体更新
+        result.setRemark("val2");
+        assertEquals(1, dba.update(result));
+        assertEquals("val2", dba.selectByKey(ComplexKeyEntity.class, "A", "B").getRemark());
+
+        // D
         dba.deleteByKey(ComplexKeyEntity.class, "A", "B");
         assertNull(dba.selectByKey(ComplexKeyEntity.class, "A", "B"));
     }

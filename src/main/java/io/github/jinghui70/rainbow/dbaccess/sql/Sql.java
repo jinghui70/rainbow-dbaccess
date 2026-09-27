@@ -36,27 +36,30 @@ import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.SELECT;
  * {@code Sql} 是 rainbow-dbaccess 的核心类之一，用于以流畅的 API 构建 SQL 语句并执行查询。
  * 它将 SQL 字符串拼接与参数管理封装在一起，自动处理参数绑定，避免手动拼接带来的 SQL 注入风险。
  * <p>
+ * 要执行查询，Sql 对象必须关联 {@link Dba}，因此请通过 {@code dba.select()} 等方法创建；
+ * 静态工厂 {@link #select(String...)} 只负责拼接 SQL 文本（适合构造子查询），
+ * 直接在其结果上调用查询方法会因缺少 Dba 而抛出 {@link NullPointerException}。
  * <p>
  * 典型用法示例：
  * <pre>{@code
  * // 构建并执行一个简单查询
- * List<User> users = Sql.select().from("T_USER").where("AGE", Op.GT, 18).queryForList(User.class);
+ * List<User> users = dba.select().from("T_USER").where("AGE", Op.GT, 18).queryForList(User.class);
  *
  * // 链式构建复杂查询
- * List<User> users = Sql.select("NAME", "AGE")
+ * List<User> users = dba.select("NAME", "AGE")
  *     .from(User.class)
  *     .where("STATUS", Status.ACTIVE)
  *     .and(
  *        Cnd.or(
  *          Cnd.and(Cnd.where("GENDER", Gender.Male), Cnd.where("AGE", Op.GE, 20)),
- *          Cnd.and(Cnd.where("GENDER", Gender.Female), Cnd.where("AGE", Op.GE, 18)),
+ *          Cnd.and(Cnd.where("GENDER", Gender.Female), Cnd.where("AGE", Op.GE, 18))
  *        )
  *      )
  *     .orderBy("NAME")
  *     .queryForList(User.class);
  *
  * // 分页查询
- * PageData<User> page = Sql.select().from(User.class).queryPage(User.class, 1, 10);
+ * PageData<User> page = dba.select().from(User.class).queryPage(User.class, 1, 10);
  * }</pre>
  *
  * @author lijinghui
@@ -1250,9 +1253,11 @@ public class Sql extends StringBuilderWrapper<Sql> {
      * 根据指定的字段创建查询用的 Sql 对象。
      * <p>不传字段时生成 {@code SELECT *}；
      * 传入多个字段时自动用逗号连接。
+     * <p>注意：返回的 Sql 对象未关联 {@link Dba}，只能用于拼接 SQL 文本（如构造子查询）。
+     * 若要执行查询，请改用 {@code dba.select(...)}，或先调用 {@link #setDba(Dba)}。
      *
      * @param fields 需要查询的字段名，不传默认为 *
-     * @return 新的 Sql 对象
+     * @return 新的 Sql 对象，未关联 Dba
      */
     public static Sql select(String... fields) {
         return switch (fields.length) {

@@ -207,7 +207,7 @@ public class Dba {
      * 根据主键值查询单条记录，返回指定类型的实体对象。
      * <p>支持复合主键，keys 按实体类中 {@code @Id} 字段的声明顺序依次传入。
      * <p>示例：{@code dba.selectByKey(User.class, "1")}
-     * <p>复合主键示例：{@code dba.selectByKey(ComplexEntity.class, "A", "B")}
+     * <p>复合主键示例：{@code dba.selectByKey(ComplexKeyEntity.class, "A", "B")}
      *
      * @param clazz 实体类，需用 {@link io.github.jinghui70.rainbow.dbaccess.annotation.Id} 标注主键
      * @param keys  主键值，多主键时按声明顺序传入
@@ -270,7 +270,7 @@ public class Dba {
     }
 
     /**
-     * 创建指定表的更新构建器（SQL 模式），通过 {@link UpdateSql#set} 手动指定 SET 字段和条件。
+     * 创建指定表的更新构建器（SQL 模式），手动指定 SET 字段和条件。
      * <p>示例：{@code dba.update("T_USER").set("NAME", "NewName").where("ID", "1").execute()}
      *
      * @param table 表名

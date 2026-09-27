@@ -16,25 +16,51 @@ public class Range<T extends Comparable<T>> {
 
     private T to;
 
+    /** 构造空范围，需后续设置 from 或 to */
     public Range() {
     }
 
+    /**
+     * 获取范围下限。
+     *
+     * @return 下限值，null 表示无下限
+     */
     public T getFrom() {
         return from;
     }
 
+    /**
+     * 设置范围下限。
+     *
+     * @param from 下限值，null 表示无下限
+     */
     public void setFrom(T from) {
         this.from = from;
     }
 
+    /**
+     * 获取范围上限。
+     *
+     * @return 上限值，null 表示无上限
+     */
     public T getTo() {
         return to;
     }
 
+    /**
+     * 设置范围上限。
+     *
+     * @param to 上限值，null 表示无上限
+     */
     public void setTo(T to) {
         this.to = to;
     }
 
+    /**
+     * 规范化范围：from、to 都非空且顺序颠倒时自动交换；from 为空时校验 to 非空。
+     *
+     * @throws IllegalArgumentException from 和 to 同时为空时抛出
+     */
     public void regular() {
         if (from == null) {
             Assert.notNull(to);

@@ -27,6 +27,7 @@ import java.util.List;
  */
 public abstract class CrudController<T> {
 
+    /** 实际执行 CRUD 的服务对象 */
     protected final CrudService<T> service;
 
     /**

@@ -93,10 +93,21 @@ public class QueryDTO {
         return this;
     }
 
+    /**
+     * 获取查询字段列表。
+     *
+     * @return 逗号分隔的字段名，未指定时返回 {@code "*"}
+     */
     public String getFields() {
         return (fields == null) ? "*" : fields;
     }
 
+    /**
+     * 设置查询字段，不传表示查全部字段。
+     *
+     * @param fields 字段名，多个字段自动用逗号连接
+     * @return 自己，便于链式调用
+     */
     public QueryDTO setFields(String... fields) {
         this.fields = switch (fields.length) {
             case 0 -> null;

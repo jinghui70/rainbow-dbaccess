@@ -23,5 +23,6 @@ public class DialectDefault implements Dialect {
         return String.format("%s LIMIT %d, %d", sql, from - 1, to - from + 1);
     }
 
+    /** 默认方言单例 */
     public static final Dialect INSTANCE = new DialectDefault();
 }

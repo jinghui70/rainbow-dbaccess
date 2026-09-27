@@ -28,6 +28,7 @@ import java.util.function.Consumer;
  */
 public class MapRowMapper extends ColumnMapRowMapper {
 
+    /** 默认配置的单例：不忽略 null，无自定义字段映射 */
     public static final MapRowMapper INSTANCE = new MapRowMapper();
 
     private Map<String, FieldMapper<?>> mapperMap;

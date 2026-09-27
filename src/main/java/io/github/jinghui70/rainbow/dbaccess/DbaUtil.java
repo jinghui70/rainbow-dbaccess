@@ -270,6 +270,8 @@ public abstract class DbaUtil {
      * <p>
      * 主要用于处理枚举、字段映射器等特殊类型的参数绑定，支持 {@link io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldValue} 包装类型。
      *
+     * @param args 待绑定的参数集合，按位置顺序绑定
+     * @return 参数设置器，绑定时对特殊类型走 {@link #setParameterValue}
      */
     public static ArgumentPreparedStatementSetter argumentSetter(Collection<?> args) {
         return new ArgumentPreparedStatementSetter(args.toArray()) {

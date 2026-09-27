@@ -22,15 +22,27 @@ public class PageData<T> {
      */
     private List<T> data;
 
+    /** 构造空的分页结果，总数为 0，结果列表为空列表 */
     public PageData() {
         data = Collections.emptyList();
     }
 
+    /**
+     * 构造只有总数、暂无数据的分页结果。
+     *
+     * @param total 总记录数
+     */
     public PageData(int total) {
         this.total = total;
         data = Collections.emptyList();
     }
 
+    /**
+     * 构造完整的分页结果。
+     *
+     * @param total 总记录数
+     * @param data  当前页的结果列表
+     */
     public PageData(int total, List<T> data) {
         this.total = total;
         this.data = data;

@@ -17,6 +17,7 @@ import java.util.Date;
  */
 public class NowGenerator implements ValueGenerator {
 
+    /** 策略名，对应 {@code @GeneratedValue(strategy = "now")} */
     public static final String NAME = "now";
 
     @Override

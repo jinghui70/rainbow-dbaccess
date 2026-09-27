@@ -156,17 +156,29 @@ public class Dba {
         };
     }
 
-    /** @return 底层 JdbcTemplate */
+    /**
+     * 获取底层 JdbcTemplate，需要 Spring JDBC 原生能力时使用。
+     *
+     * @return 底层 JdbcTemplate
+     */
     public JdbcTemplate getJdbcTemplate() {
         return jdbcTemplate;
     }
 
-    /** @return 底层 TransactionTemplate */
+    /**
+     * 获取底层 TransactionTemplate，需要自定义事务传播行为时使用。
+     *
+     * @return 底层 TransactionTemplate
+     */
     public TransactionTemplate getTransactionTemplate() {
         return transactionTemplate;
     }
 
-    /** @return 当前数据库方言 */
+    /**
+     * 获取当前数据库方言，分页等数据库差异由它处理。
+     *
+     * @return 当前数据库方言
+     */
     public Dialect getDialect() {
         return dialect;
     }

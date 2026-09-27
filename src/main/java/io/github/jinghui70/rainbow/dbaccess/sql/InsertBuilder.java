@@ -63,6 +63,16 @@ public class InsertBuilder {
 
     private String action = INSERT_INTO;
 
+    /**
+     * 构造插入构建器，根据 data 的实际类型自动判定单条/批量、Bean/Map。
+     * <p>支持四种形态：Bean、Map、对象数组、集合。数组和集合按批量处理，
+     * 其元素类型（Bean 还是 Map）由数组组件类型或集合首元素推断。
+     * <p>空集合视为 Bean 批量，{@link #execute()} 会直接返回 0。
+     *
+     * @param dba  数据库访问对象，用于执行最终生成的 SQL
+     * @param data 待插入的数据，支持 Bean / Map / 数组 / 集合，不能为 null
+     * @throws IllegalArgumentException data 是基本类型数组（如 {@code int[]}）时抛出
+     */
     public InsertBuilder(Dba dba, @NonNull Object data) {
         this.dba = dba;
 
@@ -90,7 +100,11 @@ public class InsertBuilder {
     }
 
     /**
-     * 指定表名
+     * 指定表名。
+     * <p>Map 数据无法推导表名，必须显式调用本方法或 {@link #into(Class)}。
+     *
+     * @param tableName 表名，会做合法性校验
+     * @return 当前构建器，便于链式调用
      */
     public InsertBuilder into(String tableName) {
         this.tableName = validTableName(tableName);
@@ -98,7 +112,10 @@ public class InsertBuilder {
     }
 
     /**
-     * 通过类名指定表名
+     * 通过实体类指定表名，表名由 {@code @Table} 注解或类名自动推导。
+     *
+     * @param clazz 实体类
+     * @return 当前构建器，便于链式调用
      */
     public InsertBuilder into(Class<?> clazz) {
         this.tableName = tableName(clazz);
@@ -108,6 +125,9 @@ public class InsertBuilder {
 
     /**
      * 设置批量提交大小，仅对数组/集合插入有效。0（默认）表示一次性 addBatch 后 executeBatch。
+     *
+     * @param batchSize 每批提交的记录数，0 表示不分批
+     * @return 当前构建器，便于链式调用
      */
     public InsertBuilder batchSize(int batchSize) {
         this.batchSize = batchSize;
@@ -116,6 +136,8 @@ public class InsertBuilder {
 
     /**
      * 切换为 MERGE INTO，行为同 INSERT 但已存在记录会被更新（仅部分数据库支持，如 H2）。
+     *
+     * @return 当前构建器，便于链式调用
      */
     public InsertBuilder merge() {
         this.action = MERGE_INTO;

@@ -10,18 +10,26 @@ import java.util.function.Function;
 /**
  * 增强StringBuild，在连续append的时候处理多余的逗号这样的场景
  *
+ * @param <T> 具体子类类型，用于链式调用时返回子类自身（自限定泛型）
  * @author lijinghui
  */
 @SuppressWarnings("unchecked")
 public abstract class StringBuilderWrapper<T extends StringBuilderWrapper<T>> implements Appendable {
 
+    /** 底层字符串缓冲 */
     protected StringBuilder sb = new StringBuilder();
 
     private String tempStr = null;
 
+    /** 构造空的字符串构建器 */
     public StringBuilderWrapper() {
     }
 
+    /**
+     * 以指定字符串为初始内容构造。
+     *
+     * @param str 初始内容
+     */
     public StringBuilderWrapper(String str) {
         this();
         sb.append(str);
@@ -67,6 +75,13 @@ public abstract class StringBuilderWrapper<T extends StringBuilderWrapper<T>> im
         return (T) this;
     }
 
+    /**
+     * 条件性拼接多个字符串，condition 为 false 时什么都不做。
+     *
+     * @param condition 为 true 才拼接
+     * @param str       待拼接的字符串，按顺序依次追加
+     * @return 自己
+     */
     public T append(boolean condition, String... str) {
         checkTemp();
         if (condition) {
@@ -201,6 +216,12 @@ public abstract class StringBuilderWrapper<T extends StringBuilderWrapper<T>> im
         return (T) this;
     }
 
+    /**
+     * 暂存一个逗号，等价于 {@code appendTemp(",")}。
+     * <p>用于拼接列表时避免尾部多余逗号：后续真有内容 append 时逗号才生效。
+     *
+     * @return 自己
+     */
     public T appendTempComma() {
         return this.appendTemp(StrUtil.COMMA);
     }

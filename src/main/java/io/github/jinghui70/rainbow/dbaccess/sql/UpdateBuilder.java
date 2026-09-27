@@ -42,6 +42,8 @@ public class UpdateBuilder {
     private String tableName;
 
     /**
+     * 构造更新构建器，默认全字段更新。
+     *
      * @param dba  数据库访问对象
      * @param bean 实体对象，需用 {@code @Id} 标注主键
      */

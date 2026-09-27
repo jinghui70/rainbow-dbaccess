@@ -25,9 +25,19 @@ public @interface Table {
      *
      * @return 数据库表名
      */
+    /**
+     * 表名，与 {@link #value()} 互为别名。
+     *
+     * @return 表名，留空则由类名推导
+     */
     @AliasFor("value")
     String name() default "";
 
+    /**
+     * 表名，与 {@link #name()} 互为别名，便于写成 {@code @Table("T_USER")}。
+     *
+     * @return 表名，留空则由类名推导
+     */
     @AliasFor("name")
     String value() default "";
 }

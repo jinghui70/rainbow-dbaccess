@@ -17,6 +17,7 @@ public class ValueGeneratorRegistry {
 
     private static final Map<String, ValueGenerator> map = new ConcurrentHashMap<>();
 
+    /** 全局雪花 ID 生成器，可替换为自定义配置的实例 */
     public static SnowflakeGenerator snowflakeGenerator = new SnowflakeGenerator();
 
     /**

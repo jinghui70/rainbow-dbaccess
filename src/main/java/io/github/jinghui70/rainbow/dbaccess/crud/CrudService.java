@@ -21,11 +21,15 @@ import java.util.List;
  */
 public class CrudService<T> {
 
+    /** 数据库访问对象 */
     protected final Dba dba;
 
+    /** 本服务操作的实体类 */
     protected final Class<T> clazz;
 
     /**
+     * 构造指定实体类型的 CRUD 服务。
+     *
      * @param dba        数据库访问对象
      * @param objectType 实体类
      */
@@ -44,8 +48,10 @@ public class CrudService<T> {
 
     /**
      * 插入单条记录。
+     * <p>插入前会调用 {@link #beforeInsert(Object)} 钩子。
      *
      * @param object 实体对象
+     * @return 插入后的实体对象，即传入的 object 本身（可能已被钩子填充默认值）
      */
     public T insert(T object) {
         beforeInsert(object);

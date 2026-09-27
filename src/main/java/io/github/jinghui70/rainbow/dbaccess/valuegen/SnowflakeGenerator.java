@@ -17,6 +17,7 @@ public class SnowflakeGenerator implements ValueGenerator {
 
     private static final String WORKER_ID_KEY = "SNOWFLAKE_WORKER_ID";
     private static final String DATACENTER_ID_KEY = "SNOWFLAKE_DATACENTER_ID";
+    /** 策略名，对应 {@code @GeneratedValue(strategy = "snowflake")} */
     public static final String NAME = "snowflake";
 
     // 优先读取 JVM -D 参数，如果没有则读取系统环境变量，如果都没有则使用默认值 0L
@@ -56,14 +57,30 @@ public class SnowflakeGenerator implements ValueGenerator {
         }
     }
 
+    /**
+     * 生成下一个雪花 ID。
+     *
+     * @return 单调递增的 64 位 ID
+     */
     public long nextId() {
         return snowflake.nextId();
     }
 
+    /**
+     * 生成下一个雪花 ID 并转成 36 进制大写字符串，比十进制更短。
+     *
+     * @return 36 进制大写的 ID 字符串
+     */
     public String nextString() {
         return Long.toString(snowflake.nextId(), 36).toUpperCase();
     }
 
+    /**
+     * 生成带前缀的 36 进制大写 ID 字符串。
+     *
+     * @param prefix 前缀，为空则不加前缀
+     * @return 前缀 + 36 进制大写 ID
+     */
     public String nextString(String prefix) {
         String value = Long.toString(snowflake.nextId(), 36).toUpperCase();
         return StrUtil.isEmpty(prefix) ? value : prefix + value;

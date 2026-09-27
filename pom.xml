@@ -111,7 +111,10 @@
                     <docencoding>UTF-8</docencoding>
                     <charset>UTF-8</charset>
                     <source>${java.version}</source>
-                    <doclint>none</doclint>
+                    <!-- 只开结构性检查：坏链接、坏 HTML、语法错误。
+                         missing（缺 @param/@return）暂不开，避免噪声淹没真问题。
+                         注意：doclint 不检查 {@code} 示例代码，那部分由 JavadocExampleTest 保证。 -->
+                    <doclint>reference,syntax,html</doclint>
                     <failOnError>false</failOnError>
                 </configuration>
                 <executions>

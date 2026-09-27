@@ -1,0 +1,39 @@
+import { defineConfig } from 'vitepress'
+
+export default defineConfig({
+  base: '/rainbow-dbaccess/',
+  title: 'Rainbow DBAccess',
+  description: '基于 Spring JDBC 的轻量级数据库访问工具',
+  srcExclude: ['CLAUDE.md'],
+  themeConfig: {
+    nav: [
+      { text: '指南', link: '/concept' },
+      { text: 'JavaDoc', link: '/apidocs/index.html', target: '_self' },
+    ],
+    outline: {
+      level: [2, 3],
+    },
+    sidebar: [
+      { text: '简介', link: '/concept' },
+      { text: '快速开始', link: '/getting-started' },
+      { text: 'AI 辅助开发', link: '/ai' },
+      { text: '实体映射', link: '/entity' },
+      { text: 'FieldMapper', link: '/fieldmapper' },
+      { text: '查询', link: '/query' },
+      { text: '树结构', link: '/tree' },
+      { text: 'Cnd 条件系统', link: '/cnd' },
+      { text: '插入数据', link: '/insert' },
+      { text: '自动生成字段值', link: '/generated-value' },
+      { text: '更新数据', link: '/update' },
+      { text: '删除数据', link: '/delete' },
+      { text: '事务管理', link: '/transaction' },
+      { text: '原始 SQL', link: '/raw-sql' },
+      { text: 'MemoryDba', link: '/memory-dba' },
+      { text: '快速 CRUD', link: '/crud' },
+      { text: '规则与最佳实践', link: '/tips' },
+    ],
+    socialLinks: [
+      { icon: 'github', link: 'https://github.com/jinghui70/rainbow-dbaccess' },
+    ],
+  },
+})

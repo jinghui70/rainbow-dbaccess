@@ -33,3 +33,10 @@ build/
 
 .DS_Store
 graphify-out/
+
+### 文档站点（doc/）###
+node_modules/
+doc/.vitepress/cache
+doc/.vitepress/dist
+# apidocs 由 CI 在部署时用 mvn javadoc:javadoc 现场生成，不入库
+doc/public/apidocs/

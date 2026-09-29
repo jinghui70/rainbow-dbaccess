@@ -97,6 +97,23 @@ public List<User> getUser(String name, int minAge) {
 | `queryForList(FieldMapper)` | `List<T>` | 单列值列表 |
 | `queryForList()` | `List<Map<String, Object>>` | Map 列表 |
 
+### 集合查询
+
+与 `queryForList` 对应，返回自动去重的 `Set<T>`（`LinkedHashSet` 实现，迭代顺序与查询结果顺序一致）：
+
+```java
+Set<Integer> ages = dba.select("AGE").from("T_USER").queryForSet(Integer.class);
+// 25 岁的用户有多个也只出现一次
+
+Set<User> users = dba.select().from("T_USER").queryForSet(User.class);
+```
+
+| 方法 | 返回类型 | 说明 |
+|------|---------|------|
+| `queryForSet(Class)` | `Set<T>` | 自动判断简单类型 vs Bean |
+| `queryForSet(RowMapper)` | `Set<T>` | 自定义 RowMapper |
+| `queryForSet(FieldMapper)` | `Set<T>` | 单列值去重 |
+
 ### Map 映射
 
 将查询结果映射为一个 Map，key 由 `keyFunc` 从 ResultSet 中提取，value 可以是单列值、Bean 对象或整行 Map：

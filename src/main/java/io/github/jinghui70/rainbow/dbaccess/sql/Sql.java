@@ -873,6 +873,49 @@ public class Sql extends StringBuilderWrapper<Sql> {
         return queryForList(new SingleColumnFieldRowMapper<>(fieldMapper));
     }
 
+    /**
+     * 查询结果集，使用自定义 RowMapper 映射每一行，自动按元素去重。
+     * <p>返回 {@link LinkedHashSet}，迭代顺序与查询结果顺序一致。
+     *
+     * @param rowMapper 行映射器
+     * @param <T>       结果元素类型
+     * @return 查询结果集合
+     */
+    public <T> Set<T> queryForSet(RowMapper<T> rowMapper) {
+        Set<T> result = new LinkedHashSet<>();
+        AtomicInteger rowNum = new AtomicInteger(0);
+        query((rs) -> {
+            result.add(rowMapper.mapRow(rs, rowNum.getAndIncrement()));
+        });
+        return result;
+    }
+
+    /**
+     * 查询结果集并映射为指定类型的对象集合，自动按元素去重。
+     * <p>简单类型使用单列映射，复杂类型使用 {@link BeanMapper} 进行属性映射。
+     *
+     * @param objectType 期望的返回元素类型
+     * @param <T>        结果元素类型
+     * @return 查询结果集合
+     */
+    public <T> Set<T> queryForSet(Class<T> objectType) {
+        if (BeanUtils.isSimpleValueType(objectType))
+            return queryForSet(typeToMapper(objectType));
+        return queryForSet(BeanMapper.of(objectType));
+    }
+
+    /**
+     * 查询结果集，使用自定义 {@link FieldMapper} 映射单列值，自动按元素去重。
+     *
+     * @param fieldMapper 字段映射器
+     * @param <T>         结果元素类型
+     * @return 查询结果集合
+     * @throws DataAccessException 数据访问异常
+     */
+    public <T> Set<T> queryForSet(FieldMapper<T> fieldMapper) throws DataAccessException {
+        return queryForSet(new SingleColumnFieldRowMapper<>(fieldMapper));
+    }
+
     private record OptimizeInfo(int fromIndex, int endIndex) {
     }
 

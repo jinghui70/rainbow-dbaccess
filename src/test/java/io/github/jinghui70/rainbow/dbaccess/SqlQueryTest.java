@@ -82,6 +82,44 @@ class SqlQueryTest extends BaseTest {
         assertTrue(names.contains("Alice"));
     }
 
+    @Test void testQueryForSetSimpleType() {
+        setupUsers();
+        Set<String> names = dba.select("NAME").from("T_USER").queryForSet(String.class);
+        assertEquals(3, names.size());
+        assertTrue(names.contains("Alice"));
+    }
+
+    @Test void testQueryForSetDedup() {
+        createUserTable();
+        dba.insert(new User[]{
+                new User("1", "Alice", 25, 90.0),
+                new User("2", "Bob", 25, 80.0),
+                new User("3", "Charlie", 35, 70.0)
+        });
+        Set<Integer> ages = dba.select("AGE").from("T_USER").queryForSet(Integer.class);
+        assertEquals(2, ages.size());
+        assertTrue(ages.contains(25));
+        assertTrue(ages.contains(35));
+    }
+
+    @Test void testQueryForSetOrder() {
+        setupUsers();
+        Set<String> names = dba.select("NAME").from("T_USER").orderBy("NAME").queryForSet(String.class);
+        assertEquals("[Alice, Bob, Charlie]", names.toString());
+    }
+
+    @Test void testQueryForSetBean() {
+        setupUsers();
+        Set<User> users = dba.select().from("T_USER").queryForSet(User.class);
+        assertEquals(3, users.size());
+    }
+
+    @Test void testQueryForSetEmpty() {
+        createUserTable();
+        Set<String> names = dba.select("NAME").from("T_USER").queryForSet(String.class);
+        assertTrue(names.isEmpty());
+    }
+
     @Test void testQueryForMap() {
         setupUsers();
         Map<String, Object> map = dba.select().from("T_USER").where("ID", "1").queryForMap();

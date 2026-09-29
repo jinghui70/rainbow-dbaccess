@@ -1,3 +1,15 @@
+## [6.4.1](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.4.0..v6.4.1) (2026-09-29)
+
+### Features
+
+- **`Sql.queryForSet`**：查询结果去重为 `Set<T>`，与 `queryForList` 对齐的三个重载（`Class` / `RowMapper` / `FieldMapper`），返回 `LinkedHashSet` 保持结果顺序。选型：单列值去重优先 `selectDistinct`（数据库侧去重、传输量小），查 Bean 按 `equals` 去重用 `queryForSet`
+- **`Dba.selectDistinct(fields...)` / `Sql.selectDistinct(fields...)`**：生成 `SELECT DISTINCT ...`，不传字段为 `DISTINCT *`；静态工厂不关联 Dba，供子查询拼接。与 `count()` 的交互：SQL 含 DISTINCT 时自动跳过 count 优化、包子查询计数，去重行数正确
+- **`DbaUtil.DISTINCT`**：新增 SQL 关键字常量（拼接用，带尾空格；`getCountOptimizeInfo` 的检测仍用无空格字面量，避免漏检 `DISTINCT(...)` 写法）
+
+### Docs
+
+- doc/query.md 新增"集合查询"与"去重查询"小节；SKILL.md 同步两个新 API 的示例与能力清单
+
 ## [6.4.0](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.3.5..v6.4.0) (2026-09-26)
 
 ### Breaking Changes

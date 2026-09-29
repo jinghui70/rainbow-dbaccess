@@ -32,6 +32,9 @@ public abstract class DbaUtil {
     /** SELECT 关键字 */
     public static final String SELECT = "SELECT ";
 
+    /** DISTINCT 关键字 */
+    public static final String DISTINCT = "DISTINCT ";
+
     /** WHERE 关键字 */
     public static final String WHERE = " WHERE ";
 

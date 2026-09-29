@@ -146,6 +146,10 @@ PageData<User> page = dba.select().from("T_USER")
 int total = dba.select().from(User.class).count();
 boolean exists = dba.select().from("T_USER").where("NAME", "Alice").exist();
 
+// 去重：数据库侧 DISTINCT（单列去重首选，省传输）/ Java 侧 Set（Bean 按 equals 去重）
+List<Integer> ages = dba.selectDistinct("AGE").from("T_USER").queryForList(Integer.class);
+Set<String> cities = dba.select("CITY").from("T_USER").queryForSet(String.class);
+
 // JOIN（from 接受原始片段）
 dba.select("P.*", "O.QTY")
     .from("PRODUCT P LEFT JOIN ORDERS O ON P.ID=O.PRODUCT_ID")
@@ -652,6 +656,7 @@ public class UserController extends CrudController<User> {
 | 方法                                                              | 返回                     | 说明                                                       |
 | ----------------------------------------------------------------- | ------------------------ | ---------------------------------------------------------- |
 | `select()` / `select(fields...)`                                  | `Sql`                    | 开始 SELECT 查询                                           |
+| `selectDistinct(fields...)`                                       | `Sql`                    | 去重查询（`SELECT DISTINCT`），不传字段为 `DISTINCT *`     |
 | `selectByKey(Class, keys...)`                                     | `T`                      | 按主键查单条，未找到返回 `null`；复合主键按 @Id 声明顺序传 |
 | `sql(String)`                                                     | `Sql`                    | 原始 SQL                                                   |
 | `insert(data)`                                                    | `void`                   | 插入，data 可为 bean / 数组 / 集合                         |
@@ -690,6 +695,7 @@ public class UserController extends CrudController<User> {
 | `queryForString/Int/Double/Date()`                             | 对应类型                | 无结果返回 `""`/`0`/`0.0`/`null` 而非抛异常；各有 `...Optional` 版                                                                                                                                                                                                  |
 | `queryForMap()`                                                | `Map<String,Object>`    | 单行 Map，无数据返回空 Map                                                                                                                                                                                                                                          |
 | `queryForList(Class/RowMapper/FieldMapper/无参/MapRowMapper)`  | `List<T>` / `List<Map>` | 列表                                                                                                                                                                                                                                                                |
+| `queryForSet(Class/RowMapper/FieldMapper)`                     | `Set<T>`                | 去重集合（`LinkedHashSet`，迭代顺序与结果顺序一致）；单列值去重优先 `selectDistinct`（数据库侧去重）                                                                                                                                                               |
 | `queryToMap(keyFunc, value)`                                   | `Map<K,V>`              | 结果转 Map。keyFunc 是 `ResultSetFunction`（`rs -> rs.getString("ID")`）；value 可传 `Class` / `RowMapper` / `ResultSetFunction` / 不传（Map 行）；`(keyFunc, Class/RowMapper, Supplier<Map>)` 重载指定 Map 实现（如 `LinkedHashMap::new` 保序）。重复 key 后行覆盖 |
 | `queryToGroup(keyFunc, value)`                                 | `Map<K,List<V>>`        | 结果分组，value 同上四种给法                                                                                                                                                                                                                                        |
 | `query(RowCallbackHandler)` / `query(ResultSetExtractor<T>)`   | `void` / `T`            | 直接操作 `ResultSet`                                                                                                                                                                                                                                                |

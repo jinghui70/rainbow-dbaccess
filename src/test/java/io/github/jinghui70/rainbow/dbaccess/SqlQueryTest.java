@@ -2,6 +2,7 @@ package io.github.jinghui70.rainbow.dbaccess;
 
 import io.github.jinghui70.rainbow.dbaccess.model.*;
 import io.github.jinghui70.rainbow.dbaccess.sql.PageData;
+import io.github.jinghui70.rainbow.dbaccess.sql.Sql;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -118,6 +119,54 @@ class SqlQueryTest extends BaseTest {
         createUserTable();
         Set<String> names = dba.select("NAME").from("T_USER").queryForSet(String.class);
         assertTrue(names.isEmpty());
+    }
+
+    @Test void testSelectDistinct() {
+        createUserTable();
+        dba.insert(new User[]{
+                new User("1", "Alice", 25, 90.0),
+                new User("2", "Bob", 25, 80.0),
+                new User("3", "Charlie", 35, 70.0)
+        });
+        List<Integer> ages = dba.selectDistinct("AGE").from("T_USER").queryForList(Integer.class);
+        assertEquals(2, ages.size());
+        assertTrue(ages.contains(25));
+        assertTrue(ages.contains(35));
+    }
+
+    @Test void testSelectDistinctMultiFields() {
+        createUserTable();
+        dba.insert(new User[]{
+                new User("1", "Alice", 25, 90.0),
+                new User("2", "Alice", 25, 80.0),
+                new User("3", "Alice", 35, 70.0)
+        });
+        // NAME+AGE 组合去重：(Alice,25) 只保留一行
+        List<User> list = dba.selectDistinct("NAME", "AGE").from("T_USER").queryForList(User.class);
+        assertEquals(2, list.size());
+    }
+
+    @Test void testSelectDistinctAll() {
+        setupUsers();
+        List<User> list = dba.selectDistinct().from("T_USER").queryForList(User.class);
+        assertEquals(3, list.size());
+    }
+
+    @Test void testSelectDistinctSqlText() {
+        assertEquals("SELECT DISTINCT AGE", Sql.selectDistinct("AGE").getSql());
+        assertEquals("SELECT DISTINCT NAME,AGE", Sql.selectDistinct("NAME", "AGE").getSql());
+        assertEquals("SELECT DISTINCT *", Sql.selectDistinct().getSql());
+    }
+
+    @Test void testSelectDistinctCount() {
+        createUserTable();
+        dba.insert(new User[]{
+                new User("1", "Alice", 25, 90.0),
+                new User("2", "Bob", 25, 80.0),
+                new User("3", "Charlie", 35, 70.0)
+        });
+        // DISTINCT 时 count 走子查询包装，返回去重后的行数
+        assertEquals(2, dba.selectDistinct("AGE").from("T_USER").count());
     }
 
     @Test void testQueryForMap() {

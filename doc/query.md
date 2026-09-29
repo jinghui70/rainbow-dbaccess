@@ -14,6 +14,19 @@ dba.select("NAME", "AGE").from("T_USER").where("AGE", Op.GT, 20).queryForList(Us
 dba.select().from(User.class).count();
 ```
 
+## 去重查询
+
+`selectDistinct` 生成 `SELECT DISTINCT ...`，在数据库侧去重后再返回，比取回全量数据再用 `queryForSet` 去重更省传输：
+
+```java
+List<Integer> ages = dba.selectDistinct("AGE").from("T_USER").queryForList(Integer.class);
+
+// 多列时按组合去重：(NAME, AGE) 相同的行只保留一行
+List<User> users = dba.selectDistinct("NAME", "AGE").from("T_USER").queryForList(User.class);
+```
+
+与 `queryForSet` 的选择：单列值去重优先 `selectDistinct`（数据库去重、传输量小）；查 Bean 对象并按 `equals` 去重用 `queryForSet`。两者也可叠加，但通常选其一。
+
 ## 关联查询
 
 `from` 方法接受原始 SQL 片段，可以直接写 JOIN：

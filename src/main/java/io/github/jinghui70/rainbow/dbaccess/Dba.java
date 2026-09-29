@@ -216,6 +216,18 @@ public class Dba {
     }
 
     /**
+     * 创建指定字段的去重 SELECT 查询构建器，生成 {@code SELECT DISTINCT ...}。
+     * <p>不传字段时生成 {@code SELECT DISTINCT *}；多列时按全部所选列的组合去重。
+     * <p>示例：{@code dba.selectDistinct("CITY").from("T_USER").queryForList(String.class)}
+     *
+     * @param fields 查询字段列表，不传默认为 *
+     * @return Sql 构建器
+     */
+    public Sql selectDistinct(String... fields) {
+        return Sql.selectDistinct(fields).setDba(this);
+    }
+
+    /**
      * 根据主键值查询单条记录，返回指定类型的实体对象。
      * <p>支持复合主键，keys 按实体类中 {@code @Id} 字段的声明顺序依次传入。
      * <p>示例：{@code dba.selectByKey(User.class, "1")}

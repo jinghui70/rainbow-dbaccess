@@ -28,6 +28,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
+import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.DISTINCT;
 import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.SELECT;
 
 /**
@@ -1307,6 +1308,24 @@ public class Sql extends StringBuilderWrapper<Sql> {
             case 0 -> new Sql(SELECT).append("*");
             case 1 -> new Sql(SELECT).append(fields[0]);
             default -> new Sql(SELECT).join(fields);
+        };
+    }
+
+    /**
+     * 根据指定的字段创建去重查询用的 Sql 对象，生成 {@code SELECT DISTINCT ...}。
+     * <p>不传字段时生成 {@code SELECT DISTINCT *}；
+     * 传入多个字段时自动用逗号连接，按全部所选列的组合去重。
+     * <p>注意：返回的 Sql 对象未关联 {@link Dba}，只能用于拼接 SQL 文本（如构造子查询）。
+     * 若要执行查询，请改用 {@code dba.selectDistinct(...)}，或先调用 {@link #setDba(Dba)}。
+     *
+     * @param fields 需要查询的字段名，不传默认为 *
+     * @return 新的 Sql 对象，未关联 Dba
+     */
+    public static Sql selectDistinct(String... fields) {
+        return switch (fields.length) {
+            case 0 -> new Sql(SELECT).append(DISTINCT).append("*");
+            case 1 -> new Sql(SELECT).append(DISTINCT).append(fields[0]);
+            default -> new Sql(SELECT).append(DISTINCT).join(fields);
         };
     }
 

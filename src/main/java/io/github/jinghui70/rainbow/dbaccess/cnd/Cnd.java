@@ -183,13 +183,14 @@ public class Cnd {
             sql.clearTemp().append(")");
             return;
         }
+        checkRangeValue();
         if (value != null && value instanceof Sql) {
             sql.append(field).append(op.str()).append("(").append((Sql) value).append(")");
             return;
         }
         switch (op) {
             case EQ:
-                if (rangeSql(sql)) return;
+                if (rangeSql(sql, false)) return;
                 if (value == null) {
                     sql.append(field).append(Op.IS_NULL.str());
                 } else if (ArrayUtil.isArray(value) || value instanceof Collection) {
@@ -198,6 +199,7 @@ public class Cnd {
                     sql.append(field).append("=?").addParam(enumCheck(value));
                 break;
             case NE:
+                if (rangeSql(sql, true)) return;
                 if (value == null) {
                     sql.append(field).append(Op.IS_NOT_NULL.str());
                 } else if (ArrayUtil.isArray(value) || value instanceof Collection) {
@@ -228,27 +230,40 @@ public class Cnd {
     }
 
     /**
-     * 处理范围查询的SQL拼接
+     * 校验操作符与区间值是否匹配。
+     * <p>只有 EQ/NE 支持 Range/Map 值，其余操作符传入区间值会直接报错，避免拼出错误 SQL。
+     */
+    private void checkRangeValue() {
+        boolean rangeValue = value instanceof Map || value instanceof Range;
+        Assert.isTrue(!rangeValue || op == Op.EQ || op == Op.NE,
+                "operator {} does not support range value, use EQ or NE instead", op);
+    }
+
+    /**
+     * 处理范围查询的SQL拼接。
+     * <p>EQ 使用正向规则、NE 使用取反规则：
+     * 单值塌缩为等值、仅下限为 &gt;=、仅上限为 &lt;=、双边界为 between，取反时分别变为 !=、&lt;、&gt;、not between。
      *
-     * @param sql SQL对象
+     * @param sql    SQL对象
+     * @param negate 是否取反（NE 时为 true）
      * @return 是否为范围查询
      */
-    private boolean rangeSql(Sql sql) {
+    private boolean rangeSql(Sql sql, boolean negate) {
         Range<?> range = paramToRange();
         if (range == null)
             return false;
         range.regular();
         sql.append(field);
         if (range.singleValue())
-            sql.append("=?").addParam(enumCheck(range.getFrom()));
+            sql.append(negate ? "!=" : "=").append("?").addParam(enumCheck(range.getFrom()));
         else if (range.getFrom() != null) {
             if (range.getTo() == null) {
-                sql.append(">=?").addParam(enumCheck(range.getFrom()));
+                sql.append(negate ? "<" : ">=").append("?").addParam(enumCheck(range.getFrom()));
             } else {
-                sql.append(StrUtil.SPACE).append("between ? and ?").addParam(enumCheck(range.getFrom()), enumCheck(range.getTo()));
+                sql.append(StrUtil.SPACE).append(negate ? "not between ? and ?" : "between ? and ?").addParam(enumCheck(range.getFrom()), enumCheck(range.getTo()));
             }
         } else {
-            sql.append("<=?").addParam(enumCheck(range.getTo()));
+            sql.append(negate ? ">" : "<=").append("?").addParam(enumCheck(range.getTo()));
         }
         return true;
     }

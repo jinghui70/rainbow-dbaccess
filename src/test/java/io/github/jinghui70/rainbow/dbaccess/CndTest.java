@@ -289,6 +289,35 @@ class CndTest extends BaseTest {
     }
 
     @Test
+    void testRangeNotCondition() {
+        setupUsers();
+        // 单值取反：AGE != 25
+        List<User> list = dba.select().from("T_USER").where("AGE", Op.NE, Range.of(25, 25)).queryForList(User.class);
+        assertEquals(1, list.size());
+        assertEquals("Bob", list.get(0).getName());
+        // 仅下限取反：AGE < 26
+        list = dba.select().from("T_USER").where("AGE", Op.NE, Range.of(26, null)).queryForList(User.class);
+        assertEquals(1, list.size());
+        assertEquals("Alice", list.get(0).getName());
+        // 仅上限取反：AGE > 28
+        list = dba.select().from("T_USER").where("AGE", Op.NE, Range.of(null, 28)).queryForList(User.class);
+        assertEquals(1, list.size());
+        assertEquals("Bob", list.get(0).getName());
+        // 双边界取反：AGE NOT BETWEEN 20 AND 35
+        list = dba.select().from("T_USER").where("AGE", Op.NE, Range.of(20, 35)).queryForList(User.class);
+        assertTrue(list.isEmpty());
+    }
+
+    @Test
+    void testRangeValueOpRejected() {
+        // 区间值是 EQ/NE 的私有约定，其余操作符传入直接报错
+        assertThrows(IllegalArgumentException.class,
+                () -> dba.select().from("T_USER").where("AGE", Op.GT, Range.of(20, 35)));
+        assertThrows(IllegalArgumentException.class,
+                () -> dba.select().from("T_USER").where("AGE", Op.LIKE, Range.of(20, 35)));
+    }
+
+    @Test
     void testCndToString() {
         Cnd c = Cnd.where("NAME", "X");
         assertTrue(c.toString().contains("NAME"));

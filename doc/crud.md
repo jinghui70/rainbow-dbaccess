@@ -34,24 +34,44 @@ public class UserService extends CrudService<User> {
 | `insert(T)` / `insert(Collection)` / `insert(Collection, batchSize)` | 单条 / 批量插入 |
 | `update(T)` | 按主键全量更新 |
 | `deltaUpdate(UpdateDTO<T>)` | 增量更新，只更新指定字段 |
-| `getByKey(Object...)` / `getByKey(voClass, Object...)` | 按主键值查单条，可指定 VO 类型 |
+| `getByKey(Object...)` / `getByKeyAs(voClass, Object...)` | 按主键值查单条；后者结果映射为 VO |
 | `getByObject(T)` | 按对象的主键值回查完整记录 |
 | `getAll(String... orderBys)` / `getAll(voClass, String... orderBys)` | 查全部；不传排序字段时按主键排序 |
-| `queryPage(QueryDTO)` / `queryPage(QueryDTO, voClass)` | 分页查询 |
-| `queryList(QueryDTO)` / `queryList(QueryDTO, voClass)` | 列表查询 |
+| `queryPage(dto, String... defaultOrderBys)` / `queryPage(dto, voClass, String... defaultOrderBys)` | 分页查询；可传默认排序 |
+| `queryList(dto, String... defaultOrderBys)` / `queryList(dto, voClass, String... defaultOrderBys)` | 列表查询；可传默认排序 |
 | `delete(Object)` | 删除，支持单条 / 数组 / 集合 |
 
-### 全量查询的排序
+### 指定排序
 
-`getAll` 默认按实体主键升序。需要别的顺序时直接传排序字段，支持 `"FIELD ASC"`、`"FIELD DESC"` 格式，多个字段按传入顺序拼接：
+全量查询与分页查询都支持指定排序，字段名应写成常量，降序用 `DbaUtil.desc(field)` 拼接，避免散落字符串字面量：
 
 ```java
-List<User> byName  = service.getAll("NAME DESC");
-List<User> byAge   = service.getAll("AGE DESC", "NAME");
-List<UserVO> voAll = service.getAll(UserVO.class, "AGE DESC");
+static final String NAME = "NAME";
+static final String AGE  = "AGE";
+
+// 全量查询
+List<User> byName = service.getAll(DbaUtil.desc(NAME));
+
+// 分页 / 列表查询：传入的排序作为默认排序
+PageData<User> page = service.queryPage(dto, DbaUtil.desc(AGE), NAME);
+List<User> list    = service.queryList(dto, DbaUtil.desc(AGE));
+PageData<UserVO> voPage = service.queryPage(dto, UserVO.class, DbaUtil.desc(AGE));
 ```
 
-**传了排序字段就完全按它排**，不会再追加主键；只有不传时才用主键排序。所以 `getAll("AGE")` 生成的正是 `ORDER BY AGE`。如果按非唯一列排序又想顺序确定，显式带上主键即可：`getAll("AGE", "ID")`。
+`queryPage`/`queryList` 这里的排序是**默认排序**（参数名 `defaultOrderBys`）——前端在 `QueryDTO.orderBys` 里传了排序时，仍以客户端的为准。不传排序参数则沿用 dto 上已有的设定；传了 `voClass` 时排序参数紧随其后。
+
+传排序串时也支持 `"FIELD DESC"` 格式（方向后缀大小写不敏感），适用于排序字段来自前端、配置等运行时来源的场景。
+
+#### 全量查询
+
+`getAll` 默认按实体主键升序。多字段按传入顺序拼接，VO 版同样可用：
+
+```java
+List<User> byAge   = service.getAll(DbaUtil.desc(AGE), NAME);
+List<UserVO> voAll = service.getAll(UserVO.class, DbaUtil.desc(AGE));
+```
+
+**传了排序字段就完全按它排**，不会再追加主键；只有不传时才用主键排序。所以 `getAll(AGE)` 生成的正是 `ORDER BY AGE`。如果按非唯一列排序又想顺序确定，显式带上主键即可：`getAll(AGE, ID)`（`AGE`、`ID` 指对应的列名常量）。
 
 排序参数是可变参数，无参调用 `getAll()` 就是只按主键排序，不必为两种情形分别记两个方法。
 
@@ -108,7 +128,7 @@ service.deltaUpdate(dto); // 只 UPDATE name、age 两个字段
 
 这不是多此一举。按非唯一列排序时，各数据库对并列行的返回顺序**没有任何保证**——同一条 SQL 换个执行计划就可能变。而分页是靠 OFFSET 切片的，第 1 页和第 2 页是两次独立查询，顺序一变就会出现某行在两页都冒出来、另一行一次都不出现。追加主键让排序成为全序，这个问题从根上消失。
 
-前端没传时，先用 `defaultOrderBy(...)` 设的默认排序，再接主键。它有两个重载：`defaultOrderBy("NAME", "AGE DESC")` 传排序串（方向后缀大小写不敏感），`defaultOrderBy(new OrderBy("NAME", false))` 直接传对象。
+前端没传时，先用 `defaultOrderBy(...)` 设的默认排序，再接主键。它有两个重载：`defaultOrderBy(NAME, DbaUtil.desc(AGE))` 传列名（降序用 `DbaUtil.desc` 拼），`defaultOrderBy(new OrderBy(NAME, false))` 直接传对象。排序字段来自前端等运行时来源时，也可直接传 `"FIELD DESC"` 格式的串。
 
 ::: warning JOIN 查询要自己带唯一列
 主键是 `setEntity(Class)` 时从 `@Id` 取的。改用 `setEntity(String)` 传裸表名或 JOIN 片段时，主键兜底会被**清掉**——原实体的裸主键列在 JOIN 里可能有歧义（两张表都有 `ID`）。这类查询要分页稳定，得自己在 `defaultOrderBy` 里带上有前缀的唯一列，如 `defaultOrderBy("O.CREATE_TIME", "O.ID")`。
@@ -241,12 +261,16 @@ public class OrderQueryDTO extends QueryDTO {
 PageData<UserVO> page = service.queryPage(dto, UserVO.class);
 List<UserVO> list = service.queryList(dto, UserVO.class);
 List<UserVO> all  = service.getAll(UserVO.class);
-UserVO one = service.getByKey(UserVO.class, "1");
+UserVO one = service.getByKeyAs(UserVO.class, "1");
 ```
 
 配合上面写法一的 JOIN，VO 正好用来承载多表查询出来的字段（如 `USER_NAME`）。
 
-`getByKey(voClass, keys...)` 的 WHERE 条件仍取实体类的 `@Id`，所以 keys 还是按**实体的**主键声明顺序传，映射目标只是换成 VO。
+`getByKeyAs(voClass, keys...)` 的 WHERE 条件仍取实体类的 `@Id`，所以 keys 还是按**实体的**主键声明顺序传，映射目标只是换成 VO。
+
+::: tip 为什么单独起名 `getByKeyAs`
+`getByKey` 的参数是 `Object...`，它能把「VO 类型 + 主键值」整段实参都吞下去，与「映射为 VO」的版本参数空间重叠。若两者同名，解析结果会随实参的**静态类型**漂移——比如把 `Class` 存进 `Object` 变量再传，就会绑到「一串主键值」那个版本并报 `argument size not match`。单独起名后不存在这层歧义。
+:::
 
 ## CrudController：一键暴露 REST 端点
 

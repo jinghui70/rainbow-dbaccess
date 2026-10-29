@@ -1,6 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess.crud;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.dbaccess.*;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Cnd;
 import io.github.jinghui70.rainbow.dbaccess.object.PropInfoCache;
@@ -219,23 +220,31 @@ public class QueryDTO {
      * 设置客户端未传 {@code orderBys} 时使用的默认排序。
      * <p>
      * 不影响主键兜底——主键仍会追加到排序末尾。
+     * <p>
+     * 不传参数（或全为空白串）时保持原设定不变，便于安全地转发可能为空的排序参数。
      *
-     * @param keys 列名，默认升序，需要降序传 {@code "NAME DESC"}
+     * @param keys 列名，默认升序，降序用 {@link io.github.jinghui70.rainbow.dbaccess.DbaUtil#desc(String)} 拼接
      * @return this
      */
     public QueryDTO defaultOrderBy(String... keys) {
-        this.defaultOrderBys = Arrays.stream(keys).map(OrderBy::parse).toList();
+        List<OrderBy> result = Arrays.stream(keys)
+                .filter(StrUtil::isNotBlank)
+                .map(OrderBy::parse)
+                .toList();
+        if (!result.isEmpty()) this.defaultOrderBys = result;
         return this;
     }
 
     /**
      * 设置客户端未传 {@code orderBys} 时使用的默认排序。
+     * <p>
+     * 不传参数时保持原设定不变。
      *
      * @param orderBys 排序条件
      * @return this
      */
     public QueryDTO defaultOrderBy(OrderBy... orderBys) {
-        this.defaultOrderBys = List.of(orderBys);
+        if (orderBys.length > 0) this.defaultOrderBys = List.of(orderBys);
         return this;
     }
 

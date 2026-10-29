@@ -32,6 +32,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class JavadocExampleTest extends BaseTest {
 
+    /** 文档示例中的列名常量 */
+    private static final String NAME = "NAME";
+    private static final String AGE = "AGE";
+    private static final String ID = "ID";
+
     /** 示例文档用的测试枚举，对应 Sql 类级文档里的 {@code Gender}。 */
     enum Gender {
         Male, Female
@@ -262,13 +267,59 @@ class JavadocExampleTest extends BaseTest {
         io.github.jinghui70.rainbow.dbaccess.crud.CrudService<User> service =
                 new io.github.jinghui70.rainbow.dbaccess.crud.CrudService<>(dba, User.class);
 
-        // 文档原文：service.getAll("NAME DESC")
-        assertEquals("Carl", service.getAll("NAME DESC").get(0).getName());
-        // 文档原文：service.getAll("AGE DESC", "NAME")
-        assertEquals("Alice", service.getAll("AGE DESC", "NAME").get(0).getName());
-        // getAll() 与 getAll("ID") 等价
+        // 文档原文用列名常量 + DbaUtil.desc 拼降序
+        assertEquals("Carl", service.getAll(io.github.jinghui70.rainbow.dbaccess.DbaUtil.desc(NAME))
+                .get(0).getName());
+        assertEquals("Alice", service.getAll(io.github.jinghui70.rainbow.dbaccess.DbaUtil.desc(AGE), NAME)
+                .get(0).getName());
+        // getAll() 与 getAll(ID) 等价
         assertEquals(service.getAll().stream().map(User::getId).toList(),
-                service.getAll("ID").stream().map(User::getId).toList());
+                service.getAll(ID).stream().map(User::getId).toList());
+    }
+
+    @Test
+    @DisplayName("doc/crud.md：queryPage 带排序示例可执行")
+    void crudQueryPageOrderByDocExample() {
+        createUserTable();
+        dba.insert(new User("u2", "Bob", 20, 1.0));
+        dba.insert(new User("u1", "Alice", 40, 3.0));
+
+        io.github.jinghui70.rainbow.dbaccess.crud.CrudService<User> service =
+                new io.github.jinghui70.rainbow.dbaccess.crud.CrudService<>(dba, User.class);
+        io.github.jinghui70.rainbow.dbaccess.crud.QueryDTO dto =
+                new io.github.jinghui70.rainbow.dbaccess.crud.QueryDTO();
+        dto.setPageNo(1);
+        dto.setPageSize(10);
+
+        // 文档原文：service.queryPage(dto, DbaUtil.desc(NAME))
+        assertEquals("Bob", service.queryPage(dto, io.github.jinghui70.rainbow.dbaccess.DbaUtil.desc(NAME))
+                .getData().get(0).getName());
+        // 文档原文：service.queryPage(dto, UserVO.class, DbaUtil.desc(NAME))
+        assertEquals("Bob", service.queryPage(dto,
+                        io.github.jinghui70.rainbow.dbaccess.model.UserVO.class,
+                        io.github.jinghui70.rainbow.dbaccess.DbaUtil.desc(NAME))
+                .getData().get(0).getName());
+        // 文档原文：service.queryList(dto, DbaUtil.desc(NAME))
+        assertEquals("Bob", service.queryList(dto,
+                        io.github.jinghui70.rainbow.dbaccess.DbaUtil.desc(NAME))
+                .get(0).getName());
+    }
+
+    @Test
+    @DisplayName("doc/crud.md：getByKeyAs 示例可执行")
+    void crudGetByKeyAsDocExample() {
+        createUserTable();
+        dba.insert(new User("1", "Tom", 20, 90.0));
+
+        io.github.jinghui70.rainbow.dbaccess.crud.CrudService<User> service =
+                new io.github.jinghui70.rainbow.dbaccess.crud.CrudService<>(dba, User.class);
+
+        // 文档原文：UserVO one = service.getByKeyAs(UserVO.class, "1")
+        io.github.jinghui70.rainbow.dbaccess.model.UserVO one =
+                service.getByKeyAs(io.github.jinghui70.rainbow.dbaccess.model.UserVO.class, "1");
+
+        assertNotNull(one);
+        assertEquals("Tom", one.getName());
     }
 
     @Test

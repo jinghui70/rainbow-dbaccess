@@ -11,10 +11,10 @@
 ```bash
 mkdir -p .claude/skills/rainbow-dbaccess
 curl -o .claude/skills/rainbow-dbaccess/SKILL.md \
-  https://raw.githubusercontent.com/jinghui70/rainbow-dbaccess/v6.5.0/skills/rainbow-dbaccess/SKILL.md
+  https://raw.githubusercontent.com/jinghui70/rainbow-dbaccess/v6.5.1/skills/rainbow-dbaccess/SKILL.md
 ```
 
-把 `v6.5.0` 换成你 `pom.xml` 里实际使用的版本即可；想跟随开发分支就用 `6.0` 代替 tag。
+把 `v6.5.1` 换成你 `pom.xml` 里实际使用的版本即可；想跟随开发分支就用 `6.0` 代替 tag。
 
 安装后无需任何配置，AI 在涉及数据库访问的任务中会自动参考该文件。
 

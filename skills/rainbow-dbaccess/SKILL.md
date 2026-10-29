@@ -539,8 +539,9 @@ public class UserService extends CrudService<User> {
 - `deleteByKey` 返回 void（注意与 `dba.deleteByKey` 返回 int 不同）
 - 复合主键：`getByKey`/`deleteByKey` 的 keys 按 `@Id` 声明顺序传
 - 查询方法都有 `voClass` 重载，把结果映射成任意 VO
-- `getByKey(voClass, keys...)`：按主键查单条并映射为 VO；WHERE 仍取实体 `@Id`，keys 按实体主键声明顺序传
-- `getAll(String... orderBys)` / `getAll(Class<VT>, String... orderBys)`：传了排序字段就完全用它（`"FIELD DESC"` 格式、可多字段），没传才按主键；**不追加主键兜底**，要顺序确定就显式写 `getAll("AGE", "ID")`
+- `getByKeyAs(voClass, keys...)`：按主键查单条并映射为 VO；WHERE 仍取实体 `@Id`，keys 按实体主键声明顺序传。不叫 `getByKey` 是因为它的 `Object...` 会吞下 `Class + keys` 整段实参，与实体版参数空间重叠、易绑错版本
+- `queryPage` / `queryList` 都有 `defaultOrderBys...` 参数（VO 版为 `(dto, voClass, defaultOrderBys...)`）：作为默认排序写进 dto，客户端传了 `orderBys` 仍以客户端为准
+- `getAll(String... orderBys)` / `getAll(Class<VT>, String... orderBys)`：传了排序字段就完全用它（可多字段，降序用 `DbaUtil.desc(FIELD)` 拼），没传才按主键；**不追加主键兜底**，要顺序确定就显式写 `getAll(AGE, ID)`
 
 **QueryDTO -- 前端直接拼查询条件：**
 

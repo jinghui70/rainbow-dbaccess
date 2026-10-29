@@ -143,60 +143,71 @@ public class CrudService<T> {
      * <p>
      * 与 {@link #getByKey(Object...)} 的区别是结果直接映射为 {@code voClass}，不必先查出实体再转换。
      * 查询仍按实体类 {@code clazz} 的 {@code @Id} 生成 WHERE 条件，所以 keys 依旧按实体主键的声明顺序传入。
+     * <p>
+     * 不叫 {@code getByKey} 是因为它与 {@code getByKey(Object...)} 的参数空间重叠（{@code Object...}
+     * 能接受 {@code Class + keys} 这段实参），解析结果会随实参静态类型漂移，容易绑错版本。
      *
      * @param voClass VO 类型
      * @param keys    主键值，多主键时按声明顺序传入
      * @param <VT>    VO 类型
      * @return VO 对象，未找到返回 {@code null}
      */
-    public <VT> VT getByKey(Class<VT> voClass, Object... keys) {
+    public <VT> VT getByKeyAs(Class<VT> voClass, Object... keys) {
         return dba.select().from(clazz).whereByKey(clazz, keys).queryForObject(voClass);
     }
 
     // ===== 条件查询 =====
 
     /**
-     * 分页查询，返回实体类型结果。
+     * 分页查询，返回实体类型结果，可指定默认排序。
+     * <p>
+     * 排序写进 QueryDTO 作为默认排序——客户端传了 {@code orderBys} 时仍以客户端为准；不传则不设默认排序。
      *
-     * @param dto 查询条件及分页参数
+     * @param dto             查询条件及分页参数
+     * @param defaultOrderBys 默认排序字段，降序用 {@link io.github.jinghui70.rainbow.dbaccess.DbaUtil#desc(String)} 拼接
      * @return 分页数据
      */
-    public PageData<T> queryPage(@NonNull QueryDTO dto) {
-        return dto.setEntity(clazz).queryPage(dba, clazz);
+    public PageData<T> queryPage(@NonNull QueryDTO dto, String... defaultOrderBys) {
+        return dto.setEntity(clazz).defaultOrderBy(defaultOrderBys).queryPage(dba, clazz);
     }
 
     /**
-     * 分页查询，返回指定 VO 类型结果。
+     * 分页查询，返回指定 VO 类型结果，可指定默认排序。
      *
-     * @param dto     查询条件及分页参数
-     * @param voClass VO 类型
-     * @param <VT>    VO 类型
+     * @param dto             查询条件及分页参数
+     * @param voClass         VO 类型
+     * @param defaultOrderBys 默认排序字段，降序用 {@link io.github.jinghui70.rainbow.dbaccess.DbaUtil#desc(String)} 拼接
+     * @param <VT>            VO 类型
      * @return 分页数据
      */
-    public <VT> PageData<VT> queryPage(@NonNull QueryDTO dto, Class<VT> voClass) {
-        return dto.setEntity(clazz).queryPage(dba, voClass);
+    public <VT> PageData<VT> queryPage(@NonNull QueryDTO dto, Class<VT> voClass, String... defaultOrderBys) {
+        return dto.setEntity(clazz).defaultOrderBy(defaultOrderBys).queryPage(dba, voClass);
     }
 
     /**
-     * 列表查询，返回实体类型结果。
+     * 列表查询，返回实体类型结果，可指定默认排序。
+     * <p>
+     * 排序写进 QueryDTO 作为默认排序——客户端传了 {@code orderBys} 时仍以客户端为准；不传则不设默认排序。
      *
-     * @param dto 查询条件
+     * @param dto             查询条件
+     * @param defaultOrderBys 默认排序字段，降序用 {@link io.github.jinghui70.rainbow.dbaccess.DbaUtil#desc(String)} 拼接
      * @return 结果列表
      */
-    public List<T> queryList(@NonNull QueryDTO dto) {
-        return dto.setEntity(clazz).query(dba, clazz);
+    public List<T> queryList(@NonNull QueryDTO dto, String... defaultOrderBys) {
+        return dto.setEntity(clazz).defaultOrderBy(defaultOrderBys).query(dba, clazz);
     }
 
     /**
-     * 列表查询，返回指定 VO 类型结果。
+     * 列表查询，返回指定 VO 类型结果，可指定默认排序。
      *
-     * @param dto     查询条件
-     * @param voClass VO 类型
-     * @param <VT>    VO 类型
+     * @param dto             查询条件
+     * @param voClass         VO 类型
+     * @param defaultOrderBys 默认排序字段，降序用 {@link io.github.jinghui70.rainbow.dbaccess.DbaUtil#desc(String)} 拼接
+     * @param <VT>            VO 类型
      * @return 结果列表
      */
-    public <VT> List<VT> queryList(@NonNull QueryDTO dto, Class<VT> voClass) {
-        return dto.setEntity(clazz).query(dba, voClass);
+    public <VT> List<VT> queryList(@NonNull QueryDTO dto, Class<VT> voClass, String... defaultOrderBys) {
+        return dto.setEntity(clazz).defaultOrderBy(defaultOrderBys).query(dba, voClass);
     }
 
     /**
@@ -207,7 +218,7 @@ public class CrudService<T> {
      * 注意这里不追加主键兜底，与 {@link QueryDTO} 的分页排序不同：全量查询没有翻页边界，
      * 不依赖主键保证行不重不漏。
      *
-     * @param orderBys 排序字段，支持 {@code "FIELD ASC"}、{@code "FIELD DESC"} 格式
+     * @param orderBys 排序字段，降序用 {@link io.github.jinghui70.rainbow.dbaccess.DbaUtil#desc(String)} 拼接
      * @return 结果列表
      */
     public List<T> getAll(String... orderBys) {
@@ -222,7 +233,7 @@ public class CrudService<T> {
      * 传了 {@code orderBys} 就完全按它排序；不传才按实体主键排序（{@code getAll(voClass)} 即此用法）。
      *
      * @param voClass  VO 类型
-     * @param orderBys 排序字段，支持 {@code "FIELD ASC"}、{@code "FIELD DESC"} 格式
+     * @param orderBys 排序字段，降序用 {@link io.github.jinghui70.rainbow.dbaccess.DbaUtil#desc(String)} 拼接
      * @param <VT>     VO 类型
      * @return 结果列表
      */

@@ -548,7 +548,7 @@ public class Sql extends StringBuilderWrapper<Sql> {
     /**
      * 拼接 ORDER BY 子句，按指定字段升序排序。
      *
-     * @param fields 排序字段名，支持 "FIELD ASC"、"FIELD DESC" 格式
+     * @param fields 排序字段名，降序用 {@link DbaUtil#desc(String)} 拼接（字段名是常量时避免手拼字符串）
      * @return this
      */
     public Sql orderBy(String... fields) {

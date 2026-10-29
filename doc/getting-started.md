@@ -8,7 +8,7 @@
 <dependency>
     <groupId>io.github.jinghui70</groupId>
     <artifactId>rainbow-dbaccess</artifactId>
-    <version>6.5.0</version>
+    <version>6.5.1</version>
 </dependency>
 ```
 

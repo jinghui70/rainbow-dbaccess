@@ -1,3 +1,18 @@
+## [6.5.1](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.5.0..v6.5.1) (2026-10-29)
+
+### Breaking Changes
+
+- **`CrudService.getByKey(Class<VT>, Object...)` 改名为 `getByKeyAs`**：6.5.0 发布的 VO 版 `getByKey` 已被取代，行为完全一致；若已调用过，升级后同步改名即可
+
+### Bug Fixes
+
+- **消除 `getByKey` 与 `getByKeyAs` 的参数空间重叠**：原 VO 版与 `getByKey(Object...)` 同名且都用可变参数，`Object...` 能把「VO 类型 + 主键值」整段实参吞下，解析结果随实参静态类型漂移。典型踩坑：把 `Class` 存进 `Object` 变量再传、或漏传 keys 时，会绑到「一串主键值」那个版本，报出误导性的 `argument size not match`
+- **`QueryDTO.defaultOrderBy` 未处理空参数**：传空数组或空串时会把空字段塞进排序列表，拼出 `ORDER BY ,ID` 这类脏 SQL 直接导致查询报错。现在空参数表示清除默认排序、空白串被忽略，只留主键兜底
+
+### Features
+
+- **`queryPage` / `queryList` 支持指定默认排序**：`queryPage(dto, defaultOrderBys...)`、`queryPage(dto, voClass, defaultOrderBys...)`、`queryList(dto, defaultOrderBys...)`、`queryList(dto, voClass, defaultOrderBys...)`。排序写进 QueryDTO 作为默认排序（客户端已传 `orderBys` 时仍以客户端为准），不传则沿用 dto 原有设定。原无参重载已由 varargs 覆盖
+
 ## [6.5.0](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.4.2..v6.5.0) (2026-10-29)
 
 ### Breaking Changes

@@ -1,3 +1,10 @@
+## [6.4.2](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.4.1..v6.4.2) (2026-10-26)
+
+### Bug Fixes
+
+- **`Cnd` 的 `NE` 补齐 `Range` 处理**：此前只有 `EQ` 识别 `Range`/`Map` 值，`NE` 会把区间对象当普通值绑定，拼出 `AGE != ?` 后在驱动层报错。现在与 `EQ` 共用同一套推导规则：`from == to` 取反为 `!=`、仅下限为 `<`、仅上限为 `>`、双边界为 `not between`
+- **`Range`/`Map` 值只允许 `EQ`/`NE`**：`GT`、`LIKE` 等其他操作符传入区间值会直接抛 `IllegalArgumentException`，避免静默拼出错误 SQL
+
 ## [6.4.1](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.4.0..v6.4.1) (2026-09-29)
 
 ### Features

@@ -95,4 +95,23 @@ public class OrderBy {
         return desc ? DbaUtil.desc(field) : field;
     }
 
+    /**
+     * 构造降序排序，等价于 {@code new OrderBy(field, true)}。
+     *
+     * @param field 排序字段名
+     * @return 降序的 OrderBy 对象
+     */
+    public static OrderBy desc(String field) {
+        return new OrderBy(field, true);
+    }
+
+    /**
+     * 构造升序排序，等价于 {@code new OrderBy(field, false)}。
+     *
+     * @param field 排序字段名
+     * @return 升序的 OrderBy 对象
+     */
+    public static OrderBy of(String field) {
+        return new OrderBy(field, false);
+    }
 }

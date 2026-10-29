@@ -60,6 +60,20 @@ dba.select().from("T_USER")
 
 `where`/`and`/`or` 方法会自动管理 WHERE 关键字和 AND/OR 连接符的位置。
 
+### 按主键拼条件
+
+主键条件不必手写字段名，`Sql` 提供两个方法直接按 `@Id` 生成 WHERE：
+
+```java
+// 按主键值，keys 按 @Id 声明顺序传入（复合主键按顺序传多个）
+dba.select().from(User.class).whereByKey(User.class, "1").queryForObject(User.class);
+
+// 按实体对象的主键属性值
+dba.select().from("T_USER").whereByObj(user).queryForList(User.class);
+```
+
+`whereByKey` 会校验键值个数与 `@Id` 字段数一致，不一致直接抛 `IllegalArgumentException`；`whereByObj` 只读取主键属性，其它属性不进入 WHERE。两者都是链式中间方法，可继续接任意终结方法，也不限于查询——`dba.deleteFrom("T_USER").whereByObj(user).execute()` 同样成立。
+
 ## 调试与底层访问
 
 ```java

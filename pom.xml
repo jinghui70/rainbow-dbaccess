@@ -6,7 +6,7 @@
 
     <groupId>io.github.jinghui70</groupId>
     <artifactId>rainbow-dbaccess</artifactId>
-    <version>6.4.2</version>
+    <version>6.5.0</version>
 
     <name>rainbow-dbaccess</name>
     <description>A powerful database access tool with ORM support, built on Spring JDBC.</description>
@@ -113,9 +113,10 @@
                     <source>${java.version}</source>
                     <!-- 只开结构性检查：坏链接、坏 HTML、语法错误。
                          missing（缺 @param/@return）暂不开，避免噪声淹没真问题。
-                         注意：doclint 不检查 {@code} 示例代码，那部分由 JavadocExampleTest 保证。 -->
+                         注意：doclint 不检查 {@code} 示例代码，那部分由 JavadocExampleTest 保证。
+                         不开 failOnError=false：doclint 错误必须让构建失败，否则带坏链接的
+                         javadoc jar 会静默发布出去（已不是保护，只是日志）。 -->
                     <doclint>reference,syntax,html</doclint>
-                    <failOnError>false</failOnError>
                 </configuration>
                 <executions>
                     <execution>

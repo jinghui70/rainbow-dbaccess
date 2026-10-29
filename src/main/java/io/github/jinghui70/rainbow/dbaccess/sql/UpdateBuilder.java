@@ -12,6 +12,8 @@ import java.util.*;
  * 更新操作构建器，根据实体 Bean 的主键执行更新。
  * <p>
  * 以 {@code @Id} 注解的主键字段自动生成 WHERE 条件，更新所有非主键、非自增字段。
+ * 实体必须用 {@code @Id} 标注主键；未定义主键时 {@link #execute()} 直接抛 {@link IllegalArgumentException}，
+ * 不会拼出不带 WHERE 的 UPDATE。
  * 默认全字段更新；通过 {@link #include} / {@link #exclude} / {@link #excludeNull} 控制参与更新的字段。
  * <p>
  * 典型用法：
@@ -133,7 +135,6 @@ public class UpdateBuilder {
         String table = tableName != null ? tableName : DbaUtil.tableName(clazz);
         Sql sql = dba.sql("UPDATE ").append(table).append(" SET ");
         LinkedHashMap<String, PropInfo> propMap = PropInfoCache.get(clazz);
-        List<PropInfo> keyArray = propMap.values().stream().filter(p -> p.getId() != null).toList();
         for (PropInfo p : propMap.values()) {
             if (p.getId() != null || p.isAutoIncrement()) continue;
             Object value = p.getUpdateValue(dba, bean);
@@ -143,16 +144,14 @@ public class UpdateBuilder {
             sql.append(p.getFieldName()).append("=?").addParam(value).appendTempComma();
         }
         sql.clearTemp();
-        for (PropInfo p : keyArray) {
-            sql.where(p.getFieldName(), p.getValue(bean));
-        }
-        return sql;
+        return sql.whereByObj(bean);
     }
 
     /**
      * 执行更新。以 {@code @Id} 主键字段自动生成 WHERE 条件。
      *
      * @return 受影响行数
+     * @throws IllegalArgumentException 实体未定义 {@code @Id} 主键时抛出
      */
     public int execute() {
         return buildSql().execute();

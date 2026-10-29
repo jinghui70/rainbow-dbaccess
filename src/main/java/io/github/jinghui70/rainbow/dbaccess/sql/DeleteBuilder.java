@@ -31,12 +31,7 @@ public class DeleteBuilder {
         } else if (data instanceof Collection<?> coll) {
             return deleteList(dba, List.copyOf(coll));
         } else {
-            List<PropInfo> keyArray = keyArray(dataClass);
-            Sql sql = dba.deleteFrom(dataClass);
-            for (PropInfo propInfo : keyArray) {
-                sql.where(propInfo.getFieldName(), propInfo.getValue(data));
-            }
-            return sql.execute();
+            return dba.deleteFrom(dataClass).whereByObj(data).execute();
         }
     }
 

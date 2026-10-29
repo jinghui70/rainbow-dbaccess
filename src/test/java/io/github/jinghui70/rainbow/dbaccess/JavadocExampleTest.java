@@ -252,6 +252,48 @@ class JavadocExampleTest extends BaseTest {
     }
 
     @Test
+    @DisplayName("doc/crud.md：getAll 排序示例可执行")
+    void crudGetAllOrderByDocExamples() {
+        createUserTable();
+        dba.insert(new User("u2", "Bob", 20, 1.0));
+        dba.insert(new User("u1", "Alice", 40, 3.0));
+        dba.insert(new User("u3", "Carl", 30, 2.0));
+
+        io.github.jinghui70.rainbow.dbaccess.crud.CrudService<User> service =
+                new io.github.jinghui70.rainbow.dbaccess.crud.CrudService<>(dba, User.class);
+
+        // 文档原文：service.getAll("NAME DESC")
+        assertEquals("Carl", service.getAll("NAME DESC").get(0).getName());
+        // 文档原文：service.getAll("AGE DESC", "NAME")
+        assertEquals("Alice", service.getAll("AGE DESC", "NAME").get(0).getName());
+        // getAll() 与 getAll("ID") 等价
+        assertEquals(service.getAll().stream().map(User::getId).toList(),
+                service.getAll("ID").stream().map(User::getId).toList());
+    }
+
+    @Test
+    @DisplayName("doc/query.md：Sql.whereByKey / whereByObj 示例可执行")
+    void sqlWhereByKeyDocExample() {
+        createUserTable();
+        dba.insert(new User("1", "Tom", 20, 90.0));
+
+        // 文档原文：dba.select().from(User.class).whereByKey(User.class, "1").queryForObject(User.class)
+        assertEquals("Tom", dba.select().from(User.class)
+                .whereByKey(User.class, "1").queryForObject(User.class).getName());
+
+        // 文档原文：dba.select().from("T_USER").whereByObj(user).queryForList(User.class)
+        List<User> users = dba.select().from("T_USER")
+                .whereByObj(new User("1", "ignored", null, null)).queryForList(User.class);
+        assertEquals(1, users.size());
+        assertEquals("Tom", users.get(0).getName());
+
+        // 文档原文：dba.deleteFrom("T_USER").whereByObj(user).execute()
+        assertEquals(1, dba.deleteFrom("T_USER")
+                .whereByObj(new User("1", null, null, null)).execute());
+        assertNull(dba.selectByKey(User.class, "1"));
+    }
+
+    @Test
     @DisplayName("Dba 方法级文档：带返回值的事务示例可执行")
     void dbaTransactionWithResultDocExample() {
         createUserTable();

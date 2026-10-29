@@ -1,6 +1,5 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
-import cn.hutool.core.lang.Assert;
 import cn.hutool.db.dialect.DriverNamePool;
 import cn.hutool.db.dialect.DriverUtil;
 import io.github.jinghui70.rainbow.dbaccess.dialect.Dialect;
@@ -8,7 +7,6 @@ import io.github.jinghui70.rainbow.dbaccess.dialect.DialectDefault;
 import io.github.jinghui70.rainbow.dbaccess.dialect.DialectOracle;
 import io.github.jinghui70.rainbow.dbaccess.dialect.DialectPostgreSQL;
 import io.github.jinghui70.rainbow.dbaccess.object.BeanMapper;
-import io.github.jinghui70.rainbow.dbaccess.object.PropInfo;
 import io.github.jinghui70.rainbow.dbaccess.sql.*;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -18,10 +16,8 @@ import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.sql.DataSource;
-import java.util.List;
 import java.util.Objects;
 
-import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.keyArray;
 import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.validTableName;
 
 /**
@@ -239,14 +235,7 @@ public class Dba {
      * @return 查询结果，不存在返回 null
      */
     public <T> T selectByKey(Class<T> clazz, Object... keys) {
-        List<PropInfo> keyArray = keyArray(clazz);
-        Assert.equals(keyArray.size(), keys.length, "argument size not match");
-        Sql sql = select().from(DbaUtil.tableName(clazz));
-        for (int i = 0; i < keyArray.size(); i++) {
-            PropInfo propInfo = keyArray.get(i);
-            sql.where(propInfo.getFieldName(), keys[i]);
-        }
-        return sql.queryForObject(BeanMapper.of(clazz));
+        return select().from(clazz).whereByKey(clazz, keys).queryForObject(BeanMapper.of(clazz));
     }
 
     /**
@@ -321,6 +310,7 @@ public class Dba {
      *
      * @param bean 包含主键的实体对象
      * @return 受影响行数
+     * @throws IllegalArgumentException 实体未定义 {@code @Id} 主键时抛出
      */
     public int update(@NonNull Object bean) {
         return new UpdateBuilder(this, bean).execute();
@@ -382,14 +372,7 @@ public class Dba {
      * @return 受影响行数
      */
     public int deleteByKey(Class<?> deleteClass, Object... keys) {
-        List<PropInfo> keyArray = keyArray(deleteClass);
-        Assert.equals(keyArray.size(), keys.length, "argument size not match");
-        Sql sql = deleteFrom(deleteClass);
-        for (int i = 0; i < keyArray.size(); i++) {
-            PropInfo propInfo = keyArray.get(i);
-            sql.where(propInfo.getFieldName(), keys[i]);
-        }
-        return sql.execute();
+        return deleteFrom(deleteClass).whereByKey(deleteClass, keys).execute();
     }
 
     /**
@@ -434,11 +417,12 @@ public class Dba {
     }
 
     /**
-     * 删除数据表（如果存在），等价于 {@code DROP TABLE IF EXISTS tableName}。
+     * 删除数据表,如果存在
      *
      * @param tableName 数据表名
      */
     public void dropTable(String tableName) {
-        this.sql("DROP TABLE IF EXISTS ").append(validTableName(tableName)).execute();
+        String sql = getDialect().dropTableSql(validTableName(tableName));
+        jdbcTemplate.execute(sql);
     }
 }

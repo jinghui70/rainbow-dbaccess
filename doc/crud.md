@@ -34,12 +34,30 @@ public class UserService extends CrudService<User> {
 | `insert(T)` / `insert(Collection)` / `insert(Collection, batchSize)` | 单条 / 批量插入 |
 | `update(T)` | 按主键全量更新 |
 | `deltaUpdate(UpdateDTO<T>)` | 增量更新，只更新指定字段 |
-| `getByKey(Object...)` | 按主键值查单条 |
+| `getByKey(Object...)` / `getByKey(voClass, Object...)` | 按主键值查单条，可指定 VO 类型 |
 | `getByObject(T)` | 按对象的主键值回查完整记录 |
-| `getAll()` / `getAll(voClass)` | 查全部，按主键排序 |
+| `getAll(String... orderBys)` / `getAll(voClass, String... orderBys)` | 查全部；不传排序字段时按主键排序 |
 | `queryPage(QueryDTO)` / `queryPage(QueryDTO, voClass)` | 分页查询 |
 | `queryList(QueryDTO)` / `queryList(QueryDTO, voClass)` | 列表查询 |
 | `delete(Object)` | 删除，支持单条 / 数组 / 集合 |
+
+### 全量查询的排序
+
+`getAll` 默认按实体主键升序。需要别的顺序时直接传排序字段，支持 `"FIELD ASC"`、`"FIELD DESC"` 格式，多个字段按传入顺序拼接：
+
+```java
+List<User> byName  = service.getAll("NAME DESC");
+List<User> byAge   = service.getAll("AGE DESC", "NAME");
+List<UserVO> voAll = service.getAll(UserVO.class, "AGE DESC");
+```
+
+**传了排序字段就完全按它排**，不会再追加主键；只有不传时才用主键排序。所以 `getAll("AGE")` 生成的正是 `ORDER BY AGE`。如果按非唯一列排序又想顺序确定，显式带上主键即可：`getAll("AGE", "ID")`。
+
+排序参数是可变参数，无参调用 `getAll()` 就是只按主键排序，不必为两种情形分别记两个方法。
+
+::: tip 与分页查询的差异
+`QueryDTO` 的分页查询会把主键追加到 `ORDER BY` 末尾，因为 OFFSET 分页在并列行上顺序不确定，会重复或漏行。`getAll` 一次性取全量、没有翻页边界，所以不做这层兜底。
+:::
 
 ### 插入前后钩子
 
@@ -223,9 +241,12 @@ public class OrderQueryDTO extends QueryDTO {
 PageData<UserVO> page = service.queryPage(dto, UserVO.class);
 List<UserVO> list = service.queryList(dto, UserVO.class);
 List<UserVO> all  = service.getAll(UserVO.class);
+UserVO one = service.getByKey(UserVO.class, "1");
 ```
 
 配合上面写法一的 JOIN，VO 正好用来承载多表查询出来的字段（如 `USER_NAME`）。
+
+`getByKey(voClass, keys...)` 的 WHERE 条件仍取实体类的 `@Id`，所以 keys 还是按**实体的**主键声明顺序传，映射目标只是换成 VO。
 
 ## CrudController：一键暴露 REST 端点
 

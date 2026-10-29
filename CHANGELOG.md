@@ -1,3 +1,28 @@
+## [6.5.0](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.4.2..v6.5.0) (2026-10-29)
+
+### Breaking Changes
+
+- **`CrudService.getAll()` / `getAll(Class)` 改为 `String...` 可变参数**：新签名为 `getAll(String... orderBys)`、`getAll(Class<VT>, String... orderBys)`。源码兼容（`getAll()`、`getAll(UserVO.class)` 照常编译），但二进制描述符变了，用旧 jar 的调用方需重新编译
+- **`UpdateBuilder` 对无 `@Id` 的实体抛 `IllegalArgumentException`**：此前会静默拼出**不带 WHERE** 的 `UPDATE`，把整张表改掉。SQL 模式的 `update(table).set(...).where(...)` 不受影响
+
+### Bug Fixes
+
+- **`CrudService.getAll()` 对无 `@Id` 实体抛 NPE**：取不到主键时把 `null` 交给 `orderBy` 导致空指针，现在这种情况不生成 `ORDER BY`
+- **`Dba.dropTable` 在 Oracle 上语法报错**：改为按方言生成语句。`Dialect.dropTableSql` 默认仍是 `DROP TABLE IF EXISTS`（其它库行为不变）；`DialectOracle` 覆写为 PL/SQL 匿名块 `EXECUTE IMMEDIATE 'DROP TABLE ... PURGE'`，忽略表不存在（`SQLCODE = -942`），其它错误照常抛
+
+### Features
+
+- **`Sql.whereByKey(Class, keys...)` / `Sql.whereByObj(obj)`**：按 `@Id` 拼 WHERE 并返回 `this`，可继续链式调用。前者校验键值个数，后者从实体对象取主键值
+- **`CrudService.getByKey(Class<VT> voClass, Object... keys)`**：按主键查单条并直接映射为 VO
+- **`CrudService.getAll(String... orderBys)` / `getAll(Class<VT>, String... orderBys)`**：支持 `"FIELD ASC"`、`"FIELD DESC"` 格式与多字段。传了就完全按它排，不传才按主键；不追加主键兜底（全量查询没有翻页边界，与 `QueryDTO` 的分页排序不同）
+- **`OrderBy.of(field)` / `OrderBy.desc(field)`**：升序、降序构造 `OrderBy` 的静态工厂
+
+### Other
+
+- **主键拼 WHERE 去重**：`Dba.selectByKey`、`Dba.deleteByKey`、`CrudService.getByObject`、`DeleteBuilder.delete`（单条）、`UpdateBuilder` 五处重复循环收敛到上面两个 `Sql` 方法
+- **`DbaUtil.defaultOrderBy` 并入 `CrudService.orderOf`**：该方法只有 `getAll` 一处调用，不再由通用工具类承担
+- **去掉 javadoc 插件的 `failOnError=false`**：该配置让 doclint 错误不阻断构建，实测会照常发布带坏链接的 javadoc jar；现在 doclint 错误即构建失败
+
 ## [6.4.2](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.4.1..v6.4.2) (2026-10-26)
 
 ### Bug Fixes

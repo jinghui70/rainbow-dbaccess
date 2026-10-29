@@ -1,6 +1,5 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.db.StatementUtil;
@@ -22,7 +21,6 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 数据库访问工具类，提供表名推导、字段校验、主键提取、枚举转换和 {@link PreparedStatement} 参数设值等底层能力。
@@ -153,24 +151,6 @@ public abstract class DbaUtil {
         List<PropInfo> keyArray = propMap.values().stream().filter(p -> p.getId() != null).toList();
         Assert.notEmpty(keyArray, "{} 没有定义主键", clazz.getName());
         return keyArray;
-    }
-
-    /**
-     * 获取实体类的默认排序字段，以主键字段升序排列。
-     * <p>
-     * 无主键时返回 {@code null}。
-     *
-     * @param clazz 实体类
-     * @return 默认排序表达式，如 {@code "ID"}；无主键时返回 {@code null}
-     */
-    public static String defaultOrderBy(Class<?> clazz) {
-        LinkedHashMap<String, PropInfo> propMap = PropInfoCache.get(clazz);
-        List<PropInfo> keyArray = propMap.values().stream().filter(p -> p.getId() != null).toList();
-        if (CollUtil.isNotEmpty(keyArray)) {
-            return keyArray.stream().map(PropInfo::getFieldName)
-                    .collect(Collectors.joining(StrUtil.COMMA));
-        }
-        return null;
     }
 
     /**

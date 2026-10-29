@@ -36,4 +36,17 @@ public interface Dialect {
      * @return 返回处理后的sql
      */
     String wrapRangeSql(String sql, int from, int to);
+
+    /**
+     * 返回删除数据表的语句。
+     * <p>
+     * 默认返回 {@code DROP TABLE IF EXISTS 表名}，适用于 H2/MySQL/PostgreSQL。
+     * 不支持 {@code IF EXISTS} 的数据库（如 Oracle）由子类覆写，需保持"表不存在也不报错"的语义。
+     *
+     * @param tableName 数据表名
+     * @return 删除数据表的 SQL
+     */
+    default String dropTableSql(String tableName) {
+        return "DROP TABLE IF EXISTS " + tableName;
+    }
 }

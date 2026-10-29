@@ -2,10 +2,9 @@ package io.github.jinghui70.rainbow.dbaccess.crud;
 
 import cn.hutool.core.collection.CollUtil;
 import io.github.jinghui70.rainbow.dbaccess.Dba;
-import io.github.jinghui70.rainbow.dbaccess.DbaUtil;
-import io.github.jinghui70.rainbow.dbaccess.sql.PageData;
-import io.github.jinghui70.rainbow.dbaccess.sql.Sql;
 import io.github.jinghui70.rainbow.dbaccess.object.PropInfo;
+import io.github.jinghui70.rainbow.dbaccess.object.PropInfoCache;
+import io.github.jinghui70.rainbow.dbaccess.sql.PageData;
 import org.springframework.lang.NonNull;
 
 import java.util.Collection;
@@ -37,6 +36,8 @@ public class CrudService<T> {
         this.dba = dba;
         this.clazz = objectType;
     }
+
+    // ===== 插入 =====
 
     /**
      * 插入前钩子，子类可覆写做校验或填充默认值。
@@ -81,31 +82,7 @@ public class CrudService<T> {
         dba.insertOf(objects).batchSize(batchSize).execute();
     }
 
-    /**
-     * 按实体对象的主键值查询完整记录。
-     * <p>
-     * 适用于插入后获取自增主键等数据库自动生成的字段值。
-     *
-     * @param object 包含主键值的实体对象
-     * @return 完整实体，未找到返回 {@code null}
-     */
-    public T getByObject(T object) {
-        Sql sql = dba.select().from(DbaUtil.tableName(clazz));
-        for (PropInfo propInfo : DbaUtil.keyArray(clazz)) {
-            sql.where(propInfo.getFieldName(), propInfo.getValue(object));
-        }
-        return sql.queryForObject(clazz);
-    }
-
-    /**
-     * 按主键值查询。
-     *
-     * @param keys 主键值，多主键时按声明顺序传入
-     * @return 实体对象，未找到返回 {@code null}
-     */
-    public T getByKey(Object... keys) {
-        return dba.selectByKey(clazz, keys);
-    }
+    // ===== 更新 =====
 
     /**
      * 更新前钩子，子类可覆写做校验或填充更新时间等。
@@ -137,6 +114,47 @@ public class CrudService<T> {
         return dba.updateOf(dto.getRecord()).include(dto.getChangedProps()).execute();
     }
 
+    // ===== 按主键查单条 =====
+
+    /**
+     * 按实体对象的主键值查询完整记录。
+     * <p>
+     * 适用于插入后获取自增主键等数据库自动生成的字段值。
+     *
+     * @param object 包含主键值的实体对象
+     * @return 完整实体，未找到返回 {@code null}
+     */
+    public T getByObject(T object) {
+        return dba.select().from(clazz).whereByObj(object).queryForObject(clazz);
+    }
+
+    /**
+     * 按主键值查询。
+     *
+     * @param keys 主键值，多主键时按声明顺序传入
+     * @return 实体对象，未找到返回 {@code null}
+     */
+    public T getByKey(Object... keys) {
+        return dba.selectByKey(clazz, keys);
+    }
+
+    /**
+     * 按主键值查询，返回指定 VO 类型结果。
+     * <p>
+     * 与 {@link #getByKey(Object...)} 的区别是结果直接映射为 {@code voClass}，不必先查出实体再转换。
+     * 查询仍按实体类 {@code clazz} 的 {@code @Id} 生成 WHERE 条件，所以 keys 依旧按实体主键的声明顺序传入。
+     *
+     * @param voClass VO 类型
+     * @param keys    主键值，多主键时按声明顺序传入
+     * @param <VT>    VO 类型
+     * @return VO 对象，未找到返回 {@code null}
+     */
+    public <VT> VT getByKey(Class<VT> voClass, Object... keys) {
+        return dba.select().from(clazz).whereByKey(clazz, keys).queryForObject(voClass);
+    }
+
+    // ===== 条件查询 =====
+
     /**
      * 分页查询，返回实体类型结果。
      *
@@ -145,27 +163,6 @@ public class CrudService<T> {
      */
     public PageData<T> queryPage(@NonNull QueryDTO dto) {
         return dto.setEntity(clazz).queryPage(dba, clazz);
-    }
-
-    /**
-     * 列表查询，返回实体类型结果。
-     *
-     * @param dto 查询条件
-     * @return 结果列表
-     */
-    public List<T> queryList(@NonNull QueryDTO dto) {
-        return dto.setEntity(clazz).query(dba, clazz);
-    }
-
-    /**
-     * 查询全部记录，按实体类默认排序。
-     *
-     * @return 结果列表
-     */
-    public List<T> getAll() {
-        return dba.select().from(clazz)
-                .orderBy(DbaUtil.defaultOrderBy(clazz))
-                .queryForList(clazz);
     }
 
     /**
@@ -181,6 +178,16 @@ public class CrudService<T> {
     }
 
     /**
+     * 列表查询，返回实体类型结果。
+     *
+     * @param dto 查询条件
+     * @return 结果列表
+     */
+    public List<T> queryList(@NonNull QueryDTO dto) {
+        return dto.setEntity(clazz).query(dba, clazz);
+    }
+
+    /**
      * 列表查询，返回指定 VO 类型结果。
      *
      * @param dto     查询条件
@@ -193,17 +200,39 @@ public class CrudService<T> {
     }
 
     /**
-     * 查询全部记录，返回指定 VO 类型结果。
+     * 查询全部记录，返回实体类型结果。
+     * <p>
+     * 传了 {@code orderBys} 就完全按它排序；不传才按实体主键排序（{@code getAll()} 即此用法）。
+     * <p>
+     * 注意这里不追加主键兜底，与 {@link QueryDTO} 的分页排序不同：全量查询没有翻页边界，
+     * 不依赖主键保证行不重不漏。
      *
-     * @param voClass VO 类型
-     * @param <VT>    VO 类型
+     * @param orderBys 排序字段，支持 {@code "FIELD ASC"}、{@code "FIELD DESC"} 格式
      * @return 结果列表
      */
-    public <VT> List<VT> getAll(Class<VT> voClass) {
+    public List<T> getAll(String... orderBys) {
         return dba.select().from(clazz)
-                .orderBy(DbaUtil.defaultOrderBy(clazz))
+                .orderBy(orderOf(orderBys))
+                .queryForList(clazz);
+    }
+
+    /**
+     * 查询全部记录，返回指定 VO 类型结果。
+     * <p>
+     * 传了 {@code orderBys} 就完全按它排序；不传才按实体主键排序（{@code getAll(voClass)} 即此用法）。
+     *
+     * @param voClass  VO 类型
+     * @param orderBys 排序字段，支持 {@code "FIELD ASC"}、{@code "FIELD DESC"} 格式
+     * @param <VT>     VO 类型
+     * @return 结果列表
+     */
+    public <VT> List<VT> getAll(Class<VT> voClass, String... orderBys) {
+        return dba.select().from(clazz)
+                .orderBy(orderOf(orderBys))
                 .queryForList(voClass);
     }
+
+    // ===== 删除 =====
 
     /**
      * 删除记录，支持单条、数组或集合。
@@ -216,11 +245,32 @@ public class CrudService<T> {
     }
 
     /**
-     * 按主键值查询。
+     * 按主键值删除。
      *
      * @param keys 主键值，多主键时按声明顺序传入
      */
     public void deleteByKey(Object... keys) {
         dba.deleteByKey(clazz, keys);
+    }
+
+    // ===== 私有工具 =====
+
+    /**
+     * 组装 ORDER BY 字段：传了排序字段就完全用它，没传才回退到实体主键的默认排序。
+     * <p>
+     * 与 {@link QueryDTO} 不同，这里不追加主键兜底——{@code getAll} 是一次性取全量、没有翻页边界，
+     * 不需要为主键唯一性付出去重与合并的代价。
+     * <p>
+     * 无 {@code @Id} 且没传排序字段时返回空数组，避免把 {@code null} 交给 {@code orderBy} 而抛 NPE。
+     *
+     * @param orderBys 调用方传入的排序字段
+     * @return 最终参与排序的字段，可能为空
+     */
+    private String[] orderOf(String... orderBys) {
+        if (orderBys != null && orderBys.length > 0) return orderBys;
+        return PropInfoCache.get(clazz).values().stream()
+                .filter(prop -> prop.getId() != null)
+                .map(PropInfo::getFieldName)
+                .toArray(String[]::new);
     }
 }

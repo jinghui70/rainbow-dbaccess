@@ -1,6 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess.sql;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.dbaccess.*;
@@ -8,6 +9,7 @@ import io.github.jinghui70.rainbow.dbaccess.cnd.Cnd;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Op;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.EnumFieldMapper;
 import io.github.jinghui70.rainbow.dbaccess.fieldmapper.FieldMapper;
+import io.github.jinghui70.rainbow.dbaccess.object.PropInfo;
 import io.github.jinghui70.rainbow.dbaccess.rowmapper.MapRowMapper;
 import io.github.jinghui70.rainbow.dbaccess.rowmapper.SingleColumnFieldRowMapper;
 import io.github.jinghui70.rainbow.dbaccess.object.BeanMapper;
@@ -327,7 +329,7 @@ public class Sql extends StringBuilderWrapper<Sql> {
     }
 
     /**
-     * 拼接 WHERE 条件子句，遍历条件列表依次用 AND 连接。
+     * 拼接 WHERE 条件子句（AND 连接），遍历条件列表依次用 AND 连接。
      *
      * @param cnds 条件列表
      * @return this
@@ -336,6 +338,41 @@ public class Sql extends StringBuilderWrapper<Sql> {
         if (CollUtil.isNotEmpty(cnds))
             for (Cnd cnd : cnds)
                 where(cnd);
+        return this;
+    }
+
+    /**
+     * 按实体类的主键值拼接 WHERE 条件（AND 连接），keys 按 {@code @Id} 字段声明顺序传入。
+     * <p>先校验主键值与 {@code @Id} 字段数量一致，再逐个拼出 {@code 字段=?}。配合 {@link #from(Class)} 即等价于
+     * {@code selectByKey}：{@code dba.select().from(User.class).whereByKey(User.class, "1")}。
+     *
+     * @param clazz 实体类，需用 {@link io.github.jinghui70.rainbow.dbaccess.annotation.Id} 标注主键
+     * @param keys  主键值，多主键时按声明顺序传入
+     * @return this
+     * @throws IllegalArgumentException 未定义主键或主键值个数不匹配时抛出
+     */
+    public Sql whereByKey(Class<?> clazz, Object... keys) {
+        List<PropInfo> keyArray = DbaUtil.keyArray(clazz);
+        Assert.equals(keyArray.size(), keys.length, "argument size not match");
+        for (int i = 0; i < keyArray.size(); i++) {
+            where(keyArray.get(i).getFieldName(), keys[i]);
+        }
+        return this;
+    }
+
+    /**
+     * 按实体对象的主键属性值拼接 WHERE 条件（AND 连接）。
+     * <p>与 {@link #whereByKey(Class, Object...)} 的区别是键值取自对象本身：按 {@code @Id} 字段声明顺序读取属性值。
+     * <p>示例：{@code dba.select().from(User.class).whereByObj(new User("1", ...))}
+     *
+     * @param object 包含主键值的实体对象，类上需用 {@code @Id} 标注主键
+     * @return this
+     * @throws IllegalArgumentException 未定义主键时抛出
+     */
+    public Sql whereByObj(@NonNull Object object) {
+        for (PropInfo propInfo : DbaUtil.keyArray(object.getClass())) {
+            where(propInfo.getFieldName(), propInfo.getValue(object));
+        }
         return this;
     }
 

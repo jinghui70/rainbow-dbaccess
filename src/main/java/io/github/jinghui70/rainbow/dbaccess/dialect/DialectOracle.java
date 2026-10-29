@@ -1,5 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess.dialect;
 
+import cn.hutool.core.util.StrUtil;
+
 /**
  * Oracle数据库方言接口
  *
@@ -21,7 +23,20 @@ public class DialectOracle implements Dialect {
 
     @Override
     public String wrapRangeSql(String sql, int from, int to) {
-        return String.format("select * from (select A.*,ROWNUM AS RN from (%s) A where ROWNUM <=%d) where RN>=%d", sql,
-                to, from);
+        return String.format("select * from (select A.*,ROWNUM AS RN from (%s) A where ROWNUM <=%d) where RN>=%d", sql, to, from);
+    }
+
+    @Override
+    public String dropTableSql(String tableName) {
+        return StrUtil.format("""
+                BEGIN
+                    EXECUTE IMMEDIATE 'DROP TABLE {} PURGE';
+                EXCEPTION
+                    WHEN OTHERS THEN
+                       IF SQLCODE != -942 THEN
+                         RAISE;
+                       END IF;
+                    END;
+                """, tableName);
     }
 }

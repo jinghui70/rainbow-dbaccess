@@ -173,6 +173,17 @@ class DbaCrudTest extends BaseTest {
         assertEquals(10, u.getAge());
     }
 
+    /**
+     * 无 @Id 的实体无法生成 WHERE 条件，必须直接报错。
+     * 否则会静默拼出没有 WHERE 的 UPDATE，把整张表都改掉。
+     */
+    @Test
+    void testUpdateBeanWithoutIdThrows() {
+        dba.createTable("T_NO_KEY", Field.createString("NAME"));
+        assertThrows(IllegalArgumentException.class,
+                () -> dba.updateOf(new NoKeyEntity("X")).execute());
+    }
+
     // ===== update 到同结构的另一张表 =====
 
     @Test

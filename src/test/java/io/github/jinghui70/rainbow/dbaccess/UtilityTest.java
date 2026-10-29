@@ -9,6 +9,7 @@ import io.github.jinghui70.rainbow.dbaccess.object.PropInfoCache;
 import io.github.jinghui70.rainbow.dbaccess.sql.OrderBy;
 import io.github.jinghui70.rainbow.dbaccess.sql.PageData;
 import io.github.jinghui70.rainbow.dbaccess.sql.Range;
+import io.github.jinghui70.rainbow.dbaccess.sql.Sql;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -120,6 +121,17 @@ class UtilityTest extends BaseTest {
         }
     }
 
+    @Test void testOrderByFactories() {
+        // of = 升序，desc = 降序，等价于 new OrderBy(field, false/true)
+        assertEquals("NAME", OrderBy.of("NAME").getField());
+        assertFalse(OrderBy.of("NAME").isDesc());
+        assertEquals("NAME", OrderBy.of("NAME").toString());
+
+        assertEquals("NAME", OrderBy.desc("NAME").getField());
+        assertTrue(OrderBy.desc("NAME").isDesc());
+        assertEquals("NAME DESC", OrderBy.desc("NAME").toString());
+    }
+
     // ===== PageData =====
 
     @Test void testPageData() {
@@ -176,6 +188,52 @@ class UtilityTest extends BaseTest {
     @Test void testKeyArrayComplex() {
         List<io.github.jinghui70.rainbow.dbaccess.object.PropInfo> keys = DbaUtil.keyArray(ComplexKeyEntity.class);
         assertEquals(2, keys.size());
+    }
+
+    // ===== Sql.whereByKey / whereByObj：按主键拼 WHERE =====
+
+    @Test void testWhereByKeySingle() {
+        Sql sql = dba.sql("DELETE FROM T_USER").whereByKey(User.class, "u1");
+        assertEquals("DELETE FROM T_USER WHERE ID=?", sql.getSql());
+        assertEquals(List.of("u1"), sql.getParams());
+    }
+
+    @Test void testWhereByKeyComplexKeepsDeclareOrder() {
+        Sql sql = dba.select().from("T_COMPLEX_KEY").whereByKey(ComplexKeyEntity.class, "A", "B");
+        assertEquals("SELECT * FROM T_COMPLEX_KEY WHERE KEY_A=? AND KEY_B=?", sql.getSql());
+        // 参数按 @Id 声明顺序绑定，顺序错了会查到别人的行
+        assertEquals(List.of("A", "B"), sql.getParams());
+    }
+
+    @Test void testWhereByKeyArgMismatch() {
+        assertThrows(IllegalArgumentException.class,
+                () -> dba.select().from("T_COMPLEX_KEY").whereByKey(ComplexKeyEntity.class, "A"));
+        assertThrows(IllegalArgumentException.class,
+                () -> dba.select().from("T_COMPLEX_KEY").whereByKey(ComplexKeyEntity.class, "A", "B", "C"));
+    }
+
+    @Test void testWhereByKeyNoId() {
+        assertThrows(IllegalArgumentException.class,
+                () -> dba.select().from("T_NO_KEY").whereByKey(NoKeyEntity.class, "1"));
+    }
+
+    @Test void testWhereByObj() {
+        Sql sql = dba.select().from("T_USER").whereByObj(new User("u1", "Alice", 30, 1.5));
+        // 只取主键字段，非主键属性不进入 WHERE
+        assertEquals("SELECT * FROM T_USER WHERE ID=?", sql.getSql());
+        assertEquals(List.of("u1"), sql.getParams());
+    }
+
+    @Test void testWhereByObjComplex() {
+        Sql sql = dba.select().from("T_COMPLEX_KEY")
+                .whereByObj(new ComplexKeyEntity("A", "B", "remark"));
+        assertEquals("SELECT * FROM T_COMPLEX_KEY WHERE KEY_A=? AND KEY_B=?", sql.getSql());
+        assertEquals(List.of("A", "B"), sql.getParams());
+    }
+
+    @Test void testWhereByObjNoId() {
+        assertThrows(IllegalArgumentException.class,
+                () -> dba.select().from("T_NO_KEY").whereByObj(new NoKeyEntity("x")));
     }
 
     // ===== BeanMapper =====

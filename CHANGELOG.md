@@ -1,3 +1,15 @@
+## [6.5.2](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.5.1..v6.5.2) (2026-10-31)
+
+### Breaking Changes
+
+- **`UpdateBuilder` 的 `INSERT_UPDATE` 字段不再受字段过滤影响**：`@GeneratedValue(timing = INSERT_UPDATE)` 的字段（如更新时间）在 `updateOf(bean)` 时始终强制重新生成并加入 SET，`include` / `exclude` / `excludeNull` 对它不再生效。此前 `include("name")` 会出现「对象内存值被生成器覆盖、数据库却没更新」的不一致；若有调用方依赖 exclude 来冻结更新时间，需另行处理
+- **`QueryDTO.defaultOrderBy` 空参改为清除默认排序**：传空数组、空串或全空白串时不再保留原有默认排序（旧行为是原样保留）。此前无法清除已设置的默认排序
+
+### Features
+
+- **`QueryDTO.setKeyOrderBys(String...)`**：显式设置分页排序末尾的兜底列，用于裸表名 / JOIN 场景——`setEntity(String)` 无从得知主键、会清空兜底列，此时用 `setKeyOrderBys("O.ID DESC")` 补回带表别名的唯一列，保证分页顺序全序确定。支持 `"列名"`、`"列名 ASC"` / `"列名 DESC"` 与 `alias.field` 形式，非法标识符直接拒绝；不传参数表示清除。与 `defaultOrderBy` 的差别：兜底列无论客户端是否传排序都会追加（已排过的列自动去重），默认排序只在客户端没传时生效
+- **`DbaUtil.as(field, alias)`**：生成 `field AS alias` 列表达式，用于 SELECT 列表取别名，典型场景是 JOIN 查询把列映射成 VO 属性名，如 `dto.setFields("O.*", DbaUtil.as("U.NAME", "USER_NAME"))`。两个参数原样拼接，合法性由调用方保证
+
 ## [6.5.1](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.5.0..v6.5.1) (2026-10-29)
 
 ### Breaking Changes

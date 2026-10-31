@@ -194,4 +194,15 @@ public class PropInfo {
         return mapper == null ? result : new FieldValue(result, mapper);
     }
 
+    /**
+     * 是否为更新时自动生成字段（{@code @GeneratedValue(timing = INSERT_UPDATE)}）。
+     * 这类字段在 {@link io.github.jinghui70.rainbow.dbaccess.sql.UpdateBuilder} 中
+     * 不受 include/exclude/excludeNull 过滤影响，始终强制重新生成并参与更新。
+     *
+     * @return 若为 INSERT_UPDATE 策略返回 true
+     */
+    public boolean isAutoUpdate() {
+        return generatedValue != null && generatedValue.timing() == GenerationTiming.INSERT_UPDATE;
+    }
+
 }

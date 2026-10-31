@@ -15,6 +15,8 @@ import java.util.*;
  * 实体必须用 {@code @Id} 标注主键；未定义主键时 {@link #execute()} 直接抛 {@link IllegalArgumentException}，
  * 不会拼出不带 WHERE 的 UPDATE。
  * 默认全字段更新；通过 {@link #include} / {@link #exclude} / {@link #excludeNull} 控制参与更新的字段。
+ * 标注 {@code @GeneratedValue(timing = GenerationTiming.INSERT_UPDATE)} 的字段（如更新时间）
+ * 不受这些过滤影响，始终强制重新生成并加入 SET，保证每次更新都会刷新。
  * <p>
  * 典型用法：
  * <pre>
@@ -138,9 +140,11 @@ public class UpdateBuilder {
         for (PropInfo p : propMap.values()) {
             if (p.getId() != null || p.isAutoIncrement()) continue;
             Object value = p.getUpdateValue(dba, bean);
-            if (excludeNull && value == null) continue;
-            if (fieldFilter == FieldFilter.INCLUDE && !fieldNames.contains(p.getName())) continue;
-            if (fieldFilter == FieldFilter.EXCLUDE && fieldNames.contains(p.getName())) continue;
+            if (!p.isAutoUpdate()) {
+                if (excludeNull && value == null) continue;
+                if (fieldFilter == FieldFilter.INCLUDE && !fieldNames.contains(p.getName())) continue;
+                if (fieldFilter == FieldFilter.EXCLUDE && fieldNames.contains(p.getName())) continue;
+            }
             sql.append(p.getFieldName()).append("=?").addParam(value).appendTempComma();
         }
         sql.clearTemp();

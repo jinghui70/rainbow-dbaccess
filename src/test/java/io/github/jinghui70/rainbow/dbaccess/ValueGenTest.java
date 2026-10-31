@@ -232,6 +232,75 @@ public class ValueGenTest extends BaseTest {
         assertTrue(e.getUpdateTime().isBefore(LocalDateTime.now().plusSeconds(1)));
     }
 
+    /**
+     * 测试 INSERT_UPDATE 策略：被 include 过滤掉的字段仍然参与更新。
+     * <p>
+     * 更新时间这类字段无论更新哪些业务字段都应刷新，因此不受字段过滤影响。
+     */
+    @Test
+    void testInsertUpdateFieldBypassesInclude() throws InterruptedException {
+        createGenTable();
+        GenEntity e = new GenEntity("Grace");
+        dba.insert(e);
+        LocalDateTime insertUpdateTime = e.getUpdateTime();
+        Thread.sleep(2);
+
+        // include 只更新 name，updateTime 不在列表中，但仍应强制刷新
+        e.setName("Grace Updated");
+        dba.updateOf(e).include("name").execute();
+
+        GenEntity r = dba.selectByKey(GenEntity.class, e.getId());
+        assertEquals("Grace Updated", r.getName());
+        assertTrue(r.getUpdateTime().isAfter(insertUpdateTime),
+                "include 过滤不应跳过 INSERT_UPDATE 字段：插入时=" + insertUpdateTime
+                        + ", 更新后=" + r.getUpdateTime());
+    }
+
+    /**
+     * 测试 INSERT_UPDATE 策略：被 exclude 排除的字段仍然参与更新。
+     */
+    @Test
+    void testInsertUpdateFieldBypassesExclude() throws InterruptedException {
+        createGenTable();
+        GenEntity e = new GenEntity("Henry");
+        dba.insert(e);
+        LocalDateTime insertUpdateTime = e.getUpdateTime();
+        Thread.sleep(2);
+
+        e.setName("Henry Updated");
+        dba.updateOf(e).exclude("updateTime").execute();
+
+        GenEntity r = dba.selectByKey(GenEntity.class, e.getId());
+        assertEquals("Henry Updated", r.getName());
+        assertTrue(r.getUpdateTime().isAfter(insertUpdateTime),
+                "exclude 过滤不应跳过 INSERT_UPDATE 字段：插入时=" + insertUpdateTime
+                        + ", 更新后=" + r.getUpdateTime());
+    }
+
+    /**
+     * 测试 INSERT_UPDATE 策略：字段值为 null 时 excludeNull 不生效，仍然参与更新。
+     */
+    @Test
+    void testInsertUpdateFieldBypassesExcludeNull() throws InterruptedException {
+        createGenTable();
+        GenEntity e = new GenEntity("Ivy");
+        dba.insert(e);
+        LocalDateTime insertUpdateTime = e.getUpdateTime();
+        Thread.sleep(2);
+
+        // updateTime 为 null，excludeNull 模式下普通 null 字段会被排除
+        GenEntity partial = new GenEntity("Ivy Updated");
+        partial.setId(e.getId());
+        partial.setUpdateTime(null);
+        dba.updateOf(partial).excludeNull().execute();
+
+        GenEntity r = dba.selectByKey(GenEntity.class, e.getId());
+        assertEquals("Ivy Updated", r.getName());
+        assertNotNull(r.getUpdateTime(), "excludeNull 不应跳过 INSERT_UPDATE 字段");
+        assertTrue(r.getUpdateTime().isAfter(insertUpdateTime),
+                "插入时=" + insertUpdateTime + ", 更新后=" + r.getUpdateTime());
+    }
+
     @Configuration
     static class SpringGenConfig {
         @Bean

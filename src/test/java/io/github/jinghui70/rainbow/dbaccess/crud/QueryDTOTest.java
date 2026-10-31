@@ -139,6 +139,72 @@ class QueryDTOTest extends BaseTest {
     }
 
     @Test
+    void keyOrderBysFillsKeyFallbackForJoin() {
+        // 裸表名/JOIN 场景：setEntity(String) 清掉兜底后，用 setKeyOrderBys 补回带前缀的唯一列
+        QueryDTO dto = new QueryDTO().setEntity("T_USER U JOIN T_ORG O ON U.ID = O.ID");
+        assertNull(orderByOf(dto));
+        dto.setKeyOrderBys("U.ID DESC");
+        assertEquals("U.ID DESC", orderByOf(dto));
+    }
+
+    @Test
+    void keyOrderBysOverridesEntityKey() {
+        QueryDTO dto = new QueryDTO().setEntity(User.class).setKeyOrderBys("AGE DESC", "ID");
+        assertEquals("AGE DESC,ID", orderByOf(dto));
+        dto.setOrderBys(List.of(new OrderBy("AGE", false)));
+        // 客户端已排 AGE，兜底剩余 ID
+        assertEquals("AGE,ID", orderByOf(dto));
+    }
+
+    @Test
+    void keyOrderBysIsAppendedAfterDefaultOrderBy() {
+        QueryDTO dto = new QueryDTO().setEntity(User.class)
+                .setKeyOrderBys("AGE")
+                .defaultOrderBy("NAME DESC");
+        assertEquals("NAME DESC,AGE", orderByOf(dto));
+    }
+
+    @Test
+    void blankKeyOrderBysIsIgnored() {
+        // 空白串不能被当成排序项，否则拼出 ORDER BY 后无内容的坏 SQL
+        QueryDTO dto = new QueryDTO().setEntity("T_USER U JOIN T_ORG O ON U.ID = O.ID");
+        dto.setKeyOrderBys("", "O.ID DESC");
+        assertEquals("O.ID DESC", orderByOf(dto));
+        dto.setKeyOrderBys("   ", "O.ID");
+        assertEquals("O.ID", orderByOf(dto));
+    }
+
+    @Test
+    void blankKeyOrderBysAloneClearsFallback() {
+        QueryDTO dto = new QueryDTO().setEntity(User.class).setKeyOrderBys("   ");
+        dto.setOrderBys(List.of(new OrderBy("AGE", false)));
+        assertEquals("AGE", orderByOf(dto));
+    }
+
+    @Test
+    void keyOrderBysAcceptsAscSuffix() {
+        QueryDTO dto = new QueryDTO().setEntity("T_USER U JOIN T_ORG O ON U.ID = O.ID");
+        dto.setKeyOrderBys("O.ID asc");
+        assertEquals("O.ID", orderByOf(dto));
+        dto.setKeyOrderBys("O.ID DESC");
+        assertEquals("O.ID DESC", orderByOf(dto));
+    }
+
+    @Test
+    void emptyKeyOrderBysClearsFallback() {
+        QueryDTO dto = new QueryDTO().setEntity(User.class);
+        assertEquals("ID", orderByOf(dto));
+        dto.setKeyOrderBys(new String[0]);
+        assertNull(orderByOf(dto));
+    }
+
+    @Test
+    void aliasedKeyOrderByFieldAccepted() {
+        QueryDTO dto = new QueryDTO().setEntity(User.class).setKeyOrderBys("U.ID DESC", "U.AGE");
+        assertEquals("U.ID DESC,U.AGE", orderByOf(dto));
+    }
+
+    @Test
     void pagingIsStableOnDuplicateSortValues() {
         createUserTable();
         // AGE 全部相同，只有主键能决定顺序

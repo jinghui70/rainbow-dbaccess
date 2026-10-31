@@ -34,22 +34,6 @@ public class OrderBy {
     }
 
     /**
-     * 解析排序串，是 {@link #toString()} 的逆运算。
-     * <p>
-     * 字段名后可跟 {@code ASC} / {@code DESC}（大小写不敏感），不写或写别的都按升序处理。
-     *
-     * @param text 排序串，如 {@code "NAME"} 或 {@code "NAME DESC"}
-     * @return 对应的 OrderBy 对象
-     */
-    public static OrderBy parse(String text) {
-        String value = text.trim();
-        int index = value.indexOf(' ');
-        if (index < 0) return new OrderBy(value, false);
-        return new OrderBy(value.substring(0, index),
-                "DESC".equalsIgnoreCase(value.substring(index + 1).trim()));
-    }
-
-    /**
      * 获取排序字段名。
      *
      * @return 排序字段名
@@ -93,6 +77,22 @@ public class OrderBy {
     @Override
     public String toString() {
         return desc ? DbaUtil.desc(field) : field;
+    }
+
+    /**
+     * 解析排序串，是 {@link #toString()} 的逆运算。
+     * <p>
+     * 字段名后可跟 {@code ASC} / {@code DESC}（大小写不敏感），不写或写别的都按升序处理。
+     *
+     * @param text 排序串，如 {@code "NAME"} 或 {@code "NAME DESC"}
+     * @return 对应的 OrderBy 对象
+     */
+    public static OrderBy parse(String text) {
+        String value = text.trim();
+        int index = value.indexOf(' ');
+        if (index < 0) return new OrderBy(value, false);
+        return new OrderBy(value.substring(0, index),
+                "DESC".equalsIgnoreCase(value.substring(index + 1).trim()));
     }
 
     /**

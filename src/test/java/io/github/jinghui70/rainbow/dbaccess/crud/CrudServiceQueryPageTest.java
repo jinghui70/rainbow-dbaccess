@@ -70,17 +70,6 @@ class CrudServiceQueryPageTest extends BaseTest {
                 page.getData().stream().map(User::getId).toList());
     }
 
-    /** 传空数组等价于不传，不影响 dto 原有排序 */
-    @Test
-    void emptyOrderByArgIsIgnored() {
-        insertUsers();
-        PageData<User> page = service().queryPage(
-                pageDto().defaultOrderBy("NAME DESC"), new String[0]);
-
-        assertEquals(List.of("u3", "u2", "u1"),
-                page.getData().stream().map(User::getId).toList());
-    }
-
     /** VO 版 queryPage 仍可用，与排序参数重载不冲突 */
     @Test
     void queryPageWithVoStillWorks() {

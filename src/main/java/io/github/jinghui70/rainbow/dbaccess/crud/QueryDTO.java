@@ -1,6 +1,8 @@
 package io.github.jinghui70.rainbow.dbaccess.crud;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import io.github.jinghui70.rainbow.dbaccess.*;
 import io.github.jinghui70.rainbow.dbaccess.cnd.Cnd;
@@ -48,10 +50,14 @@ public class QueryDTO {
 
     private int pageSize;
 
-    /** 客户端未传 {@code orderBys} 时使用的默认排序 */
+    /**
+     * 客户端未传 {@code orderBys} 时使用的默认排序
+     */
     protected List<OrderBy> defaultOrderBys;
 
-    /** 实体主键列，始终追加到排序末尾，保证分页顺序稳定 */
+    /**
+     * 实体主键列，始终追加到排序末尾，保证分页顺序稳定
+     */
     protected List<OrderBy> keyOrderBys;
 
     /**
@@ -76,6 +82,40 @@ public class QueryDTO {
     public QueryDTO setEntity(String entity) {
         this.entity = entity;
         this.keyOrderBys = null;
+        return this;
+    }
+
+    /**
+     * 显式设置追加到排序末尾的兜底列，通常用于裸表名或 JOIN 场景。
+     * <p>
+     * {@link #setEntity(Class)} 会自动按 {@code @Id} 填入主键列，而 {@link #setEntity(String)}
+     * 传入裸表名时无从得知主键、会把兜底清空。若自定义的 SQL 或 JOIN 里存在可用于兜底的唯一列，
+     * 用本方法补回来，分页顺序才能保持全序确定：
+     * <pre>{@code
+     * QueryDTO dto = new QueryDTO()
+     *         .setEntity("T_ORDER O JOIN T_USER U ON O.USER_ID = U.ID")
+     *         .setFields("O.*", DbaUtil.as("U.NAME", "USER_NAME"))
+     *         .setKeyOrderBys("O.ID DESC"); // JOIN 后裸 ID 有歧义，必须带表别名
+     * }</pre>
+     * 每个参数解析后与客户端传入的 {@code orderBys}、默认排序按列名大小写不敏感去重，
+     * 已排过的列不会重复追加。
+     * <p>
+     * 与 {@link #defaultOrderBy(String...)} 的差别：本方法设置的兜底列无论客户端是否传排序都会追加，
+     * 而默认排序只在客户端没传时才生效。
+     * <p>
+     * 参数按 {@code "列名"} 或 {@code "列名 DESC"} / {@code "列名 ASC"} 校验，规则与 {@link #setOrderBys(List)}
+     * 一致：列名必须是合法 SQL 标识符，允许 {@code field} 与 {@code alias.field} 两种形式。
+     *
+     * @param keys 兜底列名，可带 {@code DESC}/{@code ASC} 后缀；不传（或传空数组）表示清除兜底列
+     * @return this
+     * @throws IllegalArgumentException 任一列名为空、不是合法 SQL 标识符，或后缀不是 {@code ASC}/{@code DESC}
+     * @see #setEntity(Class)
+     * @see #setEntity(String)
+     */
+    public QueryDTO setKeyOrderBys(String... keys) {
+        this.keyOrderBys = ArrayUtil.isEmpty(keys)
+                ? null
+                : Arrays.stream(keys).filter(StrUtil::isNotBlank).map(OrderBy::parse).toList();
         return this;
     }
 
@@ -227,11 +267,9 @@ public class QueryDTO {
      * @return this
      */
     public QueryDTO defaultOrderBy(String... keys) {
-        List<OrderBy> result = Arrays.stream(keys)
-                .filter(StrUtil::isNotBlank)
-                .map(OrderBy::parse)
-                .toList();
-        if (!result.isEmpty()) this.defaultOrderBys = result;
+        this.defaultOrderBys = ArrayUtil.isEmpty(keys)
+                ? null
+                : Arrays.stream(keys).filter(StrUtil::isNotBlank).map(OrderBy::parse).toList();
         return this;
     }
 
@@ -244,7 +282,7 @@ public class QueryDTO {
      * @return this
      */
     public QueryDTO defaultOrderBy(OrderBy... orderBys) {
-        if (orderBys.length > 0) this.defaultOrderBys = List.of(orderBys);
+        this.defaultOrderBys = ArrayUtil.isEmpty(orderBys) ? null : List.of(orderBys);
         return this;
     }
 

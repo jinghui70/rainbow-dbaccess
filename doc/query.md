@@ -72,7 +72,7 @@ dba.select().from(User.class).whereByKey(User.class, "1").queryForObject(User.cl
 dba.select().from("T_USER").whereByObj(user).queryForList(User.class);
 ```
 
-`whereByKey` 会校验键值个数与 `@Id` 字段数一致，不一致直接抛 `IllegalArgumentException`；`whereByObj` 只读取主键属性，其它属性不进入 WHERE。两者都是链式中间方法，可继续接任意终结方法，也不限于查询——`dba.deleteFrom("T_USER").whereByObj(user).execute()` 同样成立。
+`whereByKey` 会校验键值个数与 `@Id` 字段数一致，不一致直接抛 `IllegalArgumentException`；`whereByObj` 从对象读取主键属性，其它属性不进入 WHERE，且主键属性值不能为 null，否则同样直接抛异常（避免拼出 `WHERE ID = null` 静默匹配不到行）。两者都是链式中间方法，可继续接任意终结方法，也不限于查询——`dba.deleteFrom("T_USER").whereByObj(user).execute()` 同样成立。
 
 ## 调试与底层访问
 

@@ -9,7 +9,7 @@
 
 - **`QueryDTO.setKeyOrderBys(String...)`**：显式设置分页排序末尾的兜底列，用于裸表名 / JOIN 场景——`setEntity(String)` 无从得知主键、会清空兜底列，此时用 `setKeyOrderBys("O.ID DESC")` 补回带表别名的唯一列，保证分页顺序全序确定。支持 `"列名"`、`"列名 ASC"` / `"列名 DESC"` 与 `alias.field` 形式，非法标识符直接拒绝；不传参数表示清除。与 `defaultOrderBy` 的差别：兜底列无论客户端是否传排序都会追加（已排过的列自动去重），默认排序只在客户端没传时生效
 - **`DbaUtil.as(field, alias)`**：生成 `field AS alias` 列表达式，用于 SELECT 列表取别名，典型场景是 JOIN 查询把列映射成 VO 属性名，如 `dto.setFields("O.*", DbaUtil.as("U.NAME", "USER_NAME"))`。两个参数原样拼接，合法性由调用方保证
-- **`Dba.updateOf(Class, Object)` 按 DTO 增量更新**：前端只提交部分字段的场景不必先查出完整实体——新建实体实例，拷贝 DTO 中非 null 的同名属性后按 `excludeNull` 更新，DTO 未携带的字段不会覆盖库中现有值；`INSERT_UPDATE` 字段（如更新时间）不受 excludeNull 影响而强制刷新。用法 `dba.updateOf(User.class, userDto)`。注意 DTO 中为 null 的属性不会清库，确需置 null 请走全量 `update`
+- **`Dba.update(Class, Object)` 按 DTO 更新**：前端提交表单等 DTO 场景不必先查出完整实体——新建实体实例，拷贝 DTO 的同名属性（含 null），以 `include` 列出「实体与 DTO 同名的非主键属性」更新。DTO 声明的属性全部参与更新（null 会把库中对应列更新为 null），未声明的属性不更新、保持原值；`INSERT_UPDATE` 字段（如更新时间）始终强制刷新。用法 `dba.update(User.class, userDto)`。DTO 必须声明非 null 的主键属性（否则无法定位记录，直接报错）；与实体没有同名非主键属性时也直接报错
 
 ## [6.5.1](https://github.com/jinghui70/rainbow-dbaccess/compare/v6.5.0..v6.5.1) (2026-10-29)
 

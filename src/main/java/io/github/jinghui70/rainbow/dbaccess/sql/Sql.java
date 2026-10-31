@@ -363,15 +363,19 @@ public class Sql extends StringBuilderWrapper<Sql> {
     /**
      * 按实体对象的主键属性值拼接 WHERE 条件（AND 连接）。
      * <p>与 {@link #whereByKey(Class, Object...)} 的区别是键值取自对象本身：按 {@code @Id} 字段声明顺序读取属性值。
+     * <p>主键值为 null 会拼出 {@code WHERE ID = null} 静默匹配不到任何行，因此直接抛出异常。
      * <p>示例：{@code dba.select().from(User.class).whereByObj(new User("1", ...))}
      *
      * @param object 包含主键值的实体对象，类上需用 {@code @Id} 标注主键
      * @return this
-     * @throws IllegalArgumentException 未定义主键时抛出
+     * @throws IllegalArgumentException 未定义主键，或主键属性值为 null 时抛出
      */
     public Sql whereByObj(@NonNull Object object) {
         for (PropInfo propInfo : DbaUtil.keyArray(object.getClass())) {
-            where(propInfo.getFieldName(), propInfo.getValue(object));
+            Object value = propInfo.getValue(object);
+            Assert.notNull(value, "{} 主键属性 {} 的值为 null",
+                    object.getClass().getName(), propInfo.getName());
+            where(propInfo.getFieldName(), value);
         }
         return this;
     }

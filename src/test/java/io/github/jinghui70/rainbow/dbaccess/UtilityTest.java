@@ -224,6 +224,12 @@ class UtilityTest extends BaseTest {
         assertEquals(List.of("u1"), sql.getParams());
     }
 
+    @Test void testWhereByObjNullKey() {
+        // 主键值为 null 会拼出 WHERE ID = null 静默匹配不到行，必须直接报错
+        assertThrows(IllegalArgumentException.class,
+                () -> dba.select().from("T_USER").whereByObj(new User(null, "Alice", 30, 1.5)));
+    }
+
     @Test void testWhereByObjComplex() {
         Sql sql = dba.select().from("T_COMPLEX_KEY")
                 .whereByObj(new ComplexKeyEntity("A", "B", "remark"));

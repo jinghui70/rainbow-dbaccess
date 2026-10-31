@@ -302,36 +302,84 @@ public class ValueGenTest extends BaseTest {
     }
 
     /**
-     * 测试 updateOf(Class, Object)：DTO 只带主键和部分字段，非 null 字段参与更新，
-     * INSERT_UPDATE 字段即使 DTO 未携带也强制刷新。
-     * <p>
-     * DTO 用独立静态类模拟前端提交的局部对象，属性名与实体一致。
+     * DTO 模拟前端提交的表单：只声明 id 和 name 两个属性，不含 code / createDate / updateTime。
+     */
+    static class GenDto {
+        private String id;
+        private String name;
+
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+    }
+
+    /**
+     * 测试 update(Class, Object)：DTO 只声明部分属性。
+     * 声明的属性全部参与更新（值可为 null），未声明的属性不更新，INSERT_UPDATE 字段强制刷新。
      */
     @Test
-    void testUpdateOfDtoForcesInsertUpdateField() throws InterruptedException {
+    void testUpdateDtoForcesInsertUpdateField() throws InterruptedException {
         createGenTable();
         GenEntity e = new GenEntity("Jack");
+        e.setCode("ORD-001");
         dba.insert(e);
-        String codeBefore = e.getCode();
+        String createDateBefore = e.getCreateDate();
         LocalDateTime insertUpdateTime = e.getUpdateTime();
         Thread.sleep(2);
 
-        // DTO 只带 id 和 name，updateTime / code / createDate 均为 null
-        GenEntity dto = new GenEntity("Jack Updated");
+        // DTO 只声明 id 和 name；name 显式置 null
+        GenDto dto = new GenDto();
         dto.setId(e.getId());
-        int rows = dba.updateOf(GenEntity.class, dto);
+        int rows = dba.update(GenEntity.class, dto);
 
         assertEquals(1, rows);
         GenEntity r = dba.selectByKey(GenEntity.class, e.getId());
-        // DTO 非 null 字段被更新
-        assertEquals("Jack Updated", r.getName());
-        // DTO 为 null 的字段不清库：code 保持原值
-        assertEquals(codeBefore, r.getCode());
+        // DTO 声明的属性值为 null，清库
+        assertNull(r.getName(), "DTO 声明的属性即使为 null 也应更新");
+        // DTO 未声明的属性不更新，保持原值
+        assertEquals("ORD-001", r.getCode());
+        assertEquals(createDateBefore, r.getCreateDate());
         // INSERT_UPDATE 字段强制刷新
         assertNotNull(r.getUpdateTime());
         assertTrue(r.getUpdateTime().isAfter(insertUpdateTime),
                 "DTO 未带 updateTime 也应强制刷新：插入时=" + insertUpdateTime
                         + ", 更新后=" + r.getUpdateTime());
+    }
+
+    /**
+     * 测试 update(Class, Object)：DTO 必须声明主键且值非 null，否则直接报错，
+     * 避免拼出 WHERE ID = null 静默更新 0 行。
+     */
+    @Test
+    void testUpdateDtoRequiresKey() {
+        createGenTable();
+        // 未声明主键属性
+        assertThrows(IllegalArgumentException.class, () -> dba.update(GenEntity.class, new Object()));
+        // 声明了主键但值为 null
+        GenDto noKeyDto = new GenDto();
+        assertThrows(IllegalArgumentException.class, () -> dba.update(GenEntity.class, noKeyDto));
+    }
+
+    /**
+     * DTO 只声明主键，没有任何非主键属性。
+     */
+    static class KeyOnlyDto {
+        private String id;
+
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+    }
+
+    /**
+     * 测试 update(Class, Object)：DTO 与实体没有同名的非主键属性时直接报错，
+     * 避免 include 为空拼出没有 SET 内容的 UPDATE。
+     */
+    @Test
+    void testUpdateDtoWithoutMatchingPropsThrows() {
+        KeyOnlyDto dto = new KeyOnlyDto();
+        dto.setId("any");
+        assertThrows(IllegalArgumentException.class, () -> dba.update(GenEntity.class, dto));
     }
 
     @Configuration

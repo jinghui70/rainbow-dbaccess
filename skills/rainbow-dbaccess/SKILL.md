@@ -682,7 +682,7 @@ public class UserController extends CrudController<User> {
 | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | `from(table)` / `from(Class)`                                             | FROM，接受原始片段（可写 JOIN）                                                                                                             |
 | `where(...)` / `and(...)` / `or(...)`                                     | 条件，重载：`(str)`、`(field,value)`、`(field,Op,value)`、`(Cnd)`、`(List<Cnd>)`，及条件开关 `(boolean, ...)` 和 `(boolean, Supplier<Cnd>)` |
-| `whereByKey(Class, keys...)` / `whereByObj(obj)`                          | 按 `@Id` 生成主键条件：前者传键值（校验个数），后者取自对象；`Dba.selectByKey`/`deleteByKey` 内部即此二者 |
+| `whereByKey(Class, keys...)` / `whereByObj(obj)`                          | 按 `@Id` 生成主键条件：前者传键值（校验个数），后者取自对象（主键值非 null，否则报错）；`Dba.selectByKey`/`deleteByKey` 内部即此二者 |
 | `append(Sql)` / `append(Cnd)`                                             | 追加（原样拼接，注意空格）                                                                                                                  |
 | `addParam(...)` / `addParams(List)` / `setParam(...)` / `setParams(List)` | 参数管理                                                                                                                                    |
 | `orderBy(fields...)` / `orderBy(List<OrderBy>)` / `groupBy(fields...)`    | 排序 / 分组；字段串里可带 ` DESC`，或用 `DbaUtil.desc(field)`                                                                               |

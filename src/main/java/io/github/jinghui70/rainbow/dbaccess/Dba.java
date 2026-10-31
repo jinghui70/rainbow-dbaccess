@@ -1,7 +1,7 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.bean.copier.CopyOptions;
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.db.dialect.DriverNamePool;
 import cn.hutool.db.dialect.DriverUtil;
@@ -10,6 +10,8 @@ import io.github.jinghui70.rainbow.dbaccess.dialect.DialectDefault;
 import io.github.jinghui70.rainbow.dbaccess.dialect.DialectOracle;
 import io.github.jinghui70.rainbow.dbaccess.dialect.DialectPostgreSQL;
 import io.github.jinghui70.rainbow.dbaccess.object.BeanMapper;
+import io.github.jinghui70.rainbow.dbaccess.object.PropInfo;
+import io.github.jinghui70.rainbow.dbaccess.object.PropInfoCache;
 import io.github.jinghui70.rainbow.dbaccess.sql.*;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -19,7 +21,10 @@ import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.sql.DataSource;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import static io.github.jinghui70.rainbow.dbaccess.DbaUtil.validTableName;
 
@@ -320,6 +325,49 @@ public class Dba {
     }
 
     /**
+     * 按 DTO 对象更新实体表，实体类的强制更新字段（{@code @GeneratedValue(timing = INSERT_UPDATE)}，
+     * 如更新时间）始终重新生成。
+     * <p>
+     * 新建一个 {@code entityClass} 实例，把 DTO 的同名属性（含 null）拷贝过去，再以 {@code include}
+     * 列出「实体与 DTO 同名的非主键属性」执行更新：
+     * <ul>
+     *   <li>DTO <b>声明了</b>的属性（无论值是否为 null）都会更新，null 会把库中对应列更新为 null；</li>
+     *   <li>DTO <b>未声明</b>的属性不更新，库中保持原值；</li>
+     *   <li>主键不进 SET，只拷贝到实体用于生成 WHERE 条件。</li>
+     * </ul>
+     * <p>
+     * 主键值取自 DTO：必须声明全部主键属性且值非 null，否则无法定位记录，直接抛异常；
+     * 主键只用于生成 WHERE 条件，不参与 SET。
+     * <p>
+     * 示例：{@code dba.update(User.class, userDto)}。
+     * <p>
+     * 与 {@link #update(Object)} 的区别：本方法接受独立于实体的 DTO（如前端提交的表单），
+     * 属性是实体的子集即可，不必是实体类型。
+     *
+     * @param entityClass 实体类，决定更新的表和字段映射，需用 {@code @Id} 标注主键
+     * @param dto         携带实体数据的 DTO 对象，须含非 null 的主键属性；已声明的同名非主键属性参与更新（含 null）
+     * @return 受影响行数
+     * @throws IllegalArgumentException 实体未定义 {@code @Id} 主键、DTO 未声明主键属性或主键值为 null、
+     *                                  DTO 与实体没有同名的非主键属性时抛出
+     */
+    public int update(@NonNull Class<?> entityClass, @NonNull Object dto) {
+        Object entity = ReflectUtil.newInstance(entityClass);
+        BeanUtil.copyProperties(dto, entity);
+        // 主键必须由 DTO 提供且非 null，否则 WHERE 条件无法定位记录
+        DbaUtil.keyArray(entityClass).forEach(key ->
+                Assert.notNull(key.getValue(entity), "DTO {} 缺少主键属性 {} 或其值为 null",
+                        dto.getClass().getName(), key.getName()));
+        Set<String> dtoProps = new HashSet<>();
+        BeanUtil.getBeanDesc(dto.getClass()).getProps().forEach(p -> dtoProps.add(p.getRawFieldName()));
+        List<String> props = PropInfoCache.get(entityClass).values().stream()
+                .filter(p -> p.getId() == null && dtoProps.contains(p.getName()))
+                .map(PropInfo::getName)
+                .toList();
+        Assert.notEmpty(props, "{} 与 {} 没有同名的非主键属性", dto.getClass().getName(), entityClass.getName());
+        return new UpdateBuilder(this, entity).include(props).execute();
+    }
+
+    /**
      * 创建更新构建器（Bean 模式），用于部分更新场景，如 include/exclude/excludeNull。
      * <p>以主键生成 WHERE 条件，需用 {@link io.github.jinghui70.rainbow.dbaccess.annotation.Id} 标注主键。
      *
@@ -328,32 +376,6 @@ public class Dba {
      */
     public UpdateBuilder updateOf(@NonNull Object bean) {
         return new UpdateBuilder(this, bean);
-    }
-
-    /**
-     * 按主键增量更新 DTO 对象，实体类的强制更新字段（{@code @GeneratedValue(timing = INSERT_UPDATE)}，
-     * 如更新时间）始终重新生成。
-     * <p>
-     * 典型场景：前端提交一个只带部分字段的 DTO（含主键），只更新非 null 的字段，不想先查出完整实体再回填。
-     * 实现方式：新建一个 {@code entityClass} 实例，把 DTO 中非 null 的同名属性拷贝过去，再按
-     * {@code excludeNull} 模式更新，DTO 没带的字段不会覆盖数据库里的现有值；INSERT_UPDATE 字段
-     * 不受 excludeNull 影响而强制刷新。
-     * <p>
-     * 示例：{@code dba.updateOf(User.class, userDto)} —— DTO 的 {@code id} + {@code name} 非 null 时，
-     * 实际执行 {@code UPDATE T_USER SET NAME=?, UPDATE_TIME=? WHERE ID=?}。
-     * <p>
-     * 注意：DTO 中值为 {@code null} 的属性不会清除数据库中的对应列；确实要把某列更新为 null，
-     * 请先查出实体改值后走 {@link #update(Object)} 全量更新。
-     *
-     * @param entityClass 实体类，决定更新的表和字段映射，需用 {@code @Id} 标注主键
-     * @param dto         携带主键与待更新字段值的 DTO 对象，属性名与实体一致的非 null 值才会被更新
-     * @return 受影响行数
-     * @throws IllegalArgumentException 实体未定义 {@code @Id} 主键时抛出
-     */
-    public int updateOf(@NonNull Class<?> entityClass, @NonNull Object dto) {
-        Object entity = ReflectUtil.newInstance(entityClass);
-        BeanUtil.copyProperties(dto, entity, CopyOptions.create().ignoreNullValue());
-        return new UpdateBuilder(this, entity).excludeNull().execute();
     }
 
     private static final String DELETE_FROM = "DELETE FROM ";

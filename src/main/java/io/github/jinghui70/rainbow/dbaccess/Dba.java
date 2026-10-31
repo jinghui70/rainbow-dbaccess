@@ -1,5 +1,8 @@
 package io.github.jinghui70.rainbow.dbaccess;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
+import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.db.dialect.DriverNamePool;
 import cn.hutool.db.dialect.DriverUtil;
 import io.github.jinghui70.rainbow.dbaccess.dialect.Dialect;
@@ -325,6 +328,32 @@ public class Dba {
      */
     public UpdateBuilder updateOf(@NonNull Object bean) {
         return new UpdateBuilder(this, bean);
+    }
+
+    /**
+     * 按主键增量更新 DTO 对象，实体类的强制更新字段（{@code @GeneratedValue(timing = INSERT_UPDATE)}，
+     * 如更新时间）始终重新生成。
+     * <p>
+     * 典型场景：前端提交一个只带部分字段的 DTO（含主键），只更新非 null 的字段，不想先查出完整实体再回填。
+     * 实现方式：新建一个 {@code entityClass} 实例，把 DTO 中非 null 的同名属性拷贝过去，再按
+     * {@code excludeNull} 模式更新，DTO 没带的字段不会覆盖数据库里的现有值；INSERT_UPDATE 字段
+     * 不受 excludeNull 影响而强制刷新。
+     * <p>
+     * 示例：{@code dba.updateOf(User.class, userDto)} —— DTO 的 {@code id} + {@code name} 非 null 时，
+     * 实际执行 {@code UPDATE T_USER SET NAME=?, UPDATE_TIME=? WHERE ID=?}。
+     * <p>
+     * 注意：DTO 中值为 {@code null} 的属性不会清除数据库中的对应列；确实要把某列更新为 null，
+     * 请先查出实体改值后走 {@link #update(Object)} 全量更新。
+     *
+     * @param entityClass 实体类，决定更新的表和字段映射，需用 {@code @Id} 标注主键
+     * @param dto         携带主键与待更新字段值的 DTO 对象，属性名与实体一致的非 null 值才会被更新
+     * @return 受影响行数
+     * @throws IllegalArgumentException 实体未定义 {@code @Id} 主键时抛出
+     */
+    public int updateOf(@NonNull Class<?> entityClass, @NonNull Object dto) {
+        Object entity = ReflectUtil.newInstance(entityClass);
+        BeanUtil.copyProperties(dto, entity, CopyOptions.create().ignoreNullValue());
+        return new UpdateBuilder(this, entity).excludeNull().execute();
     }
 
     private static final String DELETE_FROM = "DELETE FROM ";

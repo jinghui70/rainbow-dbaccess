@@ -301,6 +301,39 @@ public class ValueGenTest extends BaseTest {
                 "插入时=" + insertUpdateTime + ", 更新后=" + r.getUpdateTime());
     }
 
+    /**
+     * 测试 updateOf(Class, Object)：DTO 只带主键和部分字段，非 null 字段参与更新，
+     * INSERT_UPDATE 字段即使 DTO 未携带也强制刷新。
+     * <p>
+     * DTO 用独立静态类模拟前端提交的局部对象，属性名与实体一致。
+     */
+    @Test
+    void testUpdateOfDtoForcesInsertUpdateField() throws InterruptedException {
+        createGenTable();
+        GenEntity e = new GenEntity("Jack");
+        dba.insert(e);
+        String codeBefore = e.getCode();
+        LocalDateTime insertUpdateTime = e.getUpdateTime();
+        Thread.sleep(2);
+
+        // DTO 只带 id 和 name，updateTime / code / createDate 均为 null
+        GenEntity dto = new GenEntity("Jack Updated");
+        dto.setId(e.getId());
+        int rows = dba.updateOf(GenEntity.class, dto);
+
+        assertEquals(1, rows);
+        GenEntity r = dba.selectByKey(GenEntity.class, e.getId());
+        // DTO 非 null 字段被更新
+        assertEquals("Jack Updated", r.getName());
+        // DTO 为 null 的字段不清库：code 保持原值
+        assertEquals(codeBefore, r.getCode());
+        // INSERT_UPDATE 字段强制刷新
+        assertNotNull(r.getUpdateTime());
+        assertTrue(r.getUpdateTime().isAfter(insertUpdateTime),
+                "DTO 未带 updateTime 也应强制刷新：插入时=" + insertUpdateTime
+                        + ", 更新后=" + r.getUpdateTime());
+    }
+
     @Configuration
     static class SpringGenConfig {
         @Bean

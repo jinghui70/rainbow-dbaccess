@@ -74,6 +74,26 @@ public abstract class DbaUtil {
     }
 
     /**
+     * 生成带别名的列表达式。
+     * <p>
+     * 用于 SELECT 列表里给列取别名，典型场景是 JOIN 查询把列名映射成 VO 的属性名：
+     * <pre>{@code
+     * dto.setFields("O.*", DbaUtil.as("U.NAME", "USER_NAME"));
+     * // => SELECT O.*,U.NAME AS USER_NAME
+     * }</pre>
+     * 两个参数都按原样拼接，不加引号、不做标识符校验；字段名和别名应由调用方保证合法，
+     * 别名建议写成常量，不要来自前端输入。
+     *
+     * @param field 列名，可带表别名前缀，如 {@code "U.NAME"}
+     * @param alias 列别名，如 {@code "USER_NAME"}
+     * @return {@code "field AS alias"}
+     * @see #desc(String)
+     */
+    public static String as(String field, String alias) {
+        return field + " AS " + alias;
+    }
+
+    /**
      * 根据实体类推导表名。
      * <p>
      * 若类标注了 {@link Table} 注解则取注解值；否则将类名转为下划线大写作为表名。
